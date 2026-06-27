@@ -359,21 +359,31 @@ async function panelBaslat() {
 async function binalariYukle() {
   tumBinalar = {};
   try {
-    const snap = await db.collection('binalar').get();
-    const bekle = [];
-    snap.forEach(doc => {
-      bekle.push(
-        db.collection('binalar').doc(doc.id).collection('veri').doc('data').get().then(v => {
-          tumBinalar[doc.id] = { id: doc.id, ad: doc.id, veri: v.exists ? v.data() : {} };
-          if(v.exists && v.data().ayarlar && v.data().ayarlar.binaAdi) {
-            tumBinalar[doc.id].ad = v.data().ayarlar.binaAdi;
-          }
-        })
-      );
-    });
-    await Promise.all(bekle);
-  } catch(e) { toast('Yükleme hatası: ' + e.message, '#da3633'); }
+    const fs = firebase.firestore();
+    const snap = await fs.collection('binalar').get();
+    console.log('Bina koleksiyonu:', snap.size, 'kayıt');
+    
+    for(const doc of snap.docs) {
+      try {
+        const veriSnap = await fs.collection('binalar').doc(doc.id)
+          .collection('veri').doc('data').get();
+        
+        const veri = veriSnap.exists ? veriSnap.data() : {};
+        const ad = (veri.ayarlar && veri.ayarlar.binaAdi) ? veri.ayarlar.binaAdi : doc.id;
+        
+        tumBinalar[doc.id] = { id: doc.id, ad: ad, veri: veri };
+        console.log('Bina yüklendi:', ad, doc.id);
+      } catch(e) {
+        console.error('Bina veri hatası:', doc.id, e);
+        tumBinalar[doc.id] = { id: doc.id, ad: doc.id, veri: {} };
+      }
+    }
+  } catch(e) {
+    console.error('Yükleme hatası:', e);
+    toast('Yükleme hatası: ' + e.message, '#da3633');
+  }
   binaSelects();
+  console.log('Toplam yüklenen bina:', Object.keys(tumBinalar).length);
 }
 
 function binaSelects() {
