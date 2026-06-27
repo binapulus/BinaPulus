@@ -2,2526 +2,735 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BinaPlus — Süper Admin</title>
-
-<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
 <style>
-:root {
-  --bg: #0d1117;
-  --card: #161b22;
-  --card2: #1c2128;
-  --border: rgba(255,255,255,0.08);
-  --accent: #2f81f7;
-  --accent2: #3fb950;
-  --warn: #f85149;
-  --warn2: #e3b341;
-  --text: #e6edf3;
-  --sub: #8b949e;
-  --radius: 12px;
-}
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
-
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  font-size: 14px;
-  min-height: 100vh;
-}
-
-/* ── GİRİŞ EKRANI ── */
-#girisEkrani {
-  position: fixed; inset: 0;
-  background: linear-gradient(135deg, #0d1117, #161b22);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100;
-}
-.giris-kutu {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 36px 32px;
-  width: 100%; max-width: 360px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
-}
-.giris-logo { font-size: 32px; text-align: center; margin-bottom: 8px; }
-.giris-baslik { font-size: 20px; font-weight: 700; text-align: center; margin-bottom: 4px; }
-.giris-alt { font-size: 12px; color: var(--sub); text-align: center; margin-bottom: 28px; }
-.giris-hata {
-  background: rgba(248,81,73,0.15); color: var(--warn);
-  border: 1px solid rgba(248,81,73,0.3);
-  border-radius: 8px; padding: 10px 14px;
-  font-size: 12px; font-weight: 600;
-  margin-bottom: 12px; display: none;
-}
-
-/* ── LAYOUT ── */
-#adminPanel { display: none; }
-.topbar {
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
-  display: flex; align-items: center; justify-content: space-between;
-  height: 56px; position: sticky; top: 0; z-index: 50;
-}
-.topbar-logo { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-.topbar-logo span { font-size: 20px; }
-.topbar-right { display: flex; align-items: center; gap: 12px; }
-.badge-admin {
-  background: rgba(47,129,247,0.15); color: var(--accent);
-  border: 1px solid rgba(47,129,247,0.3);
-  border-radius: 20px; padding: 4px 12px;
-  font-size: 11px; font-weight: 700;
-}
-.btn-cikis {
-  background: rgba(248,81,73,0.1); color: var(--warn);
-  border: 1px solid rgba(248,81,73,0.2);
-  border-radius: 8px; padding: 6px 14px;
-  font-size: 12px; font-weight: 700; cursor: pointer;
-}
-
-.container { max-width: 1100px; margin: 0 auto; padding: 24px 16px; }
-
-/* ── SEKMELER ── */
-.tabs {
-  display: flex; gap: 4px;
-  background: var(--card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 4px;
-  margin-bottom: 24px; overflow-x: auto;
-}
-.tab-btn {
-  flex: 1; min-width: 100px;
-  padding: 9px 14px;
-  background: none; border: none;
-  border-radius: 9px;
-  color: var(--sub); font-size: 12px; font-weight: 700;
-  cursor: pointer; white-space: nowrap; transition: .15s;
-}
-.tab-btn.active { background: var(--accent); color: #fff; }
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
-
-/* ── KARTLAR ── */
-.kart {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 16px;
-}
-.kart-baslik {
-  font-size: 13px; font-weight: 700;
-  color: var(--sub); text-transform: uppercase;
-  letter-spacing: .5px; margin-bottom: 16px;
-  display: flex; align-items: center; gap: 8px;
-}
-
-/* ── GRID ── */
-.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
-@media(max-width:640px) { .grid-2,.grid-3 { grid-template-columns: 1fr; } }
-
-/* ── STAT KUTU ── */
-.stat-kutu {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px; padding: 16px;
-  text-align: center;
-}
-.stat-deger { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
-.stat-etiket { font-size: 11px; color: var(--sub); font-weight: 600; }
-
-/* ── FORM ── */
-.form-grup { margin-bottom: 14px; }
-.form-etiket { font-size: 12px; color: var(--sub); font-weight: 700; display: block; margin-bottom: 6px; }
-.form-input {
-  width: 100%; padding: 10px 14px;
-  background: var(--card2); border: 1px solid var(--border);
-  border-radius: 9px; color: var(--text);
-  font-size: 13px; font-family: inherit;
-  transition: border-color .15s;
-}
-.form-input:focus { outline: none; border-color: var(--accent); }
-
-/* ── BUTONLAR ── */
-.btn {
-  padding: 10px 18px; border: none; border-radius: 9px;
-  font-size: 13px; font-weight: 700; font-family: inherit;
-  cursor: pointer; transition: .15s;
-}
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { filter: brightness(1.1); }
-.btn-success { background: var(--accent2); color: #fff; }
-.btn-danger { background: var(--warn); color: #fff; }
-.btn-warn { background: var(--warn2); color: #000; }
-.btn-ghost {
-  background: var(--card2); color: var(--text);
-  border: 1px solid var(--border);
-}
-.btn-sm { padding: 5px 10px; font-size: 11px; }
-
-/* ── BİNA KARTI ── */
-.bina-kart {
-  background: var(--card2);
-  border: 1px solid var(--border);
-  border-radius: 10px; padding: 16px;
-  margin-bottom: 10px;
-  display: flex; align-items: center; gap: 14px;
-}
-.bina-ikon { font-size: 28px; flex-shrink: 0; }
-.bina-bilgi { flex: 1; min-width: 0; }
-.bina-ad { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-.bina-meta { font-size: 11px; color: var(--sub); display: flex; gap: 12px; flex-wrap: wrap; }
-.bina-islemler { display: flex; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
-
-/* ── SAKIN SATIRI ── */
-.sakin-satir {
-  display: flex; align-items: center; gap: 10px;
-  padding: 10px 12px;
-  background: var(--card2); border-radius: 8px;
-  margin-bottom: 6px;
-}
-.sakin-no { font-weight: 800; color: var(--accent); min-width: 50px; font-size: 13px; }
-.sakin-ad { flex: 1; font-size: 13px; }
-.sakin-durum { font-size: 11px; font-weight: 700; }
-.durum-borc { color: var(--warn); }
-.durum-ok { color: var(--accent2); }
-
-/* ── LOG ── */
-.log-satir {
-  padding: 8px 12px; border-bottom: 1px solid var(--border);
-  font-size: 12px; display: flex; gap: 10px;
-}
-.log-zaman { color: var(--sub); min-width: 130px; }
-.log-mesaj { flex: 1; }
-.log-bina { color: var(--accent); font-weight: 700; min-width: 100px; }
-
-/* ── DURUM ── */
-.durum-bar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 14px; border-radius: 9px;
-  margin-bottom: 8px; font-size: 13px; font-weight: 600;
-}
-.durum-ok-bar { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.2); color: var(--accent2); }
-.durum-warn-bar { background: rgba(227,179,65,0.1); border: 1px solid rgba(227,179,65,0.2); color: var(--warn2); }
-.durum-hata-bar { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.2); color: var(--warn); }
-
-/* ── TOAST ── */
-.toast-admin {
-  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-  background: #238636; color: #fff;
-  padding: 12px 24px; border-radius: 10px;
-  font-size: 13px; font-weight: 700;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-  z-index: 999; display: none;
-}
-
-/* ── MODAL ── */
-.modal-bg {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,0.7); z-index: 200;
-  align-items: center; justify-content: center; padding: 16px;
-}
-.modal-bg.ac { display: flex; }
-.modal-kutu {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 16px; padding: 28px 24px;
-  width: 100%; max-width: 420px;
-}
-.modal-baslik {
-  font-size: 16px; font-weight: 700;
-  margin-bottom: 20px;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.modal-kapat {
-  background: none; border: none; color: var(--sub);
-  font-size: 18px; cursor: pointer;
-}
-
-/* ── TABLO ── */
-.tablo { width: 100%; border-collapse: collapse; font-size: 13px; }
-.tablo th { text-align: left; padding: 10px 12px; color: var(--sub); font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--border); }
-.tablo td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-.tablo tr:last-child td { border-bottom: none; }
-.tablo tr:hover td { background: var(--card2); }
-
-/* ── SWITCH ── */
-.switch-grup { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
-.switch-bilgi { flex: 1; }
-.switch-ad { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
-.switch-aciklama { font-size: 11px; color: var(--sub); }
-.switch { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
-.switch input { display: none; }
-.switch-slider {
-  position: absolute; inset: 0;
-  background: var(--card2); border: 1px solid var(--border);
-  border-radius: 24px; cursor: pointer; transition: .2s;
-}
-.switch-slider::before {
-  content: ''; position: absolute;
-  width: 18px; height: 18px;
-  left: 2px; top: 2px;
-  background: var(--sub); border-radius: 50%; transition: .2s;
-}
-.switch input:checked + .switch-slider { background: var(--accent); border-color: var(--accent); }
-.switch input:checked + .switch-slider::before { left: 22px; background: #fff; }
-
-/* ── PROGRESS ── */
-.progress-bar { height: 6px; background: var(--card2); border-radius: 3px; overflow: hidden; }
-.progress-fill { height: 100%; border-radius: 3px; transition: width .3s; }
-
-/* ── YÜKLEME ── */
-.yukleniyor { text-align: center; padding: 40px; color: var(--sub); }
-.spin { display: inline-block; animation: spin 1s linear infinite; font-size: 24px; }
-@keyframes spin { to { transform: rotate(360deg); } }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#e6edf3;min-height:100vh}
+/* GİRİŞ */
+#girisEkrani{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#0d1117;z-index:999}
+.giris-kutu{background:#161b22;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:40px 32px;width:100%;max-width:360px}
+.giris-logo{text-align:center;font-size:40px;margin-bottom:8px}
+.giris-baslik{text-align:center;font-size:22px;font-weight:800;margin-bottom:4px}
+.giris-alt{text-align:center;font-size:13px;color:#8b949e;margin-bottom:28px}
+.giris-hata{background:rgba(248,81,73,0.15);color:#f85149;border:1px solid rgba(248,81,73,0.3);border-radius:8px;padding:10px;font-size:12px;font-weight:600;margin-bottom:12px;display:none;text-align:center}
+.form-label{font-size:12px;color:#8b949e;font-weight:700;display:block;margin-bottom:6px}
+.form-input{width:100%;padding:10px 14px;background:#0d1117;border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#e6edf3;font-size:14px;font-family:inherit;margin-bottom:14px}
+.form-input:focus{outline:none;border-color:#2f81f7}
+.btn-giris{width:100%;padding:12px;background:#2f81f7;border:none;border-radius:9px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
+.btn-giris:hover{background:#1f6ce8}
+/* PANEL */
+#adminPanel{display:none}
+.topbar{background:#161b22;border-bottom:1px solid rgba(255,255,255,0.08);padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-logo{font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px}
+.topbar-logo span{font-size:22px}
+.btn-cikis{background:rgba(248,81,73,0.1);color:#f85149;border:1px solid rgba(248,81,73,0.2);border-radius:8px;padding:6px 14px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.container{max-width:1000px;margin:0 auto;padding:24px 16px}
+/* SEKMELER */
+.tabs{display:flex;gap:4px;background:#161b22;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:4px;margin-bottom:24px;overflow-x:auto}
+.tab{flex:1;min-width:90px;padding:8px 12px;background:none;border:none;border-radius:8px;color:#8b949e;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.tab.aktif{background:#2f81f7;color:#fff}
+.panel{display:none}
+.panel.aktif{display:block}
+/* KARTLAR */
+.kart{background:#161b22;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:20px;margin-bottom:16px}
+.kart-baslik{font-size:12px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+/* BUTONLAR */
+.btn{padding:9px 16px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.btn-yesil{background:#238636;color:#fff}
+.btn-mavi{background:#2f81f7;color:#fff}
+.btn-kirmizi{background:#da3633;color:#fff}
+.btn-gri{background:rgba(255,255,255,0.08);color:#e6edf3;border:1px solid rgba(255,255,255,0.1)}
+.btn-sm{padding:5px 10px;font-size:11px}
+/* TABLO */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 12px;color:#8b949e;font-size:11px;text-transform:uppercase;border-bottom:1px solid rgba(255,255,255,0.08);text-align:left}
+td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,0.06);vertical-align:middle}
+/* STAT */
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.stat{background:#161b22;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:16px;text-align:center}
+.stat-sayi{font-size:30px;font-weight:900;margin-bottom:4px}
+.stat-etiket{font-size:11px;color:#8b949e;font-weight:600}
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grup{margin-bottom:12px}
+/* TOAST */
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#238636;color:#fff;padding:10px 24px;border-radius:10px;font-size:13px;font-weight:700;display:none;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.4)}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal-bg.ac{display:flex}
+.modal-kutu{background:#161b22;border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:28px 24px;width:100%;max-width:400px}
+.modal-baslik{font-size:16px;font-weight:800;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center}
+.modal-kapat{background:none;border:none;color:#8b949e;font-size:18px;cursor:pointer}
+/* BINA KARTI */
+.bina-kart{background:#1c2128;border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.bina-ikon{font-size:26px;flex-shrink:0}
+.bina-bilgi{flex:1;min-width:0}
+.bina-ad{font-size:14px;font-weight:700;margin-bottom:3px}
+.bina-meta{font-size:11px;color:#8b949e}
+.bina-btnler{display:flex;gap:6px;flex-shrink:0}
+/* PROGRESS */
+.progress{height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px}
+@media(max-width:600px){.stat-grid{grid-template-columns:1fr 1fr}.form-row{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 
-
-<!-- ═══ FİREBASE KURULUM EKRANI ═══ -->
-<div id="kurulumEkrani" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#0d1117,#1a2332);z-index:200;overflow-y:auto;padding:24px">
-  <div style="max-width:520px;margin:0 auto;padding-top:40px">
-    <div style="text-align:center;margin-bottom:32px">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 140" width="200" height="58" style="display:block;margin:0 auto 12px">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a1a1a"/>
-      <stop offset="100%" style="stop-color:#0a0a0a"/>
-    </linearGradient>
-    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00C853"/>
-      <stop offset="100%" style="stop-color:#00796B"/>
-    </linearGradient>
-    <linearGradient id="binaOn" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#2a2a2a"/>
-      <stop offset="100%" style="stop-color:#111111"/>
-    </linearGradient>
-    <linearGradient id="binaYan" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#1a1a1a"/>
-      <stop offset="100%" style="stop-color:#0d0d0d"/>
-    </linearGradient>
-    <linearGradient id="binaUst" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3a3a3a"/>
-      <stop offset="100%" style="stop-color:#222222"/>
-    </linearGradient>
-    <linearGradient id="camGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00C853;stop-opacity:0.9"/>
-      <stop offset="100%" style="stop-color:#004D40;stop-opacity:0.7"/>
-    </linearGradient>
-    <linearGradient id="zeminGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#00C853;stop-opacity:0.15"/>
-      <stop offset="100%" style="stop-color:#00C853;stop-opacity:0"/>
-    </linearGradient>
-
-    <!-- ALTIN gradient — "Bina" yazısı -->
-    <linearGradient id="altinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FFD700"/>
-      <stop offset="40%" style="stop-color:#FFA500"/>
-      <stop offset="100%" style="stop-color:#B8860B"/>
-    </linearGradient>
-    <!-- ALTIN parlama — üst ışık -->
-    <linearGradient id="altinParla" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#FFF176"/>
-      <stop offset="50%" style="stop-color:#FFD700"/>
-      <stop offset="100%" style="stop-color:#F9A825"/>
-    </linearGradient>
-
-    <!-- Plus yeşil gradient -->
-    <linearGradient id="textPlus" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#00C853"/>
-      <stop offset="100%" style="stop-color:#00E676"/>
-    </linearGradient>
-
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="rgba(0,200,83,0.25)"/>
-    </filter>
-    <filter id="altinGlow">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(255,215,0,0.4)"/>
-    </filter>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-
-  <!-- Arka plan ikon kutu -->
-  <rect x="6" y="6" width="128" height="128" rx="24" fill="url(#bgGrad)" filter="url(#shadow)"/>
-
-  <!-- Zemin yansıma -->
-  <ellipse cx="70" cy="122" rx="45" ry="8" fill="url(#zeminGrad)"/>
-
-  <!-- ══ 3D BİNA ANA ══ -->
-  <polygon points="90,28 110,40 110,108 90,96" fill="url(#binaYan)"/>
-  <polygon points="40,40 90,28 90,96 40,108" fill="url(#binaOn)"/>
-  <polygon points="40,40 90,28 110,40 60,52" fill="url(#binaUst)"/>
-
-  <!-- Ön pencereler -->
-  <rect x="46" y="50" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="60" y="47" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="74" y="44" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.5"/>
-  <rect x="46" y="63" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.5"/>
-  <rect x="60" y="60" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="74" y="57" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.7"/>
-  <rect x="46" y="76" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="60" y="73" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.4"/>
-  <rect x="74" y="70" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="46" y="89" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.6"/>
-  <rect x="60" y="86" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="74" y="83" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.5"/>
-
-  <!-- Yan pencereler -->
-  <rect x="93" y="48" width="13" height="7" rx="1" fill="url(#camGrad)" opacity="0.4"/>
-  <rect x="93" y="60" width="13" height="7" rx="1" fill="url(#camGrad)" opacity="0.6"/>
-  <rect x="93" y="72" width="13" height="7" rx="1" fill="url(#camGrad)" opacity="0.3"/>
-  <rect x="93" y="84" width="13" height="7" rx="1" fill="url(#camGrad)" opacity="0.5"/>
-
-  <!-- Kenar çizgileri -->
-  <line x1="40" y1="40" x2="40" y2="108" stroke="rgba(0,200,83,0.15)" stroke-width="1"/>
-  <line x1="90" y1="28" x2="90" y2="96" stroke="rgba(0,200,83,0.2)" stroke-width="1"/>
-  <line x1="110" y1="40" x2="110" y2="108" stroke="rgba(0,200,83,0.1)" stroke-width="1"/>
-
-  <!-- ══ KÜÇÜK BİNA SOL ══ -->
-  <polygon points="18,62 30,56 30,108 18,114" fill="rgba(20,20,20,0.9)"/>
-  <polygon points="10,66 18,62 18,114 10,118" fill="rgba(30,30,30,0.8)"/>
-  <polygon points="10,66 18,62 30,56 22,60" fill="rgba(50,50,50,0.8)"/>
-  <rect x="11" y="70" width="5" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.5"/>
-  <rect x="11" y="78" width="5" height="4" rx="0.5" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="11" y="86" width="5" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.3"/>
-  <rect x="20" y="66" width="7" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.4"/>
-  <rect x="20" y="74" width="7" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.6"/>
-  <rect x="20" y="82" width="7" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.3"/>
-
-  <!-- Zemin çizgisi -->
-  <line x1="10" y1="118" x2="110" y2="108" stroke="rgba(0,200,83,0.3)" stroke-width="1.5"/>
-
-  <!-- Plus ikonu -->
-  <circle cx="116" cy="22" r="14" fill="url(#greenGrad)" filter="url(#shadow)"/>
-  <rect x="109" y="19" width="14" height="5" rx="2.5" fill="white"/>
-  <rect x="113" y="15" width="5" height="14" rx="2.5" fill="white"/>
-
-  <!-- ── METİN ── -->
-  <!-- "Bina" ALTIN -->
-  <text x="152" y="76"
-        font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif"
-        font-size="52"
-        font-weight="900"
-        fill="url(#altinParla)"
-        filter="url(#altinGlow)"
-        letter-spacing="-2">Bina</text>
-
-  <!-- "Plus" YEŞİL -->
-  <text x="268" y="76"
-        font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif"
-        font-size="52"
-        font-weight="900"
-        fill="url(#textPlus)"
-        letter-spacing="-2">Plus</text>
-
-  <!-- Alt yazı — altın tonu -->
-  <text x="152" y="100"
-        font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif"
-        font-size="12"
-        font-weight="600"
-        fill="#8a7240"
-        letter-spacing="3">APARTMAN YÖNETİM SİSTEMİ</text>
-</svg>
-
-      <div style="font-size:22px;font-weight:800;color:#fff;margin-bottom:6px">Firebase Kurulumu</div>
-      <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6">
-        Sistemi kullanmak için Firebase projenizin<br>bilgilerini girin. Bir kez yapmanız yeterli.
-      </div>
-    </div>
-
-    <!-- Adım adım rehber -->
-    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:16px;margin-bottom:20px">
-      <div style="font-size:12px;color:rgba(255,255,255,0.5);font-weight:700;margin-bottom:10px">📋 NASIL ALINIR?</div>
-      <ol style="font-size:12px;color:rgba(255,255,255,0.6);line-height:2.2;padding-left:18px">
-        <li><a href="https://console.firebase.google.com" target="_blank" style="color:#2f81f7">console.firebase.google.com</a> → Yeni proje oluştur</li>
-        <li>Proje → ⚙️ Proje Ayarları → "Uygulamalarınız" bölümü</li>
-        <li>Web uygulaması ekle (&lt;/&gt;) → Kayıt ol</li>
-        <li>Çıkan <b>firebaseConfig</b> objesini aşağıya yapıştır</li>
-        <li>Firestore Database → Oluştur → Test modunda başla</li>
-        <li>Authentication → Sign-in method → Email/Password aktif et</li>
-      </ol>
-    </div>
-
-    <!-- Config yapıştır -->
-    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:20px;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:14px">🔧 Firebase Config</div>
-      <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:8px">Tüm firebaseConfig objesini veya sadece değerleri yapıştırabilirsiniz</div>
-      <textarea id="configYapistir" style="width:100%;height:180px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:#a8d8a8;font-family:monospace;font-size:12px;padding:12px;resize:vertical;box-sizing:border-box" placeholder='const firebaseConfig = {
-  apiKey: "...",
-  authDomain: "...",
-  projectId: "...",
-  storageBucket: "...",
-  messagingSenderId: "...",
-  appId: "..."
-};'></textarea>
-      <button onclick="configParseEt()" style="margin-top:10px;width:100%;padding:10px;background:rgba(47,129,247,0.2);border:1px solid rgba(47,129,247,0.4);border-radius:9px;color:#2f81f7;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer">🔍 Ayrıştır ve Doldur</button>
-    </div>
-
-    <!-- Manuel giriş -->
-    <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:20px;margin-bottom:16px">
-      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:14px">⌨️ Manuel Giriş</div>
-      <div style="display:grid;gap:10px">
-        <div>
-          <label style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;display:block;margin-bottom:4px">API Key *</label>
-          <input id="cfg_apiKey" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#fff;font-family:monospace;font-size:12px;box-sizing:border-box" placeholder="AIzaSy...">
-        </div>
-        <div>
-          <label style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;display:block;margin-bottom:4px">Auth Domain *</label>
-          <input id="cfg_authDomain" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#fff;font-family:monospace;font-size:12px;box-sizing:border-box" placeholder="proje-adi.firebaseapp.com">
-        </div>
-        <div>
-          <label style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;display:block;margin-bottom:4px">Project ID *</label>
-          <input id="cfg_projectId" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#fff;font-family:monospace;font-size:12px;box-sizing:border-box" placeholder="proje-adi">
-        </div>
-        <div>
-          <label style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;display:block;margin-bottom:4px">Storage Bucket</label>
-          <input id="cfg_storageBucket" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#fff;font-family:monospace;font-size:12px;box-sizing:border-box" placeholder="proje-adi.appspot.com">
-        </div>
-        <div>
-          <label style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;display:block;margin-bottom:4px">Messaging Sender ID</label>
-          <input id="cfg_messagingSenderId" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#fff;font-family:monospace;font-size:12px;box-sizing:border-box" placeholder="123456789">
-        </div>
-        <div>
-          <label style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;display:block;margin-bottom:4px">App ID *</label>
-          <input id="cfg_appId" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#fff;font-family:monospace;font-size:12px;box-sizing:border-box" placeholder="1:123...web:abc">
-        </div>
-        <div>
-          <label style="font-size:11px;color:rgba(255,255,255,0.4);font-weight:700;display:block;margin-bottom:4px">VAPID Key (Cloud Messaging)</label>
-          <input id="cfg_vapidKey" style="width:100%;padding:9px 12px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:9px;color:#fff;font-family:monospace;font-size:12px;box-sizing:border-box" placeholder="BNqX... (opsiyonel, sonra da eklenebilir)">
-        </div>
-      </div>
-    </div>
-
-    <div id="kurulumHata" style="display:none;background:rgba(248,81,73,0.15);color:#f85149;border:1px solid rgba(248,81,73,0.3);border-radius:9px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:12px"></div>
-    <div id="kurulumBasari" style="display:none;background:rgba(63,185,80,0.15);color:#3fb950;border:1px solid rgba(63,185,80,0.3);border-radius:9px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:12px"></div>
-
-    <button onclick="kurulumKaydet()" style="width:100%;padding:14px;background:#2f81f7;border:none;border-radius:12px;color:#fff;font-family:inherit;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:12px">
-      🚀 Kaydet ve Bağlan
-    </button>
-    <button onclick="kurulumAtla()" style="width:100%;padding:10px;background:none;border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:rgba(255,255,255,0.4);font-family:inherit;font-size:12px;cursor:pointer">
-      Mevcut ayarları kullan (config değiştirme)
-    </button>
-  </div>
-</div>
-
-<!-- ═══ GİRİŞ ═══ -->
+<!-- GİRİŞ -->
 <div id="girisEkrani">
   <div class="giris-kutu">
     <div class="giris-logo">🛡️</div>
     <div class="giris-baslik">Süper Admin</div>
-    <div class="giris-alt">Bina Yönetici — Yönetim Paneli</div>
+    <div class="giris-alt">BinaPlus Yönetim Paneli</div>
     <div class="giris-hata" id="girisHata">⚠️ Hatalı şifre!</div>
-    <div class="form-grup">
-      <label class="form-etiket">Master Şifre</label>
-      <input class="form-input" type="password" id="girisInput" placeholder="Master şifrenizi girin" onkeydown="if(event.key==='Enter'){var fn=window.girisYap||function(){};fn();}">
-    </div>
-    <button class="btn btn-primary" style="width:100%;padding:12px" onclick="if(window.girisYap)girisYap();else girisYapAsync&&girisYapAsync()">🔑 Giriş Yap</button>
-    <div style="font-size:11px;color:var(--sub);text-align:center;margin-top:14px">
-      Bu panel sadece sistem yöneticisi içindir.<br>Yetkisiz erişim kayıt altına alınır.
-    </div>
+    <label class="form-label">Master Şifre</label>
+    <input class="form-input" type="password" id="girisInput" placeholder="Master şifrenizi girin">
+    <button class="btn-giris" id="girisBttn">🔑 Giriş Yap</button>
+    <div style="font-size:11px;color:#555;text-align:center;margin-top:14px">Yetkisiz erişim kayıt altına alınır.</div>
   </div>
 </div>
 
-<!-- ═══ ADMIN PANELİ ═══ -->
+<!-- ANA PANEL -->
 <div id="adminPanel">
-
-  <!-- TOPBAR -->
   <div class="topbar">
-    <div class="topbar-logo">
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 140" width="130" height="38" style="display:block">
-  <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1a1a1a"/>
-      <stop offset="100%" style="stop-color:#0a0a0a"/>
-    </linearGradient>
-    <linearGradient id="greenGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00C853"/>
-      <stop offset="100%" style="stop-color:#00796B"/>
-    </linearGradient>
-    <linearGradient id="binaOn" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#2a2a2a"/>
-      <stop offset="100%" style="stop-color:#111111"/>
-    </linearGradient>
-    <linearGradient id="binaYan" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#1a1a1a"/>
-      <stop offset="100%" style="stop-color:#0d0d0d"/>
-    </linearGradient>
-    <linearGradient id="binaUst" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#3a3a3a"/>
-      <stop offset="100%" style="stop-color:#222222"/>
-    </linearGradient>
-    <linearGradient id="camGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#00C853;stop-opacity:0.9"/>
-      <stop offset="100%" style="stop-color:#004D40;stop-opacity:0.7"/>
-    </linearGradient>
-    <linearGradient id="zeminGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#00C853;stop-opacity:0.15"/>
-      <stop offset="100%" style="stop-color:#00C853;stop-opacity:0"/>
-    </linearGradient>
-
-    <!-- ALTIN gradient — "Bina" yazısı -->
-    <linearGradient id="altinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#FFD700"/>
-      <stop offset="40%" style="stop-color:#FFA500"/>
-      <stop offset="100%" style="stop-color:#B8860B"/>
-    </linearGradient>
-    <!-- ALTIN parlama — üst ışık -->
-    <linearGradient id="altinParla" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#FFF176"/>
-      <stop offset="50%" style="stop-color:#FFD700"/>
-      <stop offset="100%" style="stop-color:#F9A825"/>
-    </linearGradient>
-
-    <!-- Plus yeşil gradient -->
-    <linearGradient id="textPlus" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" style="stop-color:#00C853"/>
-      <stop offset="100%" style="stop-color:#00E676"/>
-    </linearGradient>
-
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%">
-      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="rgba(0,200,83,0.25)"/>
-    </filter>
-    <filter id="altinGlow">
-      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="rgba(255,215,0,0.4)"/>
-    </filter>
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="2" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-  </defs>
-
-  <!-- Arka plan ikon kutu -->
-  <rect x="6" y="6" width="128" height="128" rx="24" fill="url(#bgGrad)" filter="url(#shadow)"/>
-
-  <!-- Zemin yansıma -->
-  <ellipse cx="70" cy="122" rx="45" ry="8" fill="url(#zeminGrad)"/>
-
-  <!-- ══ 3D BİNA ANA ══ -->
-  <polygon points="90,28 110,40 110,108 90,96" fill="url(#binaYan)"/>
-  <polygon points="40,40 90,28 90,96 40,108" fill="url(#binaOn)"/>
-  <polygon points="40,40 90,28 110,40 60,52" fill="url(#binaUst)"/>
-
-  <!-- Ön pencereler -->
-  <rect x="46" y="50" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="60" y="47" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="74" y="44" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.5"/>
-  <rect x="46" y="63" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.5"/>
-  <rect x="60" y="60" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="74" y="57" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.7"/>
-  <rect x="46" y="76" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="60" y="73" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.4"/>
-  <rect x="74" y="70" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="46" y="89" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.6"/>
-  <rect x="60" y="86" width="10" height="8" rx="1" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="74" y="83" width="10" height="8" rx="1" fill="url(#camGrad)" opacity="0.5"/>
-
-  <!-- Yan pencereler -->
-  <rect x="93" y="48" width="13" height="7" rx="1" fill="url(#camGrad)" opacity="0.4"/>
-  <rect x="93" y="60" width="13" height="7" rx="1" fill="url(#camGrad)" opacity="0.6"/>
-  <rect x="93" y="72" width="13" height="7" rx="1" fill="url(#camGrad)" opacity="0.3"/>
-  <rect x="93" y="84" width="13" height="7" rx="1" fill="url(#camGrad)" opacity="0.5"/>
-
-  <!-- Kenar çizgileri -->
-  <line x1="40" y1="40" x2="40" y2="108" stroke="rgba(0,200,83,0.15)" stroke-width="1"/>
-  <line x1="90" y1="28" x2="90" y2="96" stroke="rgba(0,200,83,0.2)" stroke-width="1"/>
-  <line x1="110" y1="40" x2="110" y2="108" stroke="rgba(0,200,83,0.1)" stroke-width="1"/>
-
-  <!-- ══ KÜÇÜK BİNA SOL ══ -->
-  <polygon points="18,62 30,56 30,108 18,114" fill="rgba(20,20,20,0.9)"/>
-  <polygon points="10,66 18,62 18,114 10,118" fill="rgba(30,30,30,0.8)"/>
-  <polygon points="10,66 18,62 30,56 22,60" fill="rgba(50,50,50,0.8)"/>
-  <rect x="11" y="70" width="5" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.5"/>
-  <rect x="11" y="78" width="5" height="4" rx="0.5" fill="url(#camGrad)" filter="url(#glow)"/>
-  <rect x="11" y="86" width="5" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.3"/>
-  <rect x="20" y="66" width="7" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.4"/>
-  <rect x="20" y="74" width="7" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.6"/>
-  <rect x="20" y="82" width="7" height="4" rx="0.5" fill="url(#camGrad)" opacity="0.3"/>
-
-  <!-- Zemin çizgisi -->
-  <line x1="10" y1="118" x2="110" y2="108" stroke="rgba(0,200,83,0.3)" stroke-width="1.5"/>
-
-  <!-- Plus ikonu -->
-  <circle cx="116" cy="22" r="14" fill="url(#greenGrad)" filter="url(#shadow)"/>
-  <rect x="109" y="19" width="14" height="5" rx="2.5" fill="white"/>
-  <rect x="113" y="15" width="5" height="14" rx="2.5" fill="white"/>
-
-  <!-- ── METİN ── -->
-  <!-- "Bina" ALTIN -->
-  <text x="152" y="76"
-        font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif"
-        font-size="52"
-        font-weight="900"
-        fill="url(#altinParla)"
-        filter="url(#altinGlow)"
-        letter-spacing="-2">Bina</text>
-
-  <!-- "Plus" YEŞİL -->
-  <text x="268" y="76"
-        font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif"
-        font-size="52"
-        font-weight="900"
-        fill="url(#textPlus)"
-        letter-spacing="-2">Plus</text>
-
-  <!-- Alt yazı — altın tonu -->
-  <text x="152" y="100"
-        font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif"
-        font-size="12"
-        font-weight="600"
-        fill="#8a7240"
-        letter-spacing="3">APARTMAN YÖNETİM SİSTEMİ</text>
-</svg>
-
-  <span style="font-size:11px;color:var(--sub);font-weight:700;margin-left:8px">SÜPER ADMİN</span>
-</div>
-    <div class="topbar-right">
-      <span class="badge-admin">SÜPERADMİN</span>
-      <div id="baglanti-durum" style="font-size:11px;color:var(--sub)">⏳ Bağlanıyor...</div>
-      <button class="btn-cikis" onclick="configDegistir()" style="background:rgba(47,129,247,0.1);color:var(--accent);border-color:rgba(47,129,247,0.2);margin-right:4px">🔥 Firebase</button>
+    <div class="topbar-logo"><span>🛡️</span> BinaPlus Süper Admin</div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <span style="font-size:11px;color:#8b949e" id="baglantiDurum">⏳</span>
       <button class="btn-cikis" onclick="cikisYap()">🚪 Çıkış</button>
     </div>
   </div>
 
   <div class="container">
-
-    <!-- SEKME MENÜSÜ -->
     <div class="tabs">
-      <button class="tab-btn active" onclick="sekme('genel')">📊 Genel Bakış</button>
-      <button class="tab-btn" onclick="sekme('binalar')">🏢 Binalar</button>
-      <button class="tab-btn" onclick="sekme('sakinler')">👥 Sakinler</button>
-      <button class="tab-btn" onclick="sekme('yedek')">💾 Yedek</button>
-      <button class="tab-btn" onclick="sekme('ozellikler')">⚙️ Özellikler</button>
-      <button class="tab-btn" onclick="sekme('guvenlik')">🔐 Güvenlik</button>
-      <button class="tab-btn" onclick="sekme('log')">📋 Log</button>
-      <button class="tab-btn" onclick="sekme('abonelik')">💳 Abonelik</button>
+      <button class="tab aktif" onclick="sekme('genel',this)">📊 Genel</button>
+      <button class="tab" onclick="sekme('binalar',this)">🏢 Binalar</button>
+      <button class="tab" onclick="sekme('sakinler',this)">👥 Sakinler</button>
+      <button class="tab" onclick="sekme('yedek',this)">💾 Yedek</button>
+      <button class="tab" onclick="sekme('guvenlik',this)">🔐 Güvenlik</button>
+      <button class="tab" onclick="sekme('abonelik',this)">💳 Abonelik</button>
     </div>
 
-    <!-- ══ GENEL BAKIŞ ══ -->
-    <div class="tab-panel active" id="panel-genel">
-      <div class="grid-3" style="margin-bottom:20px">
-        <div class="stat-kutu">
-          <div class="stat-deger" id="stat-bina-sayi" style="color:var(--accent)">—</div>
-          <div class="stat-etiket">Toplam Bina</div>
-        </div>
-        <div class="stat-kutu">
-          <div class="stat-deger" id="stat-sakin-sayi" style="color:var(--accent2)">—</div>
-          <div class="stat-etiket">Toplam Sakin</div>
-        </div>
-        <div class="stat-kutu">
-          <div class="stat-deger" id="stat-borc-sayi" style="color:var(--warn)">—</div>
-          <div class="stat-etiket">Borçlu Sakin</div>
-        </div>
+    <!-- GENEL -->
+    <div class="panel aktif" id="panel-genel">
+      <div class="stat-grid">
+        <div class="stat"><div class="stat-sayi" id="s-bina" style="color:#2f81f7">—</div><div class="stat-etiket">Toplam Bina</div></div>
+        <div class="stat"><div class="stat-sayi" id="s-sakin" style="color:#3fb950">—</div><div class="stat-etiket">Toplam Sakin</div></div>
+        <div class="stat"><div class="stat-sayi" id="s-borc" style="color:#f85149">—</div><div class="stat-etiket">Borçlu Sakin</div></div>
       </div>
-
-      <!-- Sistem Durumu -->
-      <div class="kart">
-        <div class="kart-baslik">🔍 Sistem Durumu</div>
-        <div id="sistem-durum">
-          <div class="durum-bar durum-warn-bar"><span class="spin">⏳</span> Kontrol ediliyor...</div>
-        </div>
-      </div>
-
-      <!-- Bina Özet Listesi -->
       <div class="kart">
         <div class="kart-baslik">🏢 Bina Özeti</div>
-        <div id="genel-bina-liste"><div class="yukleniyor"><div class="spin">⚙️</div></div></div>
+        <div id="genelBinaListe"><div style="color:#8b949e;text-align:center;padding:20px">Yükleniyor...</div></div>
       </div>
     </div>
 
-    <!-- ══ BİNALAR ══ -->
-    <div class="tab-panel" id="panel-binalar">
+    <!-- BİNALAR -->
+    <div class="panel" id="panel-binalar">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:700">🏢 Tüm Binalar</div>
-        <button class="btn btn-success" onclick="acModal('modalYeniBina')">＋ Yeni Bina</button>
+        <div style="font-size:16px;font-weight:700">🏢 Binalar</div>
+        <button class="btn btn-yesil" onclick="acModal('modalYeniBina')">＋ Yeni Bina</button>
       </div>
-      <div id="bina-listesi"><div class="yukleniyor"><div class="spin">⚙️</div></div></div>
+      <div id="binaListe"><div style="color:#8b949e;text-align:center;padding:20px">Yükleniyor...</div></div>
     </div>
 
-    <!-- ══ SAKİNLER ══ -->
-    <div class="tab-panel" id="panel-sakinler">
+    <!-- SAKİNLER -->
+    <div class="panel" id="panel-sakinler">
       <div style="margin-bottom:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <div style="font-size:16px;font-weight:700;flex:1">👥 Tüm Sakinler</div>
-        <input class="form-input" id="sakinAra" placeholder="🔍 İsim veya daire ara..." style="max-width:220px" oninput="sakinFiltrele()">
-        <select class="form-input" id="sakinBinaFiltre" style="max-width:160px" onchange="sakinFiltrele()">
+        <div style="font-size:16px;font-weight:700;flex:1">👥 Sakinler</div>
+        <input class="form-input" id="sakinAra" placeholder="🔍 Ara..." style="max-width:200px;margin:0" oninput="sakinFiltrele()">
+        <select class="form-input" id="sakinBinaFiltre" style="max-width:160px;margin:0" onchange="sakinFiltrele()">
           <option value="">Tüm Binalar</option>
         </select>
       </div>
-      <div id="sakin-listesi"><div class="yukleniyor"><div class="spin">⚙️</div></div></div>
+      <div id="sakinListe"></div>
     </div>
 
-    <!-- ══ YEDEK ══ -->
-    <div class="tab-panel" id="panel-yedek">
+    <!-- YEDEK -->
+    <div class="panel" id="panel-yedek">
       <div class="kart">
         <div class="kart-baslik">💾 Yedek İşlemleri</div>
-
-        <div style="margin-bottom:20px">
-          <div style="font-size:13px;color:var(--sub);margin-bottom:12px">Tüm binaların verilerini tek dosyaya yedekle veya her birini ayrı ayrı indir.</div>
-          <div style="display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn btn-primary" onclick="tumBinalarYedekle()">📦 Tüm Binaları Yedekle</button>
-            <button class="btn btn-ghost" onclick="secimliBinaYedek()">🏢 Bina Seç ve Yedekle</button>
-          </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+          <button class="btn btn-mavi" onclick="tumYedekle()">📦 Tüm Binaları Yedekle</button>
+          <button class="btn btn-gri" onclick="tekYedekSec()">🏢 Bina Seçerek Yedekle</button>
         </div>
-
         <div class="form-grup">
-          <label class="form-etiket">Yedekten Geri Yükle</label>
-          <div style="font-size:12px;color:var(--warn2);margin-bottom:8px">⚠️ Bu işlem mevcut veriyi <b>tamamen siler</b> ve yedekten yükler.</div>
+          <label class="form-label">Yedekten Geri Yükle</label>
+          <div style="font-size:12px;color:#f0e68c;margin-bottom:8px">⚠️ Mevcut veri silinir!</div>
           <input type="file" id="yedekDosya" accept=".json" style="display:none" onchange="yedekYukle(this)">
-          <button class="btn btn-warn" onclick="document.getElementById('yedekDosya').click()">📂 Yedek Dosyası Seç ve Yükle</button>
+          <button class="btn btn-kirmizi" onclick="document.getElementById('yedekDosya').click()">📂 Yedek Yükle</button>
         </div>
       </div>
-
-      <!-- Otomatik Yedek -->
-      <div class="kart" style="border-color:rgba(63,185,80,0.3)">
-        <div class="kart-baslik" style="color:var(--accent2)">⚙️ Otomatik Günlük Yedek</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:14px">Her gün belirlediğin saatte tüm binaların yedeğini otomatik indirir.</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-          <div class="form-grup">
-            <label class="form-etiket">Yedek Saati</label>
-            <input class="form-input" type="time" id="otoyedekSaat" value="03:00">
-          </div>
-          <div class="form-grup">
-            <label class="form-etiket">Durum</label>
-            <div id="otoyedekDurum" style="padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:9px;font-size:13px;color:var(--sub)">Pasif</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-success" onclick="otoyedekBaslat()">▶ Otomatik Yedeği Başlat</button>
-          <button class="btn btn-danger" onclick="otoyedekDurdur()">⏹ Durdur</button>
-          <button class="btn btn-ghost" onclick="tumBinalarYedekle()">📦 Şimdi Yedekle</button>
-        </div>
-      </div>
-
-      <!-- Google Drive Yedek -->
-      <div class="kart" style="border-color:rgba(66,133,244,0.3)">
-        <div class="kart-baslik" style="color:#4285f4">☁️ Google Drive Yedek</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.6">
-          Yedek dosyaları otomatik olarak Google Drive'ınıza yüklensin. 
-          Google Drive API bağlantısı gerektirir.
-        </div>
-        <div id="driveBaslangic">
-          <button class="btn btn-primary" onclick="driveYetkilendir()">🔗 Google Drive'ı Bağla</button>
-        </div>
-        <div id="driveBagli" style="display:none">
-          <div class="durum-bar durum-ok-bar">✅ Google Drive bağlı</div>
-          <div style="font-size:12px;color:var(--sub);margin:8px 0">Yedek klasörü: <b id="driveklasör">BinaPlus Yedekler</b></div>
-          <div style="display:flex;gap:8px">
-            <button class="btn btn-success btn-sm" onclick="driveYedekGonder()">☁️ Drive'a Yedekle</button>
-            <button class="btn btn-danger btn-sm" onclick="driveBaglantiKes()">🔌 Bağlantıyı Kes</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- PITR Rehberi -->
-      <div class="kart" style="border-color:rgba(227,179,65,0.3)">
-        <div class="kart-baslik" style="color:var(--warn2)">🕐 Point-in-Time Recovery (PITR)</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:12px;line-height:1.6">
-          Firebase'in yerleşik yedekleme sistemi. Aktif edilirse son <b>7 güne</b> kadar herhangi bir ana geri dönebilirsin. Veri silme veya bozulma durumunda hayat kurtarır.
-        </div>
-        <div style="background:var(--card2);border-radius:10px;padding:14px;margin-bottom:12px">
-          <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:10px">📋 Nasıl Aktif Edilir?</div>
-          <ol style="font-size:12px;color:var(--sub);line-height:2.2;padding-left:18px">
-            <li><a href="https://console.firebase.google.com" target="_blank" style="color:var(--accent)">console.firebase.google.com</a> → Projenizi seçin</li>
-            <li>Sol menü → <b>Firestore Database</b></li>
-            <li>Üst sekme → <b>Backups</b> (Yedekler)</li>
-            <li><b>"Point-in-time recovery"</b> bölümünü bul</li>
-            <li><b>"Enable"</b> butonuna tıkla</li>
-            <li>Onay kutusunu işaretle → <b>Etkinleştir</b></li>
-          </ol>
-        </div>
-        <div style="background:rgba(227,179,65,0.1);border:1px solid rgba(227,179,65,0.2);border-radius:9px;padding:10px 14px;font-size:11px;color:var(--warn2)">
-          ⚠️ PITR Spark (ücretsiz) planda mevcut değildir. Blaze planına geçmen gerekir.<br>
-          Blaze plan kullandıkça öde modelidir — az kullanımda aylık birkaç dolar civarı olur.
-        </div>
-        <button class="btn btn-warn" style="margin-top:12px" onclick="window.open('https://console.firebase.google.com','_blank')">🔥 Firebase Console'u Aç</button>
-      </div>
-
-      <!-- Veri Boyutu Monitörü -->
-      <div class="kart">
-        <div class="kart-baslik">📊 Veri Boyutu Monitörü</div>
-        <div id="veriMonitor"><div class="yukleniyor"><div class="spin">⚙️</div></div></div>
-        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="veriMonitorRender()">🔄 Yenile</button>
-      </div>
-
       <div class="kart">
         <div class="kart-baslik">📋 Yedek Geçmişi</div>
-        <div id="yedek-gecmis">
-          <div style="font-size:12px;color:var(--sub);padding:12px 0">Yedek alındığında burada görünür.</div>
-        </div>
+        <div id="yedekGecmis" style="color:#8b949e;font-size:12px">Henüz yedek alınmadı.</div>
       </div>
     </div>
 
-    <!-- ══ ÖZELLİKLER ══ -->
-    <div class="tab-panel" id="panel-ozellikler">
+    <!-- GÜVENLİK -->
+    <div class="panel" id="panel-guvenlik">
       <div class="kart">
-        <div class="kart-baslik">⚙️ Modül Yönetimi</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:16px">Açık özellikler tüm binalarda aktif olur. Kapalılar gizlenir.</div>
-        <div id="ozellik-listesi"></div>
-        <button class="btn btn-primary" style="margin-top:16px" onclick="ozellikKaydet()">💾 Kaydet</button>
-      </div>
-
-      <!-- Firestore Yapı Güncelleme -->
-      <div class="kart" style="border-color:rgba(63,185,80,0.3)">
-        <div class="kart-baslik" style="color:var(--accent2)">🏗️ Aşama 2: Firestore Yapı Güncellemesi</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:14px;line-height:1.6">
-          Büyük binalarda hareketleri ayrı koleksiyona taşı. 1MB limitine yaklaşan binalar için gerekli.
+        <div class="kart-baslik">🗝️ Master Şifre Değiştir</div>
+        <div class="form-row">
+          <div class="form-grup"><label class="form-label">Mevcut Şifre</label><input class="form-input" type="password" id="masterMevcut" style="margin:0"></div>
+          <div></div>
+          <div class="form-grup"><label class="form-label">Yeni Şifre</label><input class="form-input" type="password" id="masterYeni" style="margin:0"></div>
+          <div class="form-grup"><label class="form-label">Yeni Şifre Tekrar</label><input class="form-input" type="password" id="masterTekrar" style="margin:0"></div>
         </div>
-        <div id="yapiGuncellemeListesi"></div>
-        <button class="btn btn-success" style="margin-top:10px" onclick="yapiGuncellemeKontrol()">🔍 Kontrol Et ve Taşı</button>
+        <button class="btn btn-mavi" onclick="masterDegistir()">🗝️ Güncelle</button>
       </div>
-
-      <!-- Firebase Güvenlik Kuralları -->
+      <div class="kart">
+        <div class="kart-baslik">🔑 Bina Yöneticisi Şifre Sıfırla</div>
+        <div class="form-row">
+          <div class="form-grup"><label class="form-label">Bina</label>
+            <select class="form-input" id="sifreBinaSecim" style="margin:0"><option value="">Seçin...</option></select>
+          </div>
+          <div class="form-grup"><label class="form-label">Yeni Şifre</label><input class="form-input" type="password" id="sifreYeni" style="margin:0"></div>
+        </div>
+        <button class="btn btn-kirmizi" onclick="binaSifreSifirla()">🔑 Sıfırla</button>
+      </div>
       <div class="kart" style="border-color:rgba(227,179,65,0.3)">
-        <div class="kart-baslik" style="color:var(--warn2)">🔥 Firebase Güvenlik Kuralları</div>
-        <div style="font-size:12px;color:var(--sub);line-height:1.6;margin-bottom:14px">
-          Firebase Console → Firestore → Kurallar sekmesine aşağıdaki kuralı yapıştır:
-        </div>
-        <pre style="background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:14px;font-size:11px;color:#a8d8a8;overflow-x:auto;line-height:1.6">rules_version = '2';
+        <div class="kart-baslik" style="color:#e3b341">🔥 Firebase Güvenlik Kuralları</div>
+        <div style="font-size:12px;color:#8b949e;margin-bottom:12px">Firebase Console → Firestore → Rules sekmesine yapıştır:</div>
+        <pre style="background:#0d1117;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;font-size:11px;color:#7ee787;overflow-x:auto;line-height:1.6">rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // Ana yönetici config — sadece okunabilir
     match /anayonetici/{doc} {
-      allow read: if false;
-      allow write: if false;
+      allow read, write: if false;
     }
-
-    // Binalar — kimliği doğrulanmış kullanıcılar
     match /binalar/{binaId}/veri/data {
       allow read, write: if request.time != null;
     }
-
-    // Bildirim kuyruğu
     match /binalar/{binaId}/bildirimler/{doc} {
       allow read, write: if request.time != null;
     }
   }
 }</pre>
-        <div style="font-size:11px;color:var(--warn2);margin-top:10px">
-          ⚠️ Daha sıkı kurallar için Firebase Auth entegrasyonunu tamamla.
-        </div>
-      </div>
-
-      <!-- VAPID Key Rehberi -->
-      <div class="kart" style="border-color:rgba(47,129,247,0.3)">
-        <div class="kart-baslik" style="color:var(--accent)">📱 Push Bildirim — VAPID Key Kurulumu</div>
-        <ol style="font-size:12px;color:var(--sub);line-height:2;padding-left:18px">
-          <li>Firebase Console → Proje Ayarları → Cloud Messaging sekmesini aç</li>
-          <li>"Web push certificates" bölümünde "Generate key pair" butonuna tıkla</li>
-          <li>Oluşan anahtarı kopyala</li>
-          <li>index.html dosyasında <code style="background:var(--card2);padding:1px 6px;border-radius:4px;color:#a8d8a8">BURAYA_FIREBASE_VAPID_KEY_YAZIN</code> yazan yeri bul ve değiştir</li>
-        </ol>
-        <div style="margin-top:12px">
-          <label class="form-etiket">VAPID Key Gir (otomatik uygular)</label>
-          <div style="display:flex;gap:8px">
-            <input class="form-input" id="vapidKeyInput" placeholder="BNqXXXX...">
-            <button class="btn btn-primary" onclick="vapidKeyKaydet()">Kaydet</button>
-          </div>
-        </div>
+        <button class="btn btn-gri" style="margin-top:10px" onclick="window.open('https://console.firebase.google.com','_blank')">🔥 Firebase Console Aç</button>
       </div>
     </div>
 
-    <!-- ══ GÜVENLİK ══ -->
-    <div class="tab-panel" id="panel-guvenlik">
-      <!-- Master Şifre -->
+    <!-- ABONELİK -->
+    <div class="panel" id="panel-abonelik">
       <div class="kart">
-        <div class="kart-baslik">🗝️ Master Şifre Değiştir</div>
-        <div class="grid-2">
-          <div class="form-grup">
-            <label class="form-etiket">Mevcut Master Şifre</label>
-            <input class="form-input" type="password" id="masterMevcut" placeholder="Mevcut şifre">
-          </div>
-          <div></div>
-          <div class="form-grup">
-            <label class="form-etiket">Yeni Master Şifre</label>
-            <input class="form-input" type="password" id="masterYeni" placeholder="En az 8 karakter">
-          </div>
-          <div class="form-grup">
-            <label class="form-etiket">Yeni Şifre Tekrar</label>
-            <input class="form-input" type="password" id="masterTekrar" placeholder="Tekrar girin">
-          </div>
+        <div class="kart-baslik">💰 Fiyat Tablosu</div>
+        <div style="font-size:12px;color:#8b949e;margin-bottom:12px">Daire sayısına göre aylık ücret:</div>
+        <div id="fiyatTablosu"></div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-gri btn-sm" onclick="fiyatDilimiEkle()">＋ Dilim</button>
+          <button class="btn btn-mavi" onclick="fiyatKaydet()">💾 Kaydet</button>
         </div>
-        <div style="font-size:11px;color:var(--warn2);margin-bottom:12px">
-          ⚠️ Bu şifreyi unutursan sisteme bir daha giremezsin. Güvenli bir yere kaydet.
-        </div>
-        <button class="btn btn-warn" onclick="masterSifreDegistir()">🗝️ Master Şifreyi Güncelle</button>
       </div>
-
-      <!-- Bina Yöneticisi Şifre Sıfırla -->
       <div class="kart">
-        <div class="kart-baslik">🔑 Bina Yöneticisi Şifre Sıfırla</div>
-        <div class="grid-2">
-          <div class="form-grup">
-            <label class="form-etiket">Bina Seç</label>
-            <select class="form-input" id="sifreSifirBina">
-              <option value="">Bina seçin...</option>
-            </select>
-          </div>
-          <div class="form-grup">
-            <label class="form-etiket">Yeni Şifre</label>
-            <input class="form-input" type="password" id="sifreSifirYeni" placeholder="Yeni yönetici şifresi">
-          </div>
+        <div class="kart-baslik">⏳ Grace Period</div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <input class="form-input" type="number" id="gracePeriod" value="10" style="max-width:100px;margin:0">
+          <span style="color:#8b949e;font-size:12px">gün (ödeme gecikme toleransı)</span>
+          <button class="btn btn-mavi btn-sm" onclick="gracePeriodKaydet()">Kaydet</button>
         </div>
-        <button class="btn btn-danger" onclick="binaYoneticiSifreSifirla()">🔑 Yönetici Şifresini Sıfırla</button>
       </div>
-
-      <!-- Erişim Logları -->
       <div class="kart">
-        <div class="kart-baslik">🕵️ Giriş Denemeleri</div>
-        <div id="erisim-log"><div style="font-size:12px;color:var(--sub)">Son 10 giriş denemesi burada görünür.</div></div>
+        <div class="kart-baslik">🏢 Abonelik Durumları</div>
+        <div id="abonelikListe"></div>
       </div>
     </div>
 
+  </div>
+</div>
 
-    <!-- ══ ABONELİK ══ -->
-    <div class="tab-panel" id="panel-abonelik">
-
-      <!-- Fiyat Tablosu -->
-      <div class="kart" style="border-color:rgba(255,215,0,0.3)">
-        <div class="kart-baslik" style="color:#FFD700">💰 Fiyatlandırma Tablosu</div>
-        <div style="font-size:12px;color:var(--sub);margin-bottom:14px">Daire sayısına göre aylık abonelik ücretlerini belirle. Kaydet'e basınca tüm binalara uygulanır.</div>
-        <div id="fiyatTablosu" style="margin-bottom:14px"></div>
-        <button class="btn btn-ghost btn-sm" onclick="fiyatDilimiEkle()">＋ Dilim Ekle</button>
-        <button class="btn btn-primary" style="margin-left:8px" onclick="fiyatKaydet()">💾 Fiyatları Kaydet</button>
-      </div>
-
-      <!-- Grace Period -->
-      <div class="kart">
-        <div class="kart-baslik">⏳ Grace Period (Tolerans Süresi)</div>
-        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-          <div>
-            <label class="form-etiket">Ödeme gecikmesi toleransı (gün)</label>
-            <input class="form-input" type="number" id="gracePeriod" value="10" min="1" max="30" style="max-width:120px">
-          </div>
-          <button class="btn btn-primary" onclick="gracePeriodKaydet()" style="margin-top:20px">💾 Kaydet</button>
-        </div>
-        <div style="font-size:11px;color:var(--sub);margin-top:8px">Son ödeme tarihinden bu kadar gün sonra bina paneli otomatik kilitlenir.</div>
-      </div>
-
-      <!-- Bina Abonelik Durumları -->
-      <div class="kart">
-        <div class="kart-baslik" style="justify-content:space-between">
-          <span>🏢 Bina Abonelik Durumları</span>
-          <button class="btn btn-ghost btn-sm" onclick="abonelikListesiRender()">🔄 Yenile</button>
-        </div>
-        <div id="abonelikListesi"><div class="yukleniyor"><div class="spin">⚙️</div></div></div>
-      </div>
-    </div>
-
-    <!-- ══ LOG ══ -->
-    <div class="tab-panel" id="panel-log">
-      <div class="kart">
-        <div class="kart-baslik" style="justify-content:space-between">
-          <span>📋 Sistem Logları</span>
-          <div style="display:flex;gap:8px">
-            <select class="form-input btn-sm" id="logBinaFiltre" onchange="logYukle()" style="font-size:11px">
-              <option value="">Tüm Binalar</option>
-            </select>
-            <button class="btn btn-ghost btn-sm" onclick="logYukle()">🔄 Yenile</button>
-            <button class="btn btn-danger btn-sm" onclick="logTemizle()">🗑 Temizle</button>
-          </div>
-        </div>
-        <div id="log-listesi"><div class="yukleniyor"><div class="spin">⚙️</div></div></div>
-      </div>
-    </div>
-
-  </div><!-- /container -->
-</div><!-- /adminPanel -->
-
-<!-- ══ MODALLER ══ -->
-
-<!-- Yeni Bina -->
+<!-- MODALLER -->
 <div class="modal-bg" id="modalYeniBina">
   <div class="modal-kutu">
-    <div class="modal-baslik">🏢 Yeni Bina Ekle <button class="modal-kapat" onclick="kapatModal('modalYeniBina')">✕</button></div>
-    <div class="form-grup">
-      <label class="form-etiket">Bina Adı *</label>
-      <input class="form-input" id="yeniBinaAd" placeholder="Örn: Gül Apartmanı">
-    </div>
-    <div class="form-grup">
-      <label class="form-etiket">Adres</label>
-      <input class="form-input" id="yeniBinaAdres" placeholder="Cadde, ilçe, şehir">
-    </div>
-    <div class="form-grup">
-      <label class="form-etiket">Bina Yöneticisi Adı</label>
-      <input class="form-input" id="yeniBinaYon" placeholder="Ad Soyad">
-    </div>
-    <div class="form-grup">
-      <label class="form-etiket">Yönetici Şifresi *</label>
-      <input class="form-input" type="password" id="yeniBinaSifre" placeholder="En az 4 karakter">
-    </div>
-    <div style="display:flex;gap:8px;margin-top:4px">
-      <button class="btn btn-success" style="flex:1" onclick="yeniBinaOlustur()">✓ Oluştur</button>
-      <button class="btn btn-ghost" onclick="kapatModal('modalYeniBina')">İptal</button>
+    <div class="modal-baslik">🏢 Yeni Bina <button class="modal-kapat" onclick="kapatModal('modalYeniBina')">✕</button></div>
+    <div class="form-grup"><label class="form-label">Bina Adı *</label><input class="form-input" id="yBinaAd" placeholder="Gül Apartmanı" style="margin:0"></div>
+    <div class="form-grup"><label class="form-label">Adres</label><input class="form-input" id="yBinaAdres" placeholder="Mahalle, İlçe, Şehir" style="margin:0"></div>
+    <div class="form-grup"><label class="form-label">Yönetici Adı</label><input class="form-input" id="yBinaYon" placeholder="Ad Soyad" style="margin:0"></div>
+    <div class="form-grup"><label class="form-label">Yönetici Şifresi *</label><input class="form-input" type="password" id="yBinaSifre" placeholder="En az 4 karakter" style="margin:0"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="btn btn-yesil" style="flex:1" onclick="yeniBinaOlustur()">✓ Oluştur</button>
+      <button class="btn btn-gri" onclick="kapatModal('modalYeniBina')">İptal</button>
     </div>
   </div>
 </div>
 
-<!-- Bina Detay -->
-<div class="modal-bg" id="modalBinaDetay">
-  <div class="modal-kutu" style="max-width:500px">
-    <div class="modal-baslik"><span id="detayBinaAd">Bina</span> <button class="modal-kapat" onclick="kapatModal('modalBinaDetay')">✕</button></div>
-    <div id="detayIcerik"><div class="yukleniyor"><div class="spin">⚙️</div></div></div>
-  </div>
-</div>
-
-<!-- Sakin Detay -->
-<div class="modal-bg" id="modalSakinDetay">
-  <div class="modal-kutu">
-    <div class="modal-baslik"><span id="detaySakinAd">Sakin</span> <button class="modal-kapat" onclick="kapatModal('modalSakinDetay')">✕</button></div>
-    <div id="detaySakinIcerik"></div>
-  </div>
-</div>
-
-<!-- Toast -->
-<div class="toast-admin" id="toast"></div>
+<div id="toast"></div>
 
 <script>
-// ════════════════════════════════════════════════════════════
-// FİREBASE
-// ════════════════════════════════════════════════════════════
-// firebaseConfig dinamik olarak configYukle() ile okunur
-// ════════════════════════════════════════════════════════════
-// DİNAMİK FİREBASE CONFIG (localStorage'dan okunur)
-// ════════════════════════════════════════════════════════════
-let db, auth, anayoneticiRef;
+// ══ FİREBASE ══
+firebase.initializeApp({
+  apiKey: "AIzaSyD6vTEjXSx9yTBE7o_y-PgE9EQydFzt7Rs",
+  authDomain: "binapulus-4ae17.firebaseapp.com",
+  projectId: "binapulus-4ae17",
+  storageBucket: "binapulus-4ae17.firebasestorage.app",
+  messagingSenderId: "74314699158",
+  appId: "1:74314699158:web:c8c4c40d9ab17960cccdb7"
+});
+const db = firebase.firestore();
+const anaRef = db.collection('anayonetici').doc('config');
 
-function configYukle() {
-  const kayitli = localStorage.getItem('by3_firebaseConfig');
-  if(kayitli) {
-    try { return JSON.parse(kayitli); } catch(e) {}
-  }
-  // Varsayılan (eski) config — henüz kurulum yapılmamışsa
-  return {
-    apiKey: "AIzaSyD6vTEjXSx9yTBE7o_y-PgE9EQydFzt7Rs",
-    authDomain: "binapulus-4ae17.firebaseapp.com",
-    projectId: "binapulus-4ae17",
-    storageBucket: "binapulus-4ae17.firebasestorage.app",
-    messagingSenderId: "74314699158",
-    appId: "1:74314699158:web:c8c4c40d9ab17960cccdb7",
-    measurementId: "G-LH3N7X20MQ"
-  };
-}
-
-function firebaseBaslat(cfg) {
-  try {
-    // Önceki app varsa sil
-    if(firebase.apps.length) {
-      firebase.apps.forEach(app => app.delete());
-    }
-  } catch(e) {}
-  firebase.initializeApp(cfg);
-  db   = firebase.firestore();
-  auth = firebase.auth();
-  anayoneticiRef = db.collection('anayonetici').doc('config');
-}
-
-// Başlangıçta mevcut config ile başlat
-firebaseBaslat(configYukle());
-
-// ════════════════════════════════════════════════════════════
-// YARDIMCI
-// ════════════════════════════════════════════════════════════
-let _toastTimer;
+// ══ YARDIMCI ══
+let toastTimer;
 function toast(msg, renk) {
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.style.background = renk || '#238636';
   el.style.display = 'block';
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => el.style.display='none', 3000);
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.style.display = 'none', 3000);
 }
-
 function acModal(id) { document.getElementById(id).classList.add('ac'); }
 function kapatModal(id) { document.getElementById(id).classList.remove('ac'); }
-
-async function sha256(text) {
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+async function sha256(txt) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
 }
-
 function para(n) { return Number(n||0).toLocaleString('tr-TR') + ' ₺'; }
-function tarih(d) { if(!d) return '—'; return new Date(d).toLocaleDateString('tr-TR'); }
 
+// ══ GİRİŞ ══
+document.getElementById('girisBttn').onclick = girisYap;
+document.getElementById('girisInput').onkeydown = e => { if(e.key === 'Enter') girisYap(); };
 
-// ════════════════════════════════════════════════════════════
-// FİREBASE KURULUM SİSTEMİ
-// ════════════════════════════════════════════════════════════
-
-function kurulumKontrol() {
-  const kayitli = localStorage.getItem('by3_firebaseConfig');
-  if(!kayitli) {
-    // İlk kurulum — kurulum ekranını göster
-    document.getElementById('kurulumEkrani').style.display = 'block';
-    document.getElementById('girisEkrani').style.display   = 'none';
-    // Mevcut config alanlarını doldur (varsayılan)
-    const cfg = configYukle();
-    Object.keys(cfg).forEach(k => {
-      const el = document.getElementById('cfg_' + k);
-      if(el) el.value = cfg[k] || '';
-    });
-  } else {
-    // Config var — direkt giriş ekranına
-    document.getElementById('kurulumEkrani').style.display = 'none';
-    document.getElementById('girisEkrani').style.display   = 'flex';
-  }
-}
-
-function kurulumAtla() {
-  document.getElementById('kurulumEkrani').style.display = 'none';
-  document.getElementById('girisEkrani').style.display   = 'flex';
-}
-
-// Config metnini yapıştırınca otomatik ayrıştır
-function configParseEt() {
-  const metin = document.getElementById('configYapistir').value.trim();
-  if(!metin) { kurulumHata('⚠️ Önce config metni yapıştırın'); return; }
-
-  const alanlar = {
-    apiKey:            /apiKey\s*:\s*["']([^"']+)["']/,
-    authDomain:        /authDomain\s*:\s*["']([^"']+)["']/,
-    projectId:         /projectId\s*:\s*["']([^"']+)["']/,
-    storageBucket:     /storageBucket\s*:\s*["']([^"']+)["']/,
-    messagingSenderId: /messagingSenderId\s*:\s*["']([^"']+)["']/,
-    appId:             /appId\s*:\s*["']([^"']+)["']/,
-    measurementId:     /measurementId\s*:\s*["']([^"']+)["']/,
-  };
-
-  let bulunan = 0;
-  Object.entries(alanlar).forEach(([k, regex]) => {
-    const m = metin.match(regex);
-    if(m) {
-      const el = document.getElementById('cfg_' + k);
-      if(el) { el.value = m[1]; bulunan++; }
-    }
-  });
-
-  if(bulunan >= 3) {
-    document.getElementById('kurulumBasari').style.display = 'block';
-    document.getElementById('kurulumBasari').textContent = '✓ ' + bulunan + ' alan ayrıştırıldı. Kontrol edip "Kaydet" butonuna basın.';
-    document.getElementById('kurulumHata').style.display = 'none';
-  } else {
-    kurulumHata('⚠️ Config tanınamadı. Manuel girin veya doğru formatta yapıştırın.');
-  }
-}
-
-function kurulumHata(msg) {
-  const el = document.getElementById('kurulumHata');
-  el.style.display = 'block';
-  el.textContent = msg;
-  document.getElementById('kurulumBasari').style.display = 'none';
-}
-
-async function kurulumKaydet() {
-  const cfg = {
-    apiKey:            document.getElementById('cfg_apiKey').value.trim(),
-    authDomain:        document.getElementById('cfg_authDomain').value.trim(),
-    projectId:         document.getElementById('cfg_projectId').value.trim(),
-    storageBucket:     document.getElementById('cfg_storageBucket').value.trim(),
-    messagingSenderId: document.getElementById('cfg_messagingSenderId').value.trim(),
-    appId:             document.getElementById('cfg_appId').value.trim(),
-  };
-  const vapidKey = document.getElementById('cfg_vapidKey').value.trim();
-
-  if(!cfg.apiKey || !cfg.projectId || !cfg.appId) {
-    kurulumHata('⚠️ API Key, Project ID ve App ID zorunludur.');
-    return;
-  }
-
-  // Test bağlantısı
-  document.getElementById('kurulumBasari').style.display = 'block';
-  document.getElementById('kurulumBasari').textContent = '⏳ Firebase bağlantısı test ediliyor...';
-  document.getElementById('kurulumHata').style.display = 'none';
-
-  try {
-    // Geçici Firebase bağlantısı test et
-    firebaseBaslat(cfg);
-    await db.collection('anayonetici').doc('config').get();
-
-    // Başarılı — kaydet
-    const eskiConfig = localStorage.getItem('by3_firebaseConfig');
-    localStorage.setItem('by3_firebaseConfig', JSON.stringify(cfg));
-    if(vapidKey) localStorage.setItem('by3_vapidKey', vapidKey);
-
-    document.getElementById('kurulumBasari').textContent = '✓ Bağlantı başarılı! Kaydedildi.";
-
-    // Eski veriden yeni Firebase'a taşıma
-    if(eskiConfig && eskiConfig !== JSON.stringify(cfg)) {
-      document.getElementById("kurulumBasari").textContent = "⏳ Eski veriler yeni Firebase'a taşınıyor...";
-      await eskiVeriTasi(JSON.parse(eskiConfig), cfg);
-      document.getElementById("kurulumBasari").textContent = "Veriler tasindi!";
-    } else {
-      document.getElementById("kurulumBasari").textContent = "Firebase baglandi!";
-    }
-
-    setTimeout(() => {
-      document.getElementById('kurulumEkrani').style.display = 'none';
-      document.getElementById('girisEkrani').style.display   = 'flex';
-    }, 1500);
-
-  } catch(e) {
-    kurulumHata('⚠️ Bağlantı hatası: ' + e.message + '
-Config bilgilerini kontrol edin.');
-    // Eski config'e geri dön
-    const eskiCfg = configYukle();
-    firebaseBaslat(eskiCfg);
-  }
-}
-
-// Eski Firebase"den yeni Firebase'a veri taşı
-async function eskiVeriTasi(eskiCfg, yeniCfg) {
-  try {
-    // Eski Firebase"e bağlan
-    let eskiApp;
-    try {
-      eskiApp = firebase.app('eskiapp');
-    } catch(e) {
-      eskiApp = firebase.initializeApp(eskiCfg, 'eskiapp');
-    }
-    const eskiDb = firebase.firestore(eskiApp);
-
-    // Tüm binaları çek
-    const snap = await eskiDb.collection('binalar").get();
-    if(snap.empty) { await eskiApp.delete(); return; }
-
-    // Yeni Firebase'e bağlan
-    firebaseBaslat(yeniCfg);
-
-    // Her binayı taşı
-    let tasindi = 0;
-    for(const doc of snap.docs) {
-      const veriSnap = await eskiDb.collection("binalar').doc(doc.id)
-        .collection('veri').doc('data').get();
-      if(veriSnap.exists) {
-        await db.collection('binalar').doc(doc.id)
-          .collection('veri').doc('data').set(veriSnap.data());
-        tasindi++;
-      }
-    }
-
-    // Ana yönetici config taşı
-    const anaSnap = await eskiDb.collection('anayonetici').doc('config').get();
-    if(anaSnap.exists) {
-      await db.collection('anayonetici').doc('config').set(anaSnap.data());
-    }
-
-    await eskiApp.delete();
-    console.log(tasindi + ' bina taşındı');
-  } catch(e) {
-    console.error('Taşıma hatası:', e);
-  }
-}
-
-// Admin panelinden config değiştirme butonu
-function configDegistir() {
-  // Mevcut değerleri doldur
-  const cfg = configYukle();
-  Object.keys(cfg).forEach(k => {
-    const el = document.getElementById('cfg_' + k);
-    if(el) el.value = cfg[k] || '';
-  });
-  const vapid = localStorage.getItem('by3_vapidKey') || '';
-  if(document.getElementById('cfg_vapidKey')) document.getElementById('cfg_vapidKey').value = vapid;
-  document.getElementById('kurulumEkrani').style.display = 'block';
-}
-
-
-// ════════════════════════════════════════════════════════════
-// GİRİŞ / ÇIKIŞ
-// ════════════════════════════════════════════════════════════
-let _girisDenemeSayisi = 0;
-
-function girisYap(){ girisYapAsync(); }
-window.girisYap = girisYap;
-async function girisYapAsync() {
+async function girisYap() {
   const girilen = document.getElementById('girisInput').value;
-  if(!girilen) { toast('⚠️ Şifre girin','#c0392b'); return; }
-
+  if(!girilen) { toast('Şifre girin', '#da3633'); return; }
+  document.getElementById('girisBttn').textContent = '⏳ Kontrol ediliyor...';
   try {
-    const snap = await anayoneticiRef.get();
-    let masterSifre = 'BY@Master2024!';
-    if(snap.exists && snap.data().masterSifre) masterSifre = snap.data().masterSifre;
-
-    // Hash karşılaştır (hem hash hem düz metin destekle)
-    let eslesir = girilen === masterSifre;
-    if(!eslesir && masterSifre.length === 64) {
+    const snap = await anaRef.get();
+    let master = 'BY@Master2024!';
+    if(snap.exists && snap.data().masterSifre) master = snap.data().masterSifre;
+    let eslesir = girilen === master;
+    if(!eslesir && master.length === 64) {
       const hash = await sha256(girilen);
-      eslesir = hash === masterSifre;
+      eslesir = hash === master;
     }
-
     if(eslesir) {
-      girisBasarili();
-      _girisDenemeSayisi = 0;
-      logYaz('SYSTEM', 'Süper admin girişi yapıldı');
+      document.getElementById('girisEkrani').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+      sessionStorage.setItem('adminOturum', '1');
+      panelBaslat();
     } else {
-      _girisDenemeSayisi++;
       document.getElementById('girisHata').style.display = 'block';
       document.getElementById('girisInput').value = '';
-      logYaz('SYSTEM', `Hatalı giriş denemesi #${_girisDenemeSayisi}`);
-      // 5 yanlış denemede 30 sn bekleme
-      if(_girisDenemeSayisi >= 5) {
-        document.getElementById('girisInput').disabled = true;
-        toast('⚠️ Çok fazla deneme. 30 saniye bekleyin.','#c0392b');
-        setTimeout(() => {
-          document.getElementById('girisInput').disabled = false;
-          _girisDenemeSayisi = 0;
-        }, 30000);
-      }
+      document.getElementById('girisBttn').textContent = '🔑 Giriş Yap';
     }
   } catch(e) {
-    toast('⚠️ Bağlantı hatası: ' + e.message,'#c0392b');
+    toast('Bağlantı hatası: ' + e.message, '#da3633');
+    document.getElementById('girisBttn').textContent = '🔑 Giriş Yap';
   }
-}
-
-function girisBasarili() {
-  document.getElementById('girisEkrani').style.display = 'none';
-  document.getElementById('adminPanel').style.display = 'block';
-  sessionStorage.setItem('adminGiris','1');
-  panelBaslat();
 }
 
 function cikisYap() {
   if(!confirm('Çıkış yapmak istiyor musunuz?')) return;
-  sessionStorage.removeItem('adminGiris');
+  sessionStorage.removeItem('adminOturum');
   location.reload();
 }
 
-// ════════════════════════════════════════════════════════════
-// PANEL BAŞLAT
-// ════════════════════════════════════════════════════════════
-let tumBinalar = {}; // { binaId: {id, ad, veri} }
+// ══ PANEL ══
+let tumBinalar = {};
+let fiyatDilimleri = [
+  {min:1, max:10, fiyat:199},
+  {min:11, max:25, fiyat:349},
+  {min:26, max:50, fiyat:549},
+  {min:51, max:100, fiyat:799},
+  {min:101, max:999, fiyat:1199}
+];
 
 async function panelBaslat() {
-  baglantiKontrol();
-  await tumBinalariYukle();
-  genelBakisRender();
-  ozellikListesiRender();
-  erisimLogYukle();
-}
-
-async function baglantiKontrol() {
-  const el = document.getElementById('baglanti-durum');
+  // Bağlantı kontrolü
   try {
     await db.collection('anayonetici').doc('config').get();
-    el.textContent = '🟢 Bağlı';
-    el.style.color = 'var(--accent2)';
+    document.getElementById('baglantiDurum').textContent = '🟢 Bağlı';
+    document.getElementById('baglantiDurum').style.color = '#3fb950';
   } catch(e) {
-    el.textContent = '🔴 Bağlantı yok';
-    el.style.color = 'var(--warn)';
+    document.getElementById('baglantiDurum').textContent = '🔴 Bağlantı yok';
   }
+  await binalariYukle();
+  genelRender();
+  fiyatTablosuRender();
+  abonelikListeRender();
 }
 
-async function tumBinalariYukle() {
+async function binalariYukle() {
   tumBinalar = {};
-  const snap = await db.collection('binalar').get();
-  const bekle = [];
-  snap.forEach(doc => {
-    bekle.push(
-      db.collection('binalar').doc(doc.id).collection('veri').doc('data').get().then(veriSnap => {
-        tumBinalar[doc.id] = {
-          id: doc.id,
-          ad: doc.id,
-          veri: veriSnap.exists ? veriSnap.data() : {}
-        };
-        if(veriSnap.exists && veriSnap.data().ayarlar && veriSnap.data().ayarlar.binaAdi) {
-          tumBinalar[doc.id].ad = veriSnap.data().ayarlar.binaAdi;
-        }
-      })
-    );
-  });
-  await Promise.all(bekle);
-  binaSecimleriniDoldur();
+  try {
+    const snap = await db.collection('binalar').get();
+    const bekle = [];
+    snap.forEach(doc => {
+      bekle.push(
+        db.collection('binalar').doc(doc.id).collection('veri').doc('data').get().then(v => {
+          tumBinalar[doc.id] = { id: doc.id, ad: doc.id, veri: v.exists ? v.data() : {} };
+          if(v.exists && v.data().ayarlar && v.data().ayarlar.binaAdi) {
+            tumBinalar[doc.id].ad = v.data().ayarlar.binaAdi;
+          }
+        })
+      );
+    });
+    await Promise.all(bekle);
+  } catch(e) { toast('Yükleme hatası: ' + e.message, '#da3633'); }
+  binaSelects();
 }
 
-function binaSecimleriniDoldur() {
-  const selects = ['sakinBinaFiltre','sifreSifirBina','logBinaFiltre'];
-  selects.forEach(id => {
+function binaSelects() {
+  const ids = Object.keys(tumBinalar);
+  ['sakinBinaFiltre','sifreBinaSecim'].forEach(id => {
     const el = document.getElementById(id);
     if(!el) return;
-    const ilkOption = el.options[0];
+    const ilk = el.options[0];
     el.innerHTML = '';
-    el.appendChild(ilkOption);
-    Object.values(tumBinalar).forEach(b => {
+    el.appendChild(ilk);
+    ids.forEach(bid => {
       const o = document.createElement('option');
-      o.value = b.id; o.textContent = b.ad;
+      o.value = bid; o.textContent = tumBinalar[bid].ad;
       el.appendChild(o);
     });
   });
 }
 
-// ════════════════════════════════════════════════════════════
-// SEKME YÖNETİMİ
-// ════════════════════════════════════════════════════════════
-function sekme(id) {
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', b.getAttribute('onclick').includes("'"+id+"'"));
-  });
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('panel-'+id).classList.add('active');
-
-  // Lazy load
-  if(id === 'binalar') binaListesiRender();
-  if(id === 'sakinler') sakinListesiRender();
-  if(id === 'log') logYukle();
-  if(id === 'genel') genelBakisRender();
+// ══ SEKMELER ══
+function sekme(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('aktif'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('aktif'));
+  document.getElementById('panel-' + id).classList.add('aktif');
+  btn.classList.add('aktif');
+  if(id === 'binalar') binaListeRender();
+  if(id === 'sakinler') sakinListeRender();
+  if(id === 'genel') genelRender();
 }
 
-// ════════════════════════════════════════════════════════════
-// GENEL BAKIŞ
-// ════════════════════════════════════════════════════════════
-function genelBakisRender() {
+// ══ GENEL ══
+function genelRender() {
   const binalar = Object.values(tumBinalar);
+  const ay = new Date().getMonth(), yil = new Date().getFullYear();
   let topSakin = 0, topBorc = 0;
-
   binalar.forEach(b => {
-    const daireler = b.veri.daireler || [];
-    const ay = new Date().getMonth();
-    const yil = new Date().getFullYear();
-    topSakin += daireler.filter(d=>!d.yonetici).length;
-    daireler.forEach(d => {
-      if(d.yonetici) return;
-      const key = yil+'_'+ay;
-      if(!((d.odemeler||{})[key])) topBorc++;
+    const d = b.veri.daireler || [];
+    d.forEach(x => {
+      if(x.yonetici) return;
+      topSakin++;
+      if(!((x.odemeler||{})[yil+'_'+ay])) topBorc++;
     });
   });
+  document.getElementById('s-bina').textContent = binalar.length;
+  document.getElementById('s-sakin').textContent = topSakin;
+  document.getElementById('s-borc').textContent = topBorc;
 
-  document.getElementById('stat-bina-sayi').textContent = binalar.length;
-  document.getElementById('stat-sakin-sayi').textContent = topSakin;
-  document.getElementById('stat-borc-sayi').textContent = topBorc;
-
-  // Sistem durum
-  const durumEl = document.getElementById('sistem-durum');
-  durumEl.innerHTML = `
-    <div class="durum-bar durum-ok-bar">✅ Firebase Firestore bağlantısı aktif</div>
-    <div class="durum-bar ${binalar.length>0?'durum-ok-bar':'durum-warn-bar'}">${binalar.length>0?'✅':'⚠️'} ${binalar.length} bina kayıtlı</div>
-    <div class="durum-bar durum-warn-bar">⚠️ Firebase güvenlik kuralları — Özellikler sekmesinden yapılandır</div>
-  `;
-
-  // Bina özet listesi
-  const listeEl = document.getElementById('genel-bina-liste');
-  if(!binalar.length) { listeEl.innerHTML = '<div style="color:var(--sub);font-size:12px;padding:12px 0">Henüz bina eklenmemiş.</div>'; return; }
-  listeEl.innerHTML = `
-    <table class="tablo">
-      <thead><tr><th>Bina</th><th>Sakin</th><th>Borçlu</th><th>Kasa</th><th>Son Güncelleme</th></tr></thead>
-      <tbody>${binalar.map(b => {
-        const d = b.veri.daireler||[];
-        const h = b.veri.hareketler||[];
-        const ay = new Date().getMonth(), yil = new Date().getFullYear();
-        const sakin = d.filter(x=>!x.yonetici).length;
-        const borc = d.filter(x=>!x.yonetici && !((x.odemeler||{})[yil+'_'+ay])).length;
-        const gelir = h.filter(x=>x.tip==='gelir').reduce((s,x)=>s+Number(x.tutar||0),0);
-        const gider = h.filter(x=>x.tip==='gider').reduce((s,x)=>s+Number(x.tutar||0),0);
-        const kasa = (b.veri.ayarlar?.kasaBaslangic||0) + gelir - gider;
-        return `<tr>
-          <td><b>${b.ad}</b><br><span style="font-size:10px;color:var(--sub)">${b.id}</span></td>
-          <td>${sakin}</td>
-          <td style="color:${borc>0?'var(--warn)':'var(--accent2)'}"><b>${borc}</b></td>
-          <td>${para(kasa)}</td>
-          <td style="font-size:11px;color:var(--sub)">${tarih(new Date())}</td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table>`;
+  const el = document.getElementById('genelBinaListe');
+  if(!binalar.length) { el.innerHTML = '<div style="color:#8b949e;text-align:center;padding:20px">Bina yok</div>'; return; }
+  el.innerHTML = '<table><thead><tr><th>Bina</th><th>Sakin</th><th>Borçlu</th><th>Kasa</th></tr></thead><tbody>' +
+    binalar.map(b => {
+      const d = b.veri.daireler||[];
+      const h = b.veri.hareketler||[];
+      const sakin = d.filter(x=>!x.yonetici).length;
+      const borc = d.filter(x=>!x.yonetici&&!((x.odemeler||{})[yil+'_'+ay])).length;
+      const gelir = h.filter(x=>x.tip==='gelir').reduce((s,x)=>s+Number(x.tutar||0),0);
+      const gider = h.filter(x=>x.tip==='gider').reduce((s,x)=>s+Number(x.tutar||0),0);
+      const kasa = (b.veri.ayarlar?.kasaBaslangic||0)+gelir-gider;
+      return `<tr><td><b>${b.ad}</b></td><td>${sakin}</td><td style="color:${borc>0?'#f85149':'#3fb950'}">${borc}</td><td>${para(kasa)}</td></tr>`;
+    }).join('') + '</tbody></table>';
 }
 
-// ════════════════════════════════════════════════════════════
-// BİNALAR
-// ════════════════════════════════════════════════════════════
-function binaListesiRender() {
-  const el = document.getElementById('bina-listesi');
+// ══ BİNALAR ══
+function binaListeRender() {
+  const el = document.getElementById('binaListe');
   const binalar = Object.values(tumBinalar);
-  if(!binalar.length) { el.innerHTML = '<div style="color:var(--sub);padding:20px;text-align:center">Henüz bina yok. "Yeni Bina" butonuna bas.</div>'; return; }
-
+  if(!binalar.length) { el.innerHTML = '<div style="color:#8b949e;text-align:center;padding:20px">Bina yok — Yeni Bina ekleyin</div>'; return; }
+  const ay = new Date().getMonth(), yil = new Date().getFullYear();
   el.innerHTML = binalar.map(b => {
     const d = b.veri.daireler||[];
     const sakin = d.filter(x=>!x.yonetici).length;
-    const ay = new Date().getMonth(), yil = new Date().getFullYear();
-    const borc = d.filter(x=>!x.yonetici && !((x.odemeler||{})[yil+'_'+ay])).length;
+    const borc = d.filter(x=>!x.yonetici&&!((x.odemeler||{})[yil+'_'+ay])).length;
     return `<div class="bina-kart">
       <div class="bina-ikon">🏢</div>
       <div class="bina-bilgi">
         <div class="bina-ad">${b.ad}</div>
-        <div class="bina-meta">
-          <span>📍 ${b.veri.ayarlar?.adres||'Adres yok'}</span>
-          <span>👥 ${sakin} sakin</span>
-          <span style="color:${borc>0?'var(--warn)':'var(--accent2)'}">💰 ${borc} borçlu</span>
-          <span style="font-size:10px;color:var(--sub)">${b.id}</span>
-        </div>
+        <div class="bina-meta">👥 ${sakin} sakin · 💰 ${borc} borçlu · <span style="opacity:.6">${b.id}</span></div>
       </div>
-      <div class="bina-islemler">
-        <button class="btn btn-ghost btn-sm" onclick="binaDetayAc('${b.id}')">🔍 Detay</button>
-        <button class="btn btn-primary btn-sm" onclick="tekBinaYedekle('${b.id}')">💾 Yedek</button>
-        <button class="btn btn-danger btn-sm" onclick="binaSil('${b.id}','${b.ad}')">🗑</button>
+      <div class="bina-btnler">
+        <button class="btn btn-mavi btn-sm" onclick="tekYedekle('${b.id}')">💾</button>
+        <button class="btn btn-gri btn-sm" onclick="binaYoneticiSifirlaModal('${b.id}')">🔑</button>
+        <button class="btn btn-kirmizi btn-sm" onclick="binaSil('${b.id}','${b.ad}')">🗑</button>
       </div>
     </div>`;
   }).join('');
 }
 
 async function yeniBinaOlustur() {
-  const ad    = document.getElementById('yeniBinaAd').value.trim();
-  const adres = document.getElementById('yeniBinaAdres').value.trim();
-  const yon   = document.getElementById('yeniBinaYon').value.trim();
-  const sifre = document.getElementById('yeniBinaSifre').value;
-  if(!ad) { toast('⚠️ Bina adı zorunlu','#c0392b'); return; }
-  if(!sifre || sifre.length<4) { toast('⚠️ En az 4 karakterli şifre girin','#c0392b'); return; }
-
+  const ad = document.getElementById('yBinaAd').value.trim();
+  const adres = document.getElementById('yBinaAdres').value.trim();
+  const yon = document.getElementById('yBinaYon').value.trim();
+  const sifre = document.getElementById('yBinaSifre').value;
+  if(!ad) { toast('Bina adı zorunlu', '#da3633'); return; }
+  if(!sifre || sifre.length < 4) { toast('En az 4 karakterli şifre', '#da3633'); return; }
   const binaId = ad.toLowerCase()
     .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
     .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
     .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '_' + Date.now();
-
-  const sifrehash = await sha256(sifre);
-
+  const hash = await sha256(sifre);
   try {
-    await db.collection('binalar').doc(binaId)
-      .collection('veri').doc('data').set({
-        ayarlar: { binaAdi: ad, adres, yonetici: yon, kasaBaslangic: 0, yoneticiSifre: sifrehash },
-        hareketler:[], daireler:[], evraklar:[], faturalar:[], ekstralar:[]
-      });
+    await db.collection('binalar').doc(binaId).collection('veri').doc('data').set({
+      ayarlar:{binaAdi:ad, adres, yonetici:yon, kasaBaslangic:0, yoneticiSifre:hash},
+      hareketler:[], daireler:[], evraklar:[], faturalar:[], ekstralar:[]
+    });
     toast('✓ ' + ad + ' oluşturuldu');
     kapatModal('modalYeniBina');
-    ['yeniBinaAd','yeniBinaAdres','yeniBinaYon','yeniBinaSifre'].forEach(id=>document.getElementById(id).value='');
-    await tumBinalariYukle();
-    binaListesiRender();
-    genelBakisRender();
-    logYaz(binaId, 'Bina oluşturuldu: ' + ad);
-  } catch(e) {
-    toast('⚠️ Hata: '+e.message,'#c0392b');
-  }
+    ['yBinaAd','yBinaAdres','yBinaYon','yBinaSifre'].forEach(id=>document.getElementById(id).value='');
+    await binalariYukle();
+    binaListeRender();
+    genelRender();
+  } catch(e) { toast('Hata: ' + e.message, '#da3633'); }
 }
 
-async function binaSil(binaId, binaAd) {
-  if(!confirm(`"${binaAd}" binasını SİLMEK istediğinize emin misiniz?\n\nBu işlem GERİ ALINAMAZ. Tüm veriler silinir.`)) return;
-  const tekrar = prompt('Onaylamak için bina adını yazın:');
-  if(tekrar !== binaAd) { toast('⚠️ Bina adı eşleşmedi, silme iptal','#c0392b'); return; }
+async function binaSil(id, ad) {
+  if(!confirm(ad + ' silinsin mi? Tüm veriler silinir!')) return;
+  const onay = prompt('Onaylamak için bina adını yazın:');
+  if(onay !== ad) { toast('Ad eşleşmedi', '#da3633'); return; }
   try {
-    await db.collection('binalar').doc(binaId).collection('veri').doc('data').delete();
-    await db.collection('binalar').doc(binaId).delete();
-    toast('✓ ' + binaAd + ' silindi');
-    logYaz('SYSTEM', 'Bina silindi: ' + binaAd);
-    await tumBinalariYukle();
-    binaListesiRender();
-    genelBakisRender();
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
+    await db.collection('binalar').doc(id).collection('veri').doc('data').delete();
+    await db.collection('binalar').doc(id).delete();
+    toast('✓ Silindi');
+    await binalariYukle();
+    binaListeRender();
+    genelRender();
+  } catch(e) { toast('Hata: ' + e.message, '#da3633'); }
 }
 
-async function binaDetayAc(binaId) {
-  const b = tumBinalar[binaId];
-  if(!b) return;
-  document.getElementById('detayBinaAd').textContent = '🏢 ' + b.ad;
-  acModal('modalBinaDetay');
-
-  const d = b.veri.daireler||[];
-  const h = b.veri.hareketler||[];
-  const ay = new Date().getMonth(), yil = new Date().getFullYear();
-  const gelir = h.filter(x=>x.tip==='gelir').reduce((s,x)=>s+Number(x.tutar||0),0);
-  const gider = h.filter(x=>x.tip==='gider').reduce((s,x)=>s+Number(x.tutar||0),0);
-  const kasa = (b.veri.ayarlar?.kasaBaslangic||0) + gelir - gider;
-
-  document.getElementById('detayIcerik').innerHTML = `
-    <div class="grid-2" style="margin-bottom:16px">
-      <div class="stat-kutu"><div class="stat-deger" style="color:var(--accent)">${d.filter(x=>!x.yonetici).length}</div><div class="stat-etiket">Sakin</div></div>
-      <div class="stat-kutu"><div class="stat-deger" style="color:var(--accent2)">${para(kasa)}</div><div class="stat-etiket">Kasa</div></div>
-    </div>
-    <div style="font-size:13px;color:var(--sub);margin-bottom:12px">ID: ${binaId}</div>
-    <div style="margin-bottom:12px">
-      <div class="form-etiket" style="margin-bottom:6px">Yönetici Şifresini Sıfırla</div>
-      <div style="display:flex;gap:8px">
-        <input class="form-input" type="password" id="detayYeniSifre" placeholder="Yeni şifre">
-        <button class="btn btn-warn" onclick="detayYoneticiSifirla('${binaId}')">Sıfırla</button>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <button class="btn btn-primary btn-sm" onclick="tekBinaYedekle('${binaId}');kapatModal('modalBinaDetay')">💾 Yedekle</button>
-      <button class="btn btn-ghost btn-sm" onclick="sekme('sakinler');document.getElementById('sakinBinaFiltre').value='${binaId}';sakinFiltrele()">👥 Sakinleri Gör</button>
-    </div>
-  `;
-}
-
-async function detayYoneticiSifirla(binaId) {
-  const yeni = document.getElementById('detayYeniSifre').value;
-  if(!yeni || yeni.length<4) { toast('⚠️ En az 4 karakter girin','#c0392b'); return; }
-  const hash = await sha256(yeni);
-  try {
-    await db.collection('binalar').doc(binaId).collection('veri').doc('data')
-      .set({ ayarlar: { yoneticiSifre: hash } }, { merge: true });
-    toast('✓ Yönetici şifresi sıfırlandı');
-    document.getElementById('detayYeniSifre').value = '';
-    logYaz(binaId, 'Yönetici şifresi sıfırlandı');
-    kapatModal('modalBinaDetay');
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
-}
-
-// ════════════════════════════════════════════════════════════
-// SAKİNLER
-// ════════════════════════════════════════════════════════════
-let tumSakinler = []; // [{binaId, binaAd, daire}]
-
-function sakinListesiRender() {
-  tumSakinler = [];
-  Object.values(tumBinalar).forEach(b => {
-    (b.veri.daireler||[]).forEach(d => {
-      if(!d.yonetici) tumSakinler.push({binaId:b.id, binaAd:b.ad, daire:d});
-    });
+function binaYoneticiSifirlaModal(binaId) {
+  const yeni = prompt(tumBinalar[binaId]?.ad + ' - Yeni yönetici şifresi:');
+  if(!yeni || yeni.length < 4) { if(yeni !== null) toast('En az 4 karakter', '#da3633'); return; }
+  sha256(yeni).then(hash => {
+    db.collection('binalar').doc(binaId).collection('veri').doc('data')
+      .set({ayarlar:{yoneticiSifre:hash}},{merge:true})
+      .then(()=>toast('✓ Şifre sıfırlandı'))
+      .catch(e=>toast('Hata: '+e.message,'#da3633'));
   });
-  sakinFiltrele();
 }
 
+// ══ SAKİNLER ══
+function sakinListeRender() { sakinFiltrele(); }
 function sakinFiltrele() {
+  const el = document.getElementById('sakinListe');
   const ara = (document.getElementById('sakinAra')?.value||'').toLowerCase();
   const binaF = document.getElementById('sakinBinaFiltre')?.value||'';
   const ay = new Date().getMonth(), yil = new Date().getFullYear();
-
-  const filtreli = tumSakinler.filter(s => {
-    const d = s.daire;
-    if(binaF && s.binaId !== binaF) return false;
-    if(ara && !(d.kisi||'').toLowerCase().includes(ara) && !(d.no||'').toLowerCase().includes(ara)) return false;
-    return true;
-  });
-
-  const el = document.getElementById('sakin-listesi');
-  if(!filtreli.length) { el.innerHTML = '<div style="color:var(--sub);padding:20px;text-align:center">Sakin bulunamadı.</div>'; return; }
-
-  el.innerHTML = `<table class="tablo">
-    <thead><tr><th>Bina</th><th>Daire</th><th>Kişi</th><th>Tel</th><th>Bu Ay</th><th>İşlem</th></tr></thead>
-    <tbody>${filtreli.map(s => {
-      const d = s.daire;
-      const odendi = ((d.odemeler||{})[yil+'_'+ay]);
-      return `<tr>
-        <td style="font-size:11px;color:var(--sub)">${s.binaAd}</td>
+  let satirlar = [];
+  Object.values(tumBinalar).forEach(b => {
+    if(binaF && b.id !== binaF) return;
+    (b.veri.daireler||[]).forEach(d => {
+      if(d.yonetici) return;
+      if(ara && !(d.kisi||'').toLowerCase().includes(ara) && !(d.no||'').toLowerCase().includes(ara)) return;
+      const odendi = !!((d.odemeler||{})[yil+'_'+ay]);
+      satirlar.push(`<tr>
+        <td style="color:#8b949e;font-size:11px">${b.ad}</td>
         <td><b>${d.no}</b></td>
         <td>${d.kisi||'—'}</td>
         <td style="font-size:11px">${d.tel||'—'}</td>
-        <td><span class="${odendi?'durum-ok':'durum-borc'}">${odendi?'✓ Ödedi':'✗ Borçlu'}</span></td>
-        <td><button class="btn btn-ghost btn-sm" onclick="sakinDetayAc('${s.binaId}','${d.no}')">🔍</button></td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table>`;
-}
-
-function sakinDetayAc(binaId, daireNo) {
-  const b = tumBinalar[binaId];
-  if(!b) return;
-  const d = (b.veri.daireler||[]).find(x=>x.no===daireNo);
-  if(!d) return;
-  document.getElementById('detaySakinAd').textContent = d.no + ' — ' + (d.kisi||'');
-  const ay = new Date().getMonth(), yil = new Date().getFullYear();
-  const topBorc = Array.from({length:12},(_, i)=>i).filter(i=>i<=ay&&!((d.odemeler||{})[yil+'_'+i])).length * Number(d.aidat||0);
-
-  document.getElementById('detaySakinIcerik').innerHTML = `
-    <div class="grid-2" style="margin-bottom:14px">
-      <div><div class="form-etiket">Bina</div><div>${b.ad}</div></div>
-      <div><div class="form-etiket">Telefon</div><div>${d.tel||'—'}</div></div>
-      <div><div class="form-etiket">E-posta</div><div>${d.email||'—'}</div></div>
-      <div><div class="form-etiket">Aidat</div><div>${para(d.aidat)}/ay</div></div>
-    </div>
-    <div style="padding:12px;background:${topBorc>0?'rgba(248,81,73,0.1)':'rgba(63,185,80,0.1)'};border-radius:9px;margin-bottom:14px;text-align:center">
-      <div style="font-size:20px;font-weight:800;color:${topBorc>0?'var(--warn)':'var(--accent2)'}">${para(topBorc)}</div>
-      <div style="font-size:11px;color:var(--sub)">Toplam Borç</div>
-    </div>
-    <div class="form-grup">
-      <label class="form-etiket">Sakin Şifresini Sıfırla</label>
-      <div style="display:flex;gap:8px">
-        <input class="form-input" type="password" id="sakinYeniSifre" placeholder="Yeni şifre">
-        <button class="btn btn-warn" onclick="sakinSifreSifirla('${binaId}','${daireNo}')">Sıfırla</button>
-      </div>
-    </div>
-  `;
-  acModal('modalSakinDetay');
+        <td><span style="color:${odendi?'#3fb950':'#f85149'};font-weight:700">${odendi?'✓ Ödedi':'✗ Borçlu'}</span></td>
+        <td><button class="btn btn-gri btn-sm" onclick="sakinSifreSifirla('${b.id}','${d.no}')">🔑</button></td>
+      </tr>`);
+    });
+  });
+  if(!satirlar.length) { el.innerHTML = '<div style="color:#8b949e;text-align:center;padding:20px">Sakin bulunamadı</div>'; return; }
+  el.innerHTML = '<table><thead><tr><th>Bina</th><th>Daire</th><th>Kişi</th><th>Tel</th><th>Bu Ay</th><th></th></tr></thead><tbody>' + satirlar.join('') + '</tbody></table>';
 }
 
 async function sakinSifreSifirla(binaId, daireNo) {
-  const yeni = document.getElementById('sakinYeniSifre').value;
-  if(!yeni||yeni.length<4) { toast('⚠️ En az 4 karakter','#c0392b'); return; }
+  const yeni = prompt(daireNo + ' - Yeni şifre:');
+  if(!yeni || yeni.length < 4) { if(yeni !== null) toast('En az 4 karakter', '#da3633'); return; }
   const hash = await sha256(yeni);
   const b = tumBinalar[binaId];
   const daireler = b.veri.daireler||[];
   const idx = daireler.findIndex(d=>d.no===daireNo);
-  if(idx<0) { toast('⚠️ Daire bulunamadı','#c0392b'); return; }
+  if(idx<0) { toast('Daire bulunamadı','#da3633'); return; }
   daireler[idx].sifre = hash;
   try {
-    await db.collection('binalar').doc(binaId).collection('veri').doc('data')
-      .set({daireler}, {merge:true});
-    toast('✓ Sakin şifresi sıfırlandı');
-    logYaz(binaId, daireNo+' sakin şifresi sıfırlandı');
-    kapatModal('modalSakinDetay');
+    await db.collection('binalar').doc(binaId).collection('veri').doc('data').set({daireler},{merge:true});
+    toast('✓ Şifre sıfırlandı');
     tumBinalar[binaId].veri.daireler = daireler;
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
+  } catch(e) { toast('Hata: '+e.message,'#da3633'); }
 }
 
-// ════════════════════════════════════════════════════════════
-// YEDEK
-// ════════════════════════════════════════════════════════════
-async function tumBinalarYedekle() {
-  toast('⏳ Yedekleniyor...');
-  const yedek = { tarih: new Date().toISOString(), versiyon: 3, binalar: {} };
-  Object.values(tumBinalar).forEach(b => {
-    yedek.binalar[b.id] = { ad: b.ad, veri: b.veri };
-  });
-  const json = JSON.stringify(yedek, null, 2);
-  const blob = new Blob([json], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
+// ══ YEDEK ══
+async function tumYedekle() {
+  toast('Yedekleniyor...');
+  const yedek = {tarih:new Date().toISOString(), versiyon:3, binalar:{}};
+  Object.values(tumBinalar).forEach(b=>{yedek.binalar[b.id]={ad:b.ad,veri:b.veri};});
+  const blob = new Blob([JSON.stringify(yedek,null,2)],{type:'application/json'});
   const a = document.createElement('a');
-  a.href = url;
-  a.download = 'TumBinalar_Yedek_' + new Date().toISOString().split('T')[0] + '.json';
+  a.href = URL.createObjectURL(blob);
+  a.download = 'BinaPlus_Yedek_' + new Date().toISOString().split('T')[0] + '.json';
   a.click();
-  URL.revokeObjectURL(url);
-  toast('✓ Tüm binalar yedeklendi');
-  yedekGecmisEkle('Tüm binalar', Object.keys(tumBinalar).length + ' bina');
+  toast('✓ Yedek indirildi');
+  const el = document.getElementById('yedekGecmis');
+  el.innerHTML = '<div style="font-size:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)">📦 Tüm binalar — ' + new Date().toLocaleString('tr-TR') + '</div>' + el.innerHTML;
 }
 
-async function tekBinaYedekle(binaId) {
+async function tekYedekle(binaId) {
   const b = tumBinalar[binaId];
   if(!b) return;
-  const yedek = { tarih: new Date().toISOString(), versiyon: 3, binalar: { [binaId]: { ad: b.ad, veri: b.veri } } };
-  const blob = new Blob([JSON.stringify(yedek,null,2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
+  const yedek = {tarih:new Date().toISOString(),versiyon:3,binalar:{[binaId]:{ad:b.ad,veri:b.veri}}};
+  const blob = new Blob([JSON.stringify(yedek,null,2)],{type:'application/json'});
   const a = document.createElement('a');
-  a.href = url;
+  a.href = URL.createObjectURL(blob);
   a.download = b.ad.replace(/\s/g,'_') + '_Yedek_' + new Date().toISOString().split('T')[0] + '.json';
   a.click();
-  URL.revokeObjectURL(url);
   toast('✓ ' + b.ad + ' yedeklendi');
-  yedekGecmisEkle(b.ad, '1 bina');
 }
 
-function secimliBinaYedek() {
+function tekYedekSec() {
   const ids = Object.keys(tumBinalar);
-  if(!ids.length) { toast('⚠️ Bina yok','#c0392b'); return; }
+  if(!ids.length) { toast('Bina yok','#da3633'); return; }
   const liste = ids.map((id,i)=>`${i+1}. ${tumBinalar[id].ad}`).join('\n');
-  const sec = prompt('Hangi binanın yedeğini almak istiyorsunuz?\nNumarayı girin:\n\n'+liste);
+  const sec = prompt('Hangi bina?\n\n'+liste);
   const idx = parseInt(sec)-1;
-  if(isNaN(idx)||idx<0||idx>=ids.length) { toast('⚠️ Geçersiz seçim','#c0392b'); return; }
-  tekBinaYedekle(ids[idx]);
-}
-
-function yedekGecmisEkle(binaAd, notlar) {
-  const el = document.getElementById('yedek-gecmis');
-  const item = document.createElement('div');
-  item.style.cssText='display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px';
-  item.innerHTML=`<span>💾 ${binaAd}</span><span style="color:var(--sub)">${notlar} — ${new Date().toLocaleString('tr-TR')}</span>`;
-  el.insertBefore(item, el.firstChild);
+  if(isNaN(idx)||idx<0||idx>=ids.length) { if(sec!==null) toast('Geçersiz seçim','#da3633'); return; }
+  tekYedekle(ids[idx]);
 }
 
 async function yedekYukle(input) {
   const file = input.files[0];
   if(!file) return;
-  if(!confirm('Yedek yüklemek seçilen binaların mevcut verisini SİLER.\nDevam etmek istiyor musunuz?')) { input.value=''; return; }
+  if(!confirm('Yedek yüklenecek — mevcut veriler silinir. Emin misiniz?')) { input.value=''; return; }
   try {
     const text = await file.text();
     const yedek = JSON.parse(text);
-    if(!yedek.binalar) { toast('⚠️ Geçersiz yedek dosyası','#c0392b'); return; }
-    let yuklendi = 0;
-    for(const [binaId, binaVeri] of Object.entries(yedek.binalar)) {
-      await db.collection('binalar').doc(binaId).collection('veri').doc('data').set(binaVeri.veri||{});
-      yuklendi++;
+    if(!yedek.binalar) { toast('Geçersiz yedek dosyası','#da3633'); return; }
+    let n = 0;
+    for(const [id,b] of Object.entries(yedek.binalar)) {
+      await db.collection('binalar').doc(id).collection('veri').doc('data').set(b.veri||{});
+      n++;
     }
-    toast('✓ '+yuklendi+' bina geri yüklendi');
-    await tumBinalariYukle();
-    logYaz('SYSTEM','Yedek geri yüklendi: '+yuklendi+' bina');
-  } catch(e) {
-    toast('⚠️ Hata: '+e.message,'#c0392b');
-  }
+    toast('✓ '+n+' bina geri yüklendi');
+    await binalariYukle();
+  } catch(e) { toast('Hata: '+e.message,'#da3633'); }
   input.value='';
 }
 
-// ════════════════════════════════════════════════════════════
-// ÖZELLİKLER (MODÜL YÖNETİMİ)
-// ════════════════════════════════════════════════════════════
-const OZELLIKLER = [
-  { id:'periyodikBakim',   ad:'Periyodik Bakım Takvimi',    aciklama:'Asansör, jeneratör, yangın tüpü vb. otomatik hatırlatma' },
-  { id:'fotografEkleme',   ad:'Fotoğraf Ekleme',             aciklama:'Arıza ve bakım fotoğrafı Firebase Storage\'a yükleme' },
-  { id:'tedarikciRehberi', ad:'Tedarikçi / Firma Rehberi',   aciklama:'Sık çağrılan ustalar ve firmaların listesi' },
-  { id:'gecikmeFaizi',     ad:'Gecikme Faizi',               aciklama:'Geç ödenen aidatlara otomatik faiz ekleme' },
-  { id:'butcePlanlama',    ad:'Bütçe Planlama',              aciklama:'Aylık/yıllık gider hedefi ve gerçekleşen karşılaştırma' },
-  { id:'giderGrafik',      ad:'Gider Kategori Grafikleri',   aciklama:'Pasta ve çubuk grafik ile görsel analiz' },
-  { id:'tamOffline',       ad:'Tam Offline Mod',             aciklama:'İnternet kesilince de çalışır (IndexedDB)' },
-  { id:'whatsapp',         ad:'WhatsApp Entegrasyonu',       aciklama:'Tek tıkla sakinlere WhatsApp mesajı gönder' },
-  { id:'karanlikMod',      ad:'Karanlık / Aydınlık Mod',     aciklama:'Kullanıcı tema tercihini seçebilir' },
-  { id:'aracTakip',        ad:'Araç Plaka Takibi',           aciklama:'Otopark ve araç bilgileri yönetimi' },
-  { id:'ziyaretciKayit',   ad:'Ziyaretçi Kaydı',            aciklama:'Misafir ve ziyaretçi giriş-çıkış takibi' },
-  { id:'tasinmaGecmis',    ad:'Taşınma Geçmişi',            aciklama:'Kim ne zaman geldi/gitti kaydı' },
-];
-
-let aktifOzellikler = {};
-
-async function ozellikListesiRender() {
-  try {
-    const snap = await anayoneticiRef.get();
-    aktifOzellikler = (snap.exists && snap.data().ozellikler) || {};
-  } catch(e) { aktifOzellikler = {}; }
-
-  const el = document.getElementById('ozellik-listesi');
-  el.innerHTML = OZELLIKLER.map(o => `
-    <div class="switch-grup">
-      <div class="switch-bilgi">
-        <div class="switch-ad">${o.ad}</div>
-        <div class="switch-aciklama">${o.aciklama}</div>
-      </div>
-      <label class="switch">
-        <input type="checkbox" id="oz_${o.id}" ${aktifOzellikler[o.id]?'checked':''}>
-        <div class="switch-slider"></div>
-      </label>
-    </div>
-  `).join('');
-}
-
-async function ozellikKaydet() {
-  const yeni = {};
-  OZELLIKLER.forEach(o => {
-    yeni[o.id] = document.getElementById('oz_'+o.id)?.checked || false;
-  });
-  try {
-    await anayoneticiRef.set({ ozellikler: yeni }, { merge: true });
-    // Tüm binalara yay
-    for(const binaId of Object.keys(tumBinalar)) {
-      await db.collection('binalar').doc(binaId).collection('veri').doc('data')
-        .set({ ayarlar: { aktifOzellikler: yeni } }, { merge: true });
-    }
-    toast('✓ Özellikler kaydedildi ve tüm binalara uygulandı');
-    logYaz('SYSTEM','Özellikler güncellendi');
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
-}
-
-async function vapidKeyKaydet() {
-  const key = document.getElementById('vapidKeyInput').value.trim();
-  if(!key) { toast('⚠️ VAPID key girin','#c0392b'); return; }
-  try {
-    await anayoneticiRef.set({ vapidKey: key }, { merge: true });
-    toast('✓ VAPID key kaydedildi');
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
-}
-
-// ════════════════════════════════════════════════════════════
-// GÜVENLİK
-// ════════════════════════════════════════════════════════════
-async function masterSifreDegistir() {
+// ══ GÜVENLİK ══
+async function masterDegistir() {
   const mevcut = document.getElementById('masterMevcut').value;
-  const yeni   = document.getElementById('masterYeni').value;
+  const yeni = document.getElementById('masterYeni').value;
   const tekrar = document.getElementById('masterTekrar').value;
-  if(!mevcut||!yeni||!tekrar) { toast('⚠️ Tüm alanları doldurun','#c0392b'); return; }
-  if(yeni.length<8) { toast('⚠️ En az 8 karakter','#c0392b'); return; }
-  if(yeni!==tekrar) { toast('⚠️ Şifreler eşleşmiyor','#c0392b'); return; }
-
+  if(!mevcut||!yeni||!tekrar) { toast('Tüm alanları doldurun','#da3633'); return; }
+  if(yeni.length<6) { toast('En az 6 karakter','#da3633'); return; }
+  if(yeni!==tekrar) { toast('Şifreler eşleşmiyor','#da3633'); return; }
   try {
-    const snap = await anayoneticiRef.get();
-    const kayitli = (snap.exists && snap.data().masterSifre) || 'BY@Master2024!';
+    const snap = await anaRef.get();
+    const kayitli = (snap.exists&&snap.data().masterSifre)||'BY@Master2024!';
     let eslesir = mevcut===kayitli;
-    if(!eslesir && kayitli.length===64) eslesir = (await sha256(mevcut))===kayitli;
-    if(!eslesir) { toast('⚠️ Mevcut şifre hatalı','#c0392b'); return; }
-
+    if(!eslesir&&kayitli.length===64) eslesir=(await sha256(mevcut))===kayitli;
+    if(!eslesir) { toast('Mevcut şifre hatalı','#da3633'); return; }
     const hash = await sha256(yeni);
-    await anayoneticiRef.set({ masterSifre: hash }, { merge: true });
+    await anaRef.set({masterSifre:hash},{merge:true});
     ['masterMevcut','masterYeni','masterTekrar'].forEach(id=>document.getElementById(id).value='');
     toast('✓ Master şifre güncellendi');
-    logYaz('SYSTEM','Master şifre değiştirildi');
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
+  } catch(e) { toast('Hata: '+e.message,'#da3633'); }
 }
 
-async function binaYoneticiSifreSifirla() {
-  const binaId = document.getElementById('sifreSifirBina').value;
-  const yeni   = document.getElementById('sifreSifirYeni').value;
-  if(!binaId) { toast('⚠️ Bina seçin','#c0392b'); return; }
-  if(!yeni||yeni.length<4) { toast('⚠️ En az 4 karakter','#c0392b'); return; }
+async function binaSifreSifirla() {
+  const binaId = document.getElementById('sifreBinaSecim').value;
+  const yeni = document.getElementById('sifreYeni').value;
+  if(!binaId) { toast('Bina seçin','#da3633'); return; }
+  if(!yeni||yeni.length<4) { toast('En az 4 karakter','#da3633'); return; }
   const hash = await sha256(yeni);
   try {
-    await db.collection('binalar').doc(binaId).collection('veri').doc('data')
-      .set({ ayarlar: { yoneticiSifre: hash } }, { merge: true });
-    document.getElementById('sifreSifirYeni').value='';
-    toast('✓ ' + tumBinalar[binaId]?.ad + ' yönetici şifresi sıfırlandı');
-    logYaz(binaId,'Yönetici şifresi sıfırlandı');
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
+    await db.collection('binalar').doc(binaId).collection('veri').doc('data').set({ayarlar:{yoneticiSifre:hash}},{merge:true});
+    document.getElementById('sifreYeni').value='';
+    toast('✓ ' + (tumBinalar[binaId]?.ad||binaId) + ' yönetici şifresi sıfırlandı');
+  } catch(e) { toast('Hata: '+e.message,'#da3633'); }
 }
 
-// ════════════════════════════════════════════════════════════
-// LOG SİSTEMİ
-// ════════════════════════════════════════════════════════════
-async function logYaz(binaId, mesaj) {
-  try {
-    const log = {
-      zaman: new Date().toISOString(),
-      binaId, mesaj,
-      userAgent: navigator.userAgent.substring(0,80)
-    };
-    // localStorage'a da yaz (offline)
-    const logs = JSON.parse(localStorage.getItem('adminLogs')||'[]');
-    logs.unshift(log);
-    if(logs.length>200) logs.splice(200);
-    localStorage.setItem('adminLogs', JSON.stringify(logs));
-    // Firestore'a yaz
-    await anayoneticiRef.collection('logs').add(log);
-  } catch(e) { /* sessiz */ }
-}
-
-async function logYukle() {
-  const el = document.getElementById('log-listesi');
-  const binaF = document.getElementById('logBinaFiltre')?.value||'';
-  el.innerHTML = '<div class="yukleniyor"><div class="spin">⚙️</div></div>';
-
-  // localStorage logları
-  const localLogs = JSON.parse(localStorage.getItem('adminLogs')||'[]');
-  let logs = localLogs;
-  if(binaF) logs = logs.filter(l=>l.binaId===binaF);
-  logs = logs.slice(0,50);
-
-  if(!logs.length) { el.innerHTML='<div style="color:var(--sub);padding:16px;text-align:center">Log kaydı yok.</div>'; return; }
-  el.innerHTML = logs.map(l=>`
-    <div class="log-satir">
-      <span class="log-zaman">${new Date(l.zaman).toLocaleString('tr-TR')}</span>
-      <span class="log-bina">${l.binaId==='SYSTEM'?'🛡️ SİSTEM':tumBinalar[l.binaId]?.ad||l.binaId}</span>
-      <span class="log-mesaj">${l.mesaj}</span>
-    </div>`).join('');
-}
-
-function logTemizle() {
-  if(!confirm('Tüm logları silmek istiyor musunuz?')) return;
-  localStorage.removeItem('adminLogs');
-  logYukle();
-  toast('✓ Loglar temizlendi');
-}
-
-function erisimLogYukle() {
-  const el = document.getElementById('erisim-log');
-  const logs = JSON.parse(localStorage.getItem('adminLogs')||'[]')
-    .filter(l=>l.mesaj.includes('giriş')||l.mesaj.includes('Hatalı'))
-    .slice(0,10);
-  if(!logs.length) return;
-  el.innerHTML = logs.map(l=>`
-    <div class="log-satir">
-      <span class="log-zaman">${new Date(l.zaman).toLocaleString('tr-TR')}</span>
-      <span class="log-mesaj" style="color:${l.mesaj.includes('Hatalı')?'var(--warn)':'var(--accent2)'}">${l.mesaj}</span>
-    </div>`).join('');
-}
-
-// ════════════════════════════════════════════════════════════
-// BAŞLANGIÇ
-// ════════════════════════════════════════════════════════════
-
-
-// ══════════════════════════════════════════════════════════════
-// AŞAMA 1: OTOMATİK YEDEK + GOOGLE DRIVE + VERİ MONİTÖR
-// ══════════════════════════════════════════════════════════════
-
-// ── Otomatik Günlük Yedek ──────────────────────────────────
-let _otoyedekInterval = null;
-
-function otoyedekBaslat() {
-  const saat = document.getElementById('otoyedekSaat').value || '03:00';
-  localStorage.setItem('by3_otoyedekSaat', saat);
-  localStorage.setItem('by3_otoyedekAktif', '1');
-  _otoyedekZamanla();
-  toast('✓ Otomatik yedek başlatıldı — her gün ' + saat + ''de');
-  otoyedekDurumGuncelle();
-}
-
-function otoyedekDurdur() {
-  if(_otoyedekInterval) { clearTimeout(_otoyedekInterval); _otoyedekInterval = null; }
-  localStorage.removeItem('by3_otoyedekAktif');
-  toast('⏹ Otomatik yedek durduruldu');
-  otoyedekDurumGuncelle();
-}
-
-function otoyedekDurumGuncelle() {
-  const el = document.getElementById('otoyedekDurum');
-  if(!el) return;
-  const aktif = localStorage.getItem('by3_otoyedekAktif') === '1';
-  const saat  = localStorage.getItem('by3_otoyedekSaat') || '03:00';
-  const sonYedek = localStorage.getItem('by3_sonOtoyedek');
-  if(aktif) {
-    el.style.cssText = 'padding:10px 14px;background:rgba(63,185,80,0.1);border:1px solid rgba(63,185,80,0.2);border-radius:9px;font-size:12px;color:var(--accent2);font-weight:700';
-    el.innerHTML = '✅ Aktif — her gün ' + saat + '<br>' + (sonYedek ? '<span style="opacity:0.7;font-weight:400">Son: '+sonYedek+'</span>' : '');
-  } else {
-    el.style.cssText = 'padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:9px;font-size:13px;color:var(--sub)';
-    el.innerHTML = 'Pasif';
-  }
-}
-
-function _otoyedekZamanla() {
-  if(_otoyedekInterval) clearTimeout(_otoyedekInterval);
-  const saat = localStorage.getItem('by3_otoyedekSaat') || '03:00';
-  const [h, m] = saat.split(':').map(Number);
-  const simdi = new Date();
-  const hedef = new Date();
-  hedef.setHours(h, m, 0, 0);
-  if(hedef <= simdi) hedef.setDate(hedef.getDate() + 1); // Yarın
-  const ms = hedef - simdi;
-  _otoyedekInterval = setTimeout(async () => {
-    await tumBinalarYedekle();
-    localStorage.setItem('by3_sonOtoyedek', new Date().toLocaleString('tr-TR'));
-    otoyedekDurumGuncelle();
-    _otoyedekZamanla(); // Sonraki gün için tekrar ayarla
-  }, ms);
-}
-
-// Sayfa yüklenince aktif ise başlat
-if(localStorage.getItem('by3_otoyedekAktif') === '1') {
-  _otoyedekZamanla();
-}
-
-// ── Google Drive Yedek ─────────────────────────────────────
-// Google Drive API — OAuth 2.0 ile
-const DRIVE_CLIENT_ID = ''; // Google Cloud Console'dan alınacak
-const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-let driveTokenClient = null;
-let driveAccessToken = null;
-
-function driveYetkilendir() {
-  // Google Identity Services
-  if(!window.google || !window.google.accounts) {
-    // Script yükle
-    const script = document.createElement('script');
-    script.src = 'https://accounts.google.com/gsi/client';
-    script.onload = () => driveYetkilendir();
-    document.head.appendChild(script);
-    toast('⏳ Google API yükleniyor...');
-    return;
-  }
-  if(!DRIVE_CLIENT_ID) {
-    toast('⚠️ Google Drive için Client ID gerekli. Özellikler sekmesinden girin.','#c0392b');
-    _driveClientIdPanel();
-    return;
-  }
-  driveTokenClient = window.google.accounts.oauth2.initTokenClient({
-    client_id: DRIVE_CLIENT_ID,
-    scope: DRIVE_SCOPE,
-    callback: (resp) => {
-      if(resp.error) { toast('⚠️ Drive yetkilendirme hatası','#c0392b'); return; }
-      driveAccessToken = resp.access_token;
-      localStorage.setItem('by3_driveAktif','1');
-      document.getElementById('driveBaslangic').style.display='none';
-      document.getElementById('driveBagli').style.display='block';
-      toast('✅ Google Drive bağlandı');
-      logYaz('SYSTEM','Google Drive bağlandı');
-    }
-  });
-  driveTokenClient.requestAccessToken();
-}
-
-function _driveClientIdPanel() {
-  // Admin panelinde Client ID girişi için bilgi ver
-  const msg = `Google Drive entegrasyonu için:
-
-1. console.cloud.google.com → Yeni proje
-2. APIs & Services → Credentials → OAuth 2.0 Client ID
-3. Application type: Web application
-4. Authorized origins: Sitenizin URL'si
-5. Client ID'yi kopyala
-
-Client ID'yi Özellikler sekmesine ekleyeceğiz.`;
-  alert(msg);
-}
-
-async function driveYedekGonder() {
-  if(!driveAccessToken) { toast('⚠️ Önce Drive'ı bağlayın','#c0392b'); return; }
-  toast('⏳ Drive'a yükleniyor...');
-  try {
-    const yedek = { tarih: new Date().toISOString(), versiyon: 3, binalar: {} };
-    Object.values(tumBinalar).forEach(b => { yedek.binalar[b.id] = { ad: b.ad, veri: b.veri }; });
-    const json = JSON.stringify(yedek, null, 2);
-    const dosyaAdi = 'BinaPlus_Yedek_' + new Date().toISOString().split('T')[0] + '.json';
-
-    // Drive'a yükle
-    const metadata = { name: dosyaAdi, mimeType: 'application/json', parents: [] };
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
-    form.append('file', new Blob([json], {type:'application/json'}));
-
-    const resp = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-      method: 'POST',
-      headers: { Authorization: 'Bearer ' + driveAccessToken },
-      body: form
-    });
-
-    if(resp.ok) {
-      const data = await resp.json();
-      toast('✅ Drive'a yüklendi: ' + dosyaAdi);
-      localStorage.setItem('by3_sonDriveYedek', new Date().toLocaleString('tr-TR'));
-      yedekGecmisEkle('Google Drive', dosyaAdi);
-      logYaz('SYSTEM', 'Drive yedek: ' + dosyaAdi);
-    } else {
-      throw new Error('HTTP ' + resp.status);
-    }
-  } catch(e) {
-    toast('⚠️ Drive hatası: ' + e.message,'#c0392b');
-    if(e.message.includes('401')) { driveAccessToken=null; driveYetkilendir(); }
-  }
-}
-
-function driveBaglantiKes() {
-  driveAccessToken = null;
-  localStorage.removeItem('by3_driveAktif');
-  document.getElementById('driveBaslangic').style.display='block';
-  document.getElementById('driveBagli').style.display='none';
-  toast('✓ Drive bağlantısı kesildi');
-}
-
-// Sayfa yüklenince Drive durumunu kontrol et
-if(localStorage.getItem('by3_driveAktif')==='1') {
-  document.addEventListener('DOMContentLoaded', () => {
-    const b = document.getElementById('driveBaslangic');
-    const d = document.getElementById('driveBagli');
-    if(b) b.style.display='none';
-    if(d) d.style.display='block';
-  });
-}
-
-// ── Veri Boyutu Monitörü ───────────────────────────────────
-function veriMonitorRender() {
-  const el = document.getElementById('veriMonitor');
-  if(!el) return;
-  const binalar = Object.values(tumBinalar);
-  if(!binalar.length) { el.innerHTML='<div style="color:var(--sub);font-size:12px">Bina yok.</div>'; return; }
-
-  const LIMIT_MB = 1; // Firestore döküman limiti 1MB
-  let html = '';
-  let toplamByte = 0;
-
-  binalar.forEach(b => {
-    const json = JSON.stringify(b.veri||{});
-    const byte = new Blob([json]).size;
-    const kb = (byte/1024).toFixed(1);
-    const yuzde = Math.min(100, Math.round(byte/(LIMIT_MB*1024*1024)*100));
-    const renk = yuzde > 80 ? 'var(--warn)' : yuzde > 50 ? 'var(--warn2)' : 'var(--accent2)';
-    toplamByte += byte;
-    html += `
-      <div style="margin-bottom:14px">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-          <span style="font-weight:700">${b.ad}</span>
-          <span style="color:${renk};font-weight:700">${kb} KB / 1024 KB (${yuzde}%)</span>
-        </div>
-        <div style="height:8px;background:var(--card2);border-radius:4px;overflow:hidden">
-          <div style="height:100%;width:${yuzde}%;background:${renk};border-radius:4px;transition:width .5s"></div>
-        </div>
-        ${yuzde > 70 ? `<div style="font-size:11px;color:var(--warn);margin-top:3px">⚠️ Limit yaklaşıyor! Firestore yapısını güncellemeyi düşünün.</div>` : ''}
-      </div>`;
-  });
-
-  const toplamKb = (toplamByte/1024).toFixed(1);
-  html = `
-    <div style="padding:10px 14px;background:var(--card2);border-radius:9px;margin-bottom:14px;display:flex;justify-content:space-between;font-size:12px">
-      <span>Toplam veri: <b>${toplamKb} KB</b></span>
-      <span style="color:var(--sub)">${binalar.length} bina</span>
-    </div>` + html;
-
-  el.innerHTML = html;
-}
-
-// ── Aşama 2: Firestore Yapı Yenileme ──────────────────────
-// Tüm binaların verilerini ayrı koleksiyonlara taşı
-async function firestoreYapiGuncelle(binaId) {
-  const b = tumBinalar[binaId];
-  if(!b || !b.veri) return;
-  const veri = b.veri;
-  const binaDoc = db.collection('binalar').doc(binaId);
-
-  try {
-    // Hareketleri ayrı koleksiyona taşı
-    const batch = db.batch();
-    if(veri.hareketler && veri.hareketler.length > 50) {
-      for(const h of veri.hareketler) {
-        const ref = binaDoc.collection('hareketler').doc(h.id || db.collection('x').doc().id);
-        batch.set(ref, h);
-      }
-      await batch.commit();
-      // Ana dökümandn sil
-      await binaDoc.collection('veri').doc('data').update({ hareketler: [] });
-      logYaz(binaId, 'Hareketler ayrı koleksiyona taşındı: ' + veri.hareketler.length);
-      toast('✓ ' + b.ad + ' hareketleri taşındı');
-    } else {
-      toast('ℹ️ ' + b.ad + ' henüz taşıma gerektirmiyor (' + (veri.hareketler||[]).length + ' hareket)');
-    }
-  } catch(e) {
-    toast('⚠️ Taşıma hatası: ' + e.message,'#c0392b');
-  }
-}
-
-// Sekme açılınca monitörü yükle
-const _eskiSekmeYedek = sekme;
-sekme = function(id) {
-  _eskiSekmeYedek(id);
-  if(id === 'yedek') {
-    otoyedekDurumGuncelle();
-    setTimeout(veriMonitorRender, 500);
-    // Drive durumu
-    if(localStorage.getItem('by3_driveAktif')==='1') {
-      const b = document.getElementById('driveBaslangic');
-      const d = document.getElementById('driveBagli');
-      if(b) b.style.display='none';
-      if(d) d.style.display='block';
-    }
-  }
-};
-
-
-
-function yapiGuncellemeKontrol() {
-  const el = document.getElementById('yapiGuncellemeListesi');
-  if(!el) return;
-  const binalar = Object.values(tumBinalar);
-  if(!binalar.length) { el.innerHTML='<div style="color:var(--sub);font-size:12px">Bina yok.</div>'; return; }
-
-  el.innerHTML = binalar.map(b => {
-    const hSayisi = (b.veri.hareketler||[]).length;
-    const json = JSON.stringify(b.veri||{});
-    const kb = (new Blob([json]).size/1024).toFixed(1);
-    const gerekli = hSayisi > 50 || kb > 512;
-    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--card2);border-radius:9px;margin-bottom:6px">
-      <div>
-        <div style="font-size:13px;font-weight:700">${b.ad}</div>
-        <div style="font-size:11px;color:var(--sub)">${hSayisi} hareket · ${kb} KB</div>
-      </div>
-      ${gerekli
-        ? `<button class="btn btn-warn btn-sm" onclick="firestoreYapiGuncelle('${b.id}')">⚡ Taşı</button>`
-        : `<span style="color:var(--accent2);font-size:12px;font-weight:700">✓ Tamam</span>`
-      }
-    </div>`;
-  }).join('');
-}
-
-
-// ══════════════════════════════════════════════════════════════
-// ABONELİK SİSTEMİ
-// ══════════════════════════════════════════════════════════════
-
-// Varsayılan fiyat dilimleri
-let fiyatDilimleri = [
-  { minDaire: 1,  maxDaire: 10,  fiyat: 199 },
-  { minDaire: 11, maxDaire: 25,  fiyat: 349 },
-  { minDaire: 26, maxDaire: 50,  fiyat: 549 },
-  { minDaire: 51, maxDaire: 100, fiyat: 799 },
-  { minDaire: 101,maxDaire: 999, fiyat: 1199 },
-];
-
-let gracePeriodGun = 10;
-
-// Fiyat tablosunu render et
+// ══ ABONELİK ══
 function fiyatTablosuRender() {
   const el = document.getElementById('fiyatTablosu');
   if(!el) return;
-  el.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px">
-      <div style="font-size:11px;color:var(--sub);font-weight:700">MİN DAİRE</div>
-      <div style="font-size:11px;color:var(--sub);font-weight:700">MAX DAİRE</div>
-      <div style="font-size:11px;color:var(--sub);font-weight:700">AYLIK ÜCRET (₺)</div>
-      <div></div>
-    </div>
-    ${fiyatDilimleri.map((d,i) => `
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
-        <input class="form-input" type="number" value="${d.minDaire}" onchange="fiyatDilimleri[${i}].minDaire=parseInt(this.value)" style="font-size:13px">
-        <input class="form-input" type="number" value="${d.maxDaire}" onchange="fiyatDilimleri[${i}].maxDaire=parseInt(this.value)" style="font-size:13px">
-        <div style="position:relative">
-          <input class="form-input" type="number" value="${d.fiyat}" onchange="fiyatDilimleri[${i}].fiyat=parseInt(this.value)" style="font-size:13px;padding-right:28px">
-          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--sub);font-size:12px">₺</span>
-        </div>
-        <button onclick="fiyatDilimiSil(${i})" class="btn btn-danger btn-sm">✕</button>
-      </div>
-    `).join('')}
-  `;
+  el.innerHTML = fiyatDilimleri.map((d,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
+      <input class="form-input" type="number" value="${d.min}" onchange="fiyatDilimleri[${i}].min=parseInt(this.value)" style="margin:0;font-size:12px">
+      <input class="form-input" type="number" value="${d.max}" onchange="fiyatDilimleri[${i}].max=parseInt(this.value)" style="margin:0;font-size:12px">
+      <input class="form-input" type="number" value="${d.fiyat}" onchange="fiyatDilimleri[${i}].fiyat=parseInt(this.value)" style="margin:0;font-size:12px">
+      <button class="btn btn-kirmizi btn-sm" onclick="fiyatDilimleri.splice(${i},1);fiyatTablosuRender()">✕</button>
+    </div>`).join('') +
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px"><span style="font-size:11px;color:#8b949e">Min Daire</span><span style="font-size:11px;color:#8b949e">Max Daire</span><span style="font-size:11px;color:#8b949e">Fiyat (₺)</span><span></span></div>';
+  // Başlıklar önde göster — sırayı değiştir
+  const rows = el.innerHTML;
+  const header = `<div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:6px">
+    <span style="font-size:11px;color:#8b949e">Min Daire</span><span style="font-size:11px;color:#8b949e">Max Daire</span><span style="font-size:11px;color:#8b949e">Fiyat (₺)</span><span></span></div>`;
+  el.innerHTML = header + fiyatDilimleri.map((d,i)=>`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:8px;margin-bottom:8px;align-items:center">
+      <input class="form-input" type="number" value="${d.min}" onchange="fiyatDilimleri[${i}].min=parseInt(this.value)" style="margin:0;font-size:12px">
+      <input class="form-input" type="number" value="${d.max}" onchange="fiyatDilimleri[${i}].max=parseInt(this.value)" style="margin:0;font-size:12px">
+      <input class="form-input" type="number" value="${d.fiyat}" onchange="fiyatDilimleri[${i}].fiyat=parseInt(this.value)" style="margin:0;font-size:12px">
+      <button class="btn btn-kirmizi btn-sm" onclick="fiyatDilimleri.splice(${i},1);fiyatTablosuRender()">✕</button>
+    </div>`).join('');
 }
 
 function fiyatDilimiEkle() {
   const son = fiyatDilimleri[fiyatDilimleri.length-1];
-  fiyatDilimleri.push({
-    minDaire: son ? son.maxDaire+1 : 1,
-    maxDaire: son ? son.maxDaire+50 : 10,
-    fiyat: son ? son.fiyat+200 : 199
-  });
-  fiyatTablosuRender();
-}
-
-function fiyatDilimiSil(i) {
-  if(fiyatDilimleri.length <= 1) { toast('⚠️ En az 1 dilim olmalı','#c0392b'); return; }
-  fiyatDilimleri.splice(i, 1);
+  fiyatDilimleri.push({min:son?son.max+1:1,max:son?son.max+50:10,fiyat:son?son.fiyat+200:199});
   fiyatTablosuRender();
 }
 
 async function fiyatKaydet() {
   try {
-    await anayoneticiRef.set({ fiyatDilimleri, gracePeriodGun }, { merge: true });
+    await anaRef.set({fiyatDilimleri},{merge:true});
     toast('✓ Fiyatlar kaydedildi');
-    logYaz('SYSTEM', 'Fiyat tablosu güncellendi');
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
+  } catch(e) { toast('Hata: '+e.message,'#da3633'); }
 }
 
 async function gracePeriodKaydet() {
   const gun = parseInt(document.getElementById('gracePeriod').value)||10;
-  gracePeriodGun = gun;
   try {
-    await anayoneticiRef.set({ gracePeriodGun: gun }, { merge: true });
-    toast('✓ Grace period '+gun+' gün olarak kaydedildi');
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
+    await anaRef.set({gracePeriodGun:gun},{merge:true});
+    toast('✓ Grace period '+gun+' gün');
+  } catch(e) { toast('Hata: '+e.message,'#da3633'); }
 }
 
-// Daire sayısına göre fiyat hesapla
-function fiyatHesapla(daireSayisi) {
-  const dilim = fiyatDilimleri.find(d => daireSayisi >= d.minDaire && daireSayisi <= d.maxDaire);
-  return dilim ? dilim.fiyat : (fiyatDilimleri[fiyatDilimleri.length-1]?.fiyat || 0);
-}
-
-// Abonelik durumu kontrolü
-function abonelikDurumuHesapla(abonelik) {
-  if(!abonelik || !abonelik.sonOdemeTarihi) return 'belirsiz';
-  const sonOdeme = new Date(abonelik.sonOdemeTarihi);
-  const simdi = new Date();
-  const fark = Math.round((simdi - sonOdeme) / 86400000); // gün farkı
-  if(fark <= 0) return 'aktif';           // henüz dolmamış
-  if(fark <= gracePeriodGun) return 'grace'; // tolerans süresinde
-  return 'kilitli';                         // kilitli
-}
-
-// Abonelik listesini render et
-async function abonelikListesiRender() {
-  const el = document.getElementById('abonelikListesi');
+function abonelikListeRender() {
+  const el = document.getElementById('abonelikListe');
   if(!el) return;
-  el.innerHTML = '<div class="yukleniyor"><div class="spin">⚙️</div></div>';
-
-  // Fiyat ve grace period yükle
-  try {
-    const snap = await anayoneticiRef.get();
-    if(snap.exists) {
-      if(snap.data().fiyatDilimleri) fiyatDilimleri = snap.data().fiyatDilimleri;
-      if(snap.data().gracePeriodGun) {
-        gracePeriodGun = snap.data().gracePeriodGun;
-        const gpEl = document.getElementById('gracePeriod');
-        if(gpEl) gpEl.value = gracePeriodGun;
-      }
-    }
-  } catch(e) {}
-
   const binalar = Object.values(tumBinalar);
-  if(!binalar.length) { el.innerHTML = '<div style="color:var(--sub);padding:16px">Bina yok.</div>'; return; }
-
-  el.innerHTML = `<table class="tablo">
-    <thead>
-      <tr>
-        <th>Bina</th>
-        <th>Daire</th>
-        <th>Aylık Ücret</th>
-        <th>Son Ödeme</th>
-        <th>Durum</th>
-        <th>İşlem</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${binalar.map(b => {
-        const daireSayisi = (b.veri.daireler||[]).filter(d=>!d.yonetici).length;
-        const ucret = fiyatHesapla(daireSayisi);
-        const abonelik = b.veri.abonelik || {};
-        const durum = abonelikDurumuHesapla(abonelik);
-        const durumRenk = durum==='aktif'?'var(--accent2)':durum==='grace'?'var(--warn2)':'var(--warn)';
-        const durumYazi = durum==='aktif'?'✅ Aktif':durum==='grace'?'⚠️ Grace Period':'🔒 Kilitli';
-        const kalanGun = abonelik.sonOdemeTarihi ?
-          Math.round((new Date(abonelik.sonOdemeTarihi)-new Date())/86400000) : null;
-        return `<tr>
-          <td><b>${b.ad}</b></td>
-          <td>${daireSayisi}</td>
-          <td style="font-weight:700;color:var(--accent2)">${ucret.toLocaleString('tr-TR')} ₺</td>
-          <td style="font-size:12px">${abonelik.sonOdemeTarihi ? new Date(abonelik.sonOdemeTarihi).toLocaleDateString('tr-TR') : '—'}</td>
-          <td><span style="color:${durumRenk};font-weight:700;font-size:12px">${durumYazi}${kalanGun!==null && kalanGun>0?'<br><span style="font-size:10px;opacity:0.7">'+kalanGun+' gün kaldı</span>':''}</span></td>
-          <td>
-            <button class="btn btn-success btn-sm" onclick="abonelikOdemeIsaretle('${b.id}')" title="Ödeme yapıldı olarak işaretle">✓ Ödendi</button>
-            <button class="btn btn-danger btn-sm" onclick="abonelikKilitle('${b.id}')" title="Kilitle" style="margin-left:4px">🔒</button>
-          </td>
-        </tr>`;
-      }).join('')}
-    </tbody>
-  </table>
-  <div style="margin-top:12px;padding:12px;background:var(--card2);border-radius:9px;font-size:12px;color:var(--sub)">
-    💡 "Ödendi" butonuna basınca sonraki ay aynı günü son ödeme tarihi olarak otomatik ayarlanır.
-  </div>`;
+  if(!binalar.length) { el.innerHTML='<div style="color:#8b949e;text-align:center;padding:16px">Bina yok</div>'; return; }
+  const ay=new Date().getMonth(),yil=new Date().getFullYear();
+  el.innerHTML='<table><thead><tr><th>Bina</th><th>Daire</th><th>Ücret</th><th>Son Ödeme</th><th>Durum</th><th></th></tr></thead><tbody>'+
+    binalar.map(b=>{
+      const daireSayi=(b.veri.daireler||[]).filter(d=>!d.yonetici).length;
+      const dilim=fiyatDilimleri.find(d=>daireSayi>=d.min&&daireSayi<=d.max);
+      const ucret=dilim?dilim.fiyat:0;
+      const ab=b.veri.abonelik||{};
+      const sonOdeme=ab.sonOdemeTarihi?new Date(ab.sonOdemeTarihi):null;
+      const fark=sonOdeme?Math.round((new Date()-sonOdeme)/86400000):null;
+      const durum=fark===null?'—':fark<=0?'✅ Aktif':fark<=10?'⚠️ Grace':'🔒 Kilitli';
+      const renk=fark===null?'#8b949e':fark<=0?'#3fb950':fark<=10?'#e3b341':'#f85149';
+      return `<tr>
+        <td><b>${b.ad}</b></td>
+        <td>${daireSayi}</td>
+        <td style="color:#3fb950;font-weight:700">${para(ucret)}</td>
+        <td style="font-size:11px">${ab.sonOdemeTarihi||'—'}</td>
+        <td style="color:${renk};font-weight:700">${durum}</td>
+        <td><button class="btn btn-yesil btn-sm" onclick="odemeIsaretle('${b.id}')">✓ Ödendi</button></td>
+      </tr>`;
+    }).join('')+'</tbody></table>';
 }
 
-// Ödeme yapıldı olarak işaretle
-async function abonelikOdemeIsaretle(binaId) {
-  const b = tumBinalar[binaId];
-  if(!b) return;
-
-  // Sonraki ödeme tarihi = bugünden 1 ay sonra
-  const sonraki = new Date();
-  sonraki.setMonth(sonraki.getMonth() + 1);
-  const sonrakiStr = sonraki.toISOString().split('T')[0];
-
-  const abonelik = {
-    sonOdemeTarihi: sonrakiStr,
-    sonOdemeyiYapan: 'admin',
-    odemeTarihi: new Date().toISOString().split('T')[0],
-    durum: 'aktif'
-  };
-
+async function odemeIsaretle(binaId) {
+  const sonraki=new Date();
+  sonraki.setMonth(sonraki.getMonth()+1);
+  const ab={sonOdemeTarihi:sonraki.toISOString().split('T')[0],odemeTarihi:new Date().toISOString().split('T')[0],durum:'aktif'};
   try {
-    await db.collection('binalar').doc(binaId).collection('veri').doc('data')
-      .set({ abonelik }, { merge: true });
-    tumBinalar[binaId].veri.abonelik = abonelik;
-    toast('✓ ' + b.ad + ' ödeme işaretlendi — Sonraki: ' + sonrakiStr);
-    logYaz(binaId, 'Abonelik ödeme işaretlendi: '+sonrakiStr);
-    abonelikListesiRender();
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
+    await db.collection('binalar').doc(binaId).collection('veri').doc('data').set({abonelik:ab},{merge:true});
+    tumBinalar[binaId].veri.abonelik=ab;
+    toast('✓ Ödeme işaretlendi');
+    abonelikListeRender();
+  } catch(e) { toast('Hata: '+e.message,'#da3633'); }
 }
 
-// Binayı manuel kilitle
-async function abonelikKilitle(binaId) {
-  const b = tumBinalar[binaId];
-  if(!b) return;
-  if(!confirm(b.ad + ' binasını kilitlemek istiyor musunuz?')) return;
-
-  const dun = new Date();
-  dun.setDate(dun.getDate() - (gracePeriodGun + 1));
-
-  const abonelik = {
-    ...( b.veri.abonelik || {}),
-    sonOdemeTarihi: dun.toISOString().split('T')[0],
-    durum: 'kilitli'
-  };
-
-  try {
-    await db.collection('binalar').doc(binaId).collection('veri').doc('data')
-      .set({ abonelik }, { merge: true });
-    tumBinalar[binaId].veri.abonelik = abonelik;
-    toast('✓ ' + b.ad + ' kilitlendi');
-    logYaz(binaId, 'Bina manuel olarak kilitlendi');
-    abonelikListesiRender();
-  } catch(e) { toast('⚠️ Hata: '+e.message,'#c0392b'); }
-}
-
-// Abonelik sekmesi açılınca yükle
-const _eskiSekme = sekme;
-sekme = function(id) {
-  _eskiSekme(id);
-  if(id === 'abonelik') {
-    abonelikListesiRender();
-    fiyatTablosuRender();
-  }
-};
-
-// Fiyat ve ayarları panelBaslat'ta yükle
-const _eskiPanelBaslat = panelBaslat;
-panelBaslat = async function() {
-  await _eskiPanelBaslat();
-  // Grace period yükle
-  try {
-    const snap = await anayoneticiRef.get();
-    if(snap.exists) {
-      if(snap.data().fiyatDilimleri) fiyatDilimleri = snap.data().fiyatDilimleri;
-      if(snap.data().gracePeriodGun) gracePeriodGun = snap.data().gracePeriodGun;
-    }
-  } catch(e) {}
-};
-
-
-// Başlangıç — önce kurulum kontrolü
-if(sessionStorage.getItem('adminGiris')==='1') {
-  girisBasarili();
-} else {
-  kurulumKontrol();
+// ══ BAŞLANGIÇ ══
+if(sessionStorage.getItem('adminOturum')==='1') {
+  document.getElementById('girisEkrani').style.display='none';
+  document.getElementById('adminPanel').style.display='block';
+  panelBaslat();
 }
 </script>
 </body>
