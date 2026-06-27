@@ -461,29 +461,40 @@ function binaListeRender() {
 }
 
 async function yeniBinaOlustur() {
-  const ad = document.getElementById('yBinaAd').value.trim();
-  const adres = document.getElementById('yBinaAdres').value.trim();
-  const yon = document.getElementById('yBinaYon').value.trim();
-  const sifre = document.getElementById('yBinaSifre').value;
-  if(!ad) { toast('Bina adı zorunlu', '#da3633'); return; }
-  if(!sifre || sifre.length < 4) { toast('En az 4 karakterli şifre', '#da3633'); return; }
-  const binaId = ad.toLowerCase()
-    .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s')
-    .replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
-    .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '_' + Date.now();
-  const hash = await sha256(sifre);
   try {
-    await db.collection('binalar').doc(binaId).collection('veri').doc('data').set({
-      ayarlar:{binaAdi:ad, adres, yonetici:yon, kasaBaslangic:0, yoneticiSifre:hash},
+    const ad = (document.getElementById('yBinaAd').value||'').trim();
+    const adres = (document.getElementById('yBinaAdres').value||'').trim();
+    const yon = (document.getElementById('yBinaYon').value||'').trim();
+    const sifre = document.getElementById('yBinaSifre').value||'';
+    if(!ad) { toast('Bina adı zorunlu', '#da3633'); return; }
+    if(!sifre || sifre.length < 4) { toast('En az 4 karakterli şifre', '#da3633'); return; }
+    
+    toast('⏳ Bina oluşturuluyor...');
+    
+    const binaId = ad.toLowerCase()
+      .replace(/[ğ]/g,'g').replace(/[ü]/g,'u').replace(/[ş]/g,'s')
+      .replace(/[ı]/g,'i').replace(/[ö]/g,'o').replace(/[ç]/g,'c')
+      .replace(/\s+/g,'_').replace(/[^a-z0-9_]/g,'') + '_' + Date.now();
+    
+    // Hash yerine direkt şifre — güvenlik sonra eklenecek
+    const fs = firebase.firestore();
+    await fs.collection('binalar').doc(binaId).collection('veri').doc('data').set({
+      ayarlar:{binaAdi:ad, adres:adres, yonetici:yon, kasaBaslangic:0, yoneticiSifre:sifre},
       hareketler:[], daireler:[], evraklar:[], faturalar:[], ekstralar:[]
     });
-    toast('✓ ' + ad + ' oluşturuldu');
-    kapatModal('modalYeniBina');
-    ['yBinaAd','yBinaAdres','yBinaYon','yBinaSifre'].forEach(id=>document.getElementById(id).value='');
+    
+    toast('✓ ' + ad + ' oluşturuldu!');
+    document.getElementById('modalYeniBina').classList.remove('ac');
+    ['yBinaAd','yBinaAdres','yBinaYon','yBinaSifre'].forEach(function(id){
+      document.getElementById(id).value='';
+    });
     await binalariYukle();
     binaListeRender();
     genelRender();
-  } catch(e) { toast('Hata: ' + e.message, '#da3633'); }
+  } catch(e) {
+    toast('Hata: ' + e.message, '#da3633');
+    console.error('Bina oluşturma hatası:', e);
+  }
 }
 
 async function binaSil(id, ad) {
