@@ -1253,15 +1253,15 @@ async function kurulumKaydet() {
     localStorage.setItem('by3_firebaseConfig', JSON.stringify(cfg));
     if(vapidKey) localStorage.setItem('by3_vapidKey', vapidKey);
 
-    document.getElementById('kurulumBasari').textContent = '✓ Bağlantı başarılı! Kaydedildi.';
+    document.getElementById('kurulumBasari').textContent = '✓ Bağlantı başarılı! Kaydedildi.";
 
-    // Eski veriden yeni Firebase'e taşıma
+    // Eski veriden yeni Firebase'a taşıma
     if(eskiConfig && eskiConfig !== JSON.stringify(cfg)) {
-      document.getElementById("kurulumBasari").textContent = "⏳ Eski veriler yeni Firebase'e taşınıyor...";
+      document.getElementById("kurulumBasari").textContent = "⏳ Eski veriler yeni Firebase'a taşınıyor...";
       await eskiVeriTasi(JSON.parse(eskiConfig), cfg);
-      document.getElementById("kurulumBasari").textContent = "✓ Veriler taşındı! Yönlendiriliyorsunuz...";
+      document.getElementById("kurulumBasari").textContent = "Veriler tasindi!";
     } else {
-      document.getElementById("kurulumBasari").textContent = "✓ Firebase bağlandı! Yönlendiriliyorsunuz...";
+      document.getElementById("kurulumBasari").textContent = "Firebase baglandi!";
     }
 
     setTimeout(() => {
@@ -1278,10 +1278,10 @@ Config bilgilerini kontrol edin.');
   }
 }
 
-// Eski Firebase'den yeni Firebase'e veri taşı
+// Eski Firebase"den yeni Firebase'a veri taşı
 async function eskiVeriTasi(eskiCfg, yeniCfg) {
   try {
-    // Eski Firebase'e bağlan
+    // Eski Firebase"e bağlan
     let eskiApp;
     try {
       eskiApp = firebase.app('eskiapp');
@@ -1291,7 +1291,7 @@ async function eskiVeriTasi(eskiCfg, yeniCfg) {
     const eskiDb = firebase.firestore(eskiApp);
 
     // Tüm binaları çek
-    const snap = await eskiDb.collection('binalar').get();
+    const snap = await eskiDb.collection('binalar").get();
     if(snap.empty) { await eskiApp.delete(); return; }
 
     // Yeni Firebase'e bağlan
@@ -1300,7 +1300,7 @@ async function eskiVeriTasi(eskiCfg, yeniCfg) {
     // Her binayı taşı
     let tasindi = 0;
     for(const doc of snap.docs) {
-      const veriSnap = await eskiDb.collection('binalar').doc(doc.id)
+      const veriSnap = await eskiDb.collection("binalar').doc(doc.id)
         .collection('veri').doc('data').get();
       if(veriSnap.exists) {
         await db.collection('binalar').doc(doc.id)
