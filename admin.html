@@ -282,6 +282,10 @@ function toast(msg, renk) {
 }
 function acModal(id) { document.getElementById(id).classList.add('ac'); }
 function kapatModal(id) { document.getElementById(id).classList.remove('ac'); }
+window.acModal = acModal;
+window.kapatModal = kapatModal;
+window.yeniBinaOlustur = yeniBinaOlustur;
+window.binaListeRender = binaListeRender;
 async function sha256(txt) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt));
   return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
@@ -725,6 +729,28 @@ async function odemeIsaretle(binaId) {
     abonelikListeRender();
   } catch(e) { toast('Hata: '+e.message,'#da3633'); }
 }
+
+
+// Tüm fonksiyonları global yap
+window.acModal = acModal;
+window.kapatModal = kapatModal;
+window.yeniBinaOlustur = yeniBinaOlustur;
+window.binaSil = binaSil;
+window.binaYoneticiSifirlaModal = binaYoneticiSifirlaModal;
+window.tekYedekle = tekYedekle;
+window.tekYedekSec = tekYedekSec;
+window.tumYedekle = tumYedekle;
+window.yedekYukle = yedekYukle;
+window.sakinFiltrele = sakinFiltrele;
+window.sakinSifreSifirla = sakinSifreSifirla;
+window.masterDegistir = masterDegistir;
+window.binaSifreSifirla = binaSifreSifirla;
+window.fiyatDilimiEkle = fiyatDilimiEkle;
+window.fiyatKaydet = fiyatKaydet;
+window.gracePeriodKaydet = gracePeriodKaydet;
+window.odemeIsaretle = odemeIsaretle;
+window.sekme = sekme;
+window.cikisYap = cikisYap;
 
 // ══ BAŞLANGIÇ ══
 if(sessionStorage.getItem('adminOturum')==='1') {
