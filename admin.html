@@ -524,9 +524,9 @@ body {
     <div class="giris-hata" id="girisHata">⚠️ Hatalı şifre!</div>
     <div class="form-grup">
       <label class="form-etiket">Master Şifre</label>
-      <input class="form-input" type="password" id="girisInput" placeholder="Master şifrenizi girin" onkeydown="if(event.key==='Enter')girisYap()">
+      <input class="form-input" type="password" id="girisInput" placeholder="Master şifrenizi girin" onkeydown="if(event.key==='Enter'){var fn=window.girisYap||function(){};fn();}">
     </div>
-    <button class="btn btn-primary" style="width:100%;padding:12px" onclick="girisYap()">🔑 Giriş Yap</button>
+    <button class="btn btn-primary" style="width:100%;padding:12px" onclick="if(window.girisYap)girisYap();else girisYapAsync&&girisYapAsync()">🔑 Giriş Yap</button>
     <div style="font-size:11px;color:var(--sub);text-align:center;margin-top:14px">
       Bu panel sadece sistem yöneticisi içindir.<br>Yetkisiz erişim kayıt altına alınır.
     </div>
@@ -1257,11 +1257,11 @@ async function kurulumKaydet() {
 
     // Eski veriden yeni Firebase'e taşıma
     if(eskiConfig && eskiConfig !== JSON.stringify(cfg)) {
-      document.getElementById('kurulumBasari').textContent = '⏳ Eski veriler yeni Firebase'e taşınıyor...';
+      document.getElementById("kurulumBasari").textContent = "⏳ Eski veriler yeni Firebase'e taşınıyor...";
       await eskiVeriTasi(JSON.parse(eskiConfig), cfg);
-      document.getElementById('kurulumBasari').textContent = '✓ Veriler taşındı! Yönlendiriliyorsunuz...';
+      document.getElementById("kurulumBasari").textContent = "✓ Veriler taşındı! Yönlendiriliyorsunuz...";
     } else {
-      document.getElementById('kurulumBasari').textContent = '✓ Firebase bağlandı! Yönlendiriliyorsunuz...';
+      document.getElementById("kurulumBasari").textContent = "✓ Firebase bağlandı! Yönlendiriliyorsunuz...";
     }
 
     setTimeout(() => {
@@ -1341,7 +1341,9 @@ function configDegistir() {
 // ════════════════════════════════════════════════════════════
 let _girisDenemeSayisi = 0;
 
-async function girisYap() {
+function girisYap(){ girisYapAsync(); }
+window.girisYap = girisYap;
+async function girisYapAsync() {
   const girilen = document.getElementById('girisInput').value;
   if(!girilen) { toast('⚠️ Şifre girin','#c0392b'); return; }
 
