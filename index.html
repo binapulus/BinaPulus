@@ -1,0 +1,4594 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0f1117"/>
+<meta name="description" content="BinaPlus — Akıllı Bina Yönetim Sistemi"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<title>BinaPlus</title>
+<link rel="icon" href="logo-icon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="logo-icon.svg"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+
+<style>
+/* ═══════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════ */
+:root {
+  --accent:    #4A6FA5;
+  --accent-l:  #6b8fc7;
+  --warn:      #e07a5f;
+  --success:   #52b788;
+  --gold:      #d4a843;
+  --bg:        #0f1117;
+  --bg2:       #181c27;
+  --bg3:       #1e2333;
+  --border:    #2a2f3e;
+  --text:      #e8eaf0;
+  --text2:     #8892a4;
+  --text3:     #555f72;
+  --card:      #161b28;
+  --card-h:    #1c2235;
+  --radius:    12px;
+  --radius-s:  8px;
+  --shadow:    0 4px 24px rgba(0,0,0,.45);
+  --trans:     all .2s ease;
+  --font:      'Nunito', sans-serif;
+  --sidebar-w: 220px;
+}
+[data-theme="light"] {
+  --bg:     #f0f2f7;
+  --bg2:    #ffffff;
+  --bg3:    #e8ecf4;
+  --border: #d4d9e8;
+  --text:   #1a1f2e;
+  --text2:  #4a5568;
+  --text3:  #8892a4;
+  --card:   #ffffff;
+  --card-h: #f5f7fc;
+  --shadow: 0 4px 24px rgba(0,0,0,.10);
+}
+
+/* ═══════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════ */
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html { scroll-behavior:smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background .3s, color .3s;
+}
+button { font-family: var(--font); cursor: pointer; border: none; outline: none; }
+input, select, textarea { font-family: var(--font); }
+a { color: inherit; text-decoration: none; }
+ul { list-style: none; }
+img { max-width: 100%; }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ═══════════════════════════════════════════════
+   SCREEN MANAGER
+═══════════════════════════════════════════════ */
+.screen { display: none; }
+.screen.active { display: flex; }
+
+/* ═══════════════════════════════════════════════
+   LOGIN SCREEN
+═══════════════════════════════════════════════ */
+#loginScreen {
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  padding: 24px;
+  flex-direction: column;
+}
+.login-box {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow);
+}
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 28px;
+  justify-content: center;
+}
+.logo-icon {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--success) 100%);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  box-shadow: 0 4px 16px rgba(212,168,67,.3);
+}
+.logo-text { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; }
+.logo-text span { color: var(--gold); }
+.login-tabs {
+  display: flex;
+  background: var(--bg2);
+  border-radius: var(--radius-s);
+  padding: 4px;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 600;
+  transition: var(--trans);
+}
+.tab-btn.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(74,111,165,.4);
+}
+
+/* BINA SELECTION */
+#binaSelectWrap { margin-bottom: 16px; }
+.bina-select-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 6px;
+  display: block;
+}
+.bina-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+.bina-card {
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: var(--trans);
+  text-align: center;
+}
+.bina-card:hover { border-color: var(--accent); }
+.bina-card.selected { border-color: var(--accent); background: rgba(74,111,165,.12); }
+.bina-card-icon { font-size: 22px; margin-bottom: 4px; }
+.bina-card-name { font-size: 12px; font-weight: 700; color: var(--text); }
+.bina-card-id { font-size: 10px; color: var(--text3); }
+
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 6px;
+}
+.form-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 11px 14px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  transition: var(--trans);
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(74,111,165,.15);
+}
+.form-input::placeholder { color: var(--text3); }
+.input-wrap { position: relative; }
+.input-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text3);
+}
+.remember-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--text2);
+}
+.remember-row input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
+.btn-primary {
+  width: 100%;
+  padding: 13px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius-s);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .3px;
+  transition: var(--trans);
+  box-shadow: 0 4px 16px rgba(74,111,165,.35);
+}
+.btn-primary:hover { background: var(--accent-l); transform: translateY(-1px); }
+.btn-primary:active { transform: translateY(0); }
+.btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.login-error {
+  background: rgba(224,122,95,.12);
+  border: 1px solid rgba(224,122,95,.3);
+  border-radius: var(--radius-s);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--warn);
+  margin-top: 12px;
+  display: none;
+}
+.login-error.show { display: block; }
+.forgot-link {
+  background: none;
+  border: none;
+  color: var(--accent-l);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.forgot-link:hover { color: var(--accent); }
+.twofa-info {
+  font-size: 12px;
+  color: var(--text2);
+  text-align: center;
+  margin-top: 16px;
+}
+
+/* ═══════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════ */
+#appScreen {
+  min-height: 100vh;
+  flex-direction: row;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: var(--sidebar-w);
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  transition: transform .3s ease;
+  overflow: hidden;
+}
+.sidebar-logo {
+  padding: 20px 16px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sidebar-logo-icon {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--gold), var(--success));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.sidebar-logo-text { font-size: 18px; font-weight: 900; }
+.sidebar-logo-text span { color: var(--gold); }
+.sidebar-bina {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-bina-label { font-size: 10px; color: var(--text3); font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
+.sidebar-bina-name { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 2px; }
+.sidebar-bina-id { font-size: 11px; color: var(--text3); }
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 8px;
+}
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 8px 8px 4px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  transition: var(--trans);
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 600;
+  position: relative;
+  margin-bottom: 2px;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: rgba(74,111,165,.15); color: var(--accent-l); }
+.nav-item .nav-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--warn);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 20px;
+  min-width: 18px;
+  text-align: center;
+}
+.sidebar-footer {
+  padding: 12px 8px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-s);
+  margin-bottom: 6px;
+}
+.user-avatar {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-l));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 12px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: 10px; color: var(--text3); }
+.btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-s);
+  background: transparent;
+  color: var(--warn);
+  font-size: 12px;
+  font-weight: 600;
+  transition: var(--trans);
+}
+.btn-logout:hover { background: rgba(224,122,95,.1); }
+
+/* TOPBAR */
+.main-wrap {
+  flex: 1;
+  margin-left: var(--sidebar-w);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.menu-toggle {
+  display: none;
+  background: transparent;
+  color: var(--text2);
+  font-size: 20px;
+  padding: 6px;
+  border-radius: 8px;
+}
+.page-title { font-size: 17px; font-weight: 800; flex: 1; }
+.topbar-actions { display: flex; align-items: center; gap: 8px; }
+.icon-btn {
+  width: 36px; height: 36px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-s);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2);
+  font-size: 16px;
+  cursor: pointer;
+  transition: var(--trans);
+  position: relative;
+}
+.icon-btn:hover { color: var(--text); border-color: var(--accent); }
+.notif-dot {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 7px; height: 7px;
+  background: var(--warn);
+  border-radius: 50%;
+  border: 1.5px solid var(--bg2);
+}
+
+/* CONTENT */
+.content {
+  flex: 1;
+  padding: 24px;
+  max-width: 1400px;
+  width: 100%;
+}
+.module { display: none; }
+.module.active { display: block; }
+
+/* ═══════════════════════════════════════════════
+   DASHBOARD
+═══════════════════════════════════════════════ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: var(--trans);
+}
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px; height: 100%;
+  background: var(--stat-color, var(--accent));
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.stat-label { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
+.stat-value { font-size: 26px; font-weight: 900; color: var(--text); line-height: 1; }
+.stat-sub { font-size: 12px; color: var(--text2); margin-top: 6px; }
+.stat-icon { position: absolute; right: 16px; top: 16px; font-size: 28px; opacity: .15; }
+
+.dash-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.dash-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.dash-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.dash-card-title { font-size: 14px; font-weight: 700; }
+.dash-card-body { padding: 16px 20px; }
+
+/* ═══════════════════════════════════════════════
+   CARDS & TABLES
+═══════════════════════════════════════════════ */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.card-title { font-size: 15px; font-weight: 800; }
+.card-body { padding: 20px; }
+.card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th {
+  padding: 10px 16px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  text-align: left;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--card-h); }
+
+/* ═══════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-s);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--trans);
+  white-space: nowrap;
+  border: none;
+}
+.btn-accent { background: var(--accent); color: #fff; }
+.btn-accent:hover { background: var(--accent-l); transform: translateY(-1px); }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { opacity: .85; }
+.btn-warn { background: var(--warn); color: #fff; }
+.btn-warn:hover { opacity: .85; }
+.btn-ghost {
+  background: var(--bg3);
+  color: var(--text2);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--accent); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-icon { padding: 7px; }
+
+/* ═══════════════════════════════════════════════
+   BADGES
+═══════════════════════════════════════════════ */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.badge-success { background: rgba(82,183,136,.15); color: var(--success); }
+.badge-warn { background: rgba(224,122,95,.15); color: var(--warn); }
+.badge-accent { background: rgba(74,111,165,.15); color: var(--accent-l); }
+.badge-gold { background: rgba(212,168,67,.15); color: var(--gold); }
+.badge-muted { background: var(--bg3); color: var(--text2); }
+
+/* ═══════════════════════════════════════════════
+   FORM ELEMENTS (APP)
+═══════════════════════════════════════════════ */
+.field { margin-bottom: 16px; }
+.field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  margin-bottom: 6px;
+}
+.field input, .field select, .field textarea {
+  width: 100%;
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-s);
+  padding: 10px 14px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  transition: var(--trans);
+}
+.field input:focus, .field select:focus, .field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(74,111,165,.15);
+}
+.field select { appearance: none; cursor: pointer; }
+.field textarea { resize: vertical; min-height: 80px; }
+.fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* ═══════════════════════════════════════════════
+   MODAL
+═══════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .2s ease, visibility .2s ease;
+}
+.modal-overlay.open { opacity: 1; visibility: visible; }
+.modal {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+  transform: scale(.95) translateY(10px);
+  transition: transform .2s ease;
+}
+.modal-overlay.open .modal { transform: scale(1) translateY(0); }
+.modal-lg { max-width: 760px; }
+.modal-header {
+  padding: 20px 24px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.modal-title { font-size: 17px; font-weight: 800; }
+.modal-close {
+  width: 32px; height: 32px;
+  background: var(--bg3);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text2);
+  font-size: 18px;
+  cursor: pointer;
+  border: none;
+  transition: var(--trans);
+}
+.modal-close:hover { background: var(--border); color: var(--text); }
+.modal-body { padding: 0 24px 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+#toastContainer {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  min-width: 280px;
+  max-width: 360px;
+  animation: slideIn .3s ease;
+  font-size: 13px;
+  font-weight: 600;
+}
+.toast-icon { font-size: 18px; flex-shrink: 0; }
+.toast-msg { flex: 1; color: var(--text); }
+.toast-success { border-left: 3px solid var(--success); }
+.toast-error { border-left: 3px solid var(--warn); }
+.toast-info { border-left: 3px solid var(--accent); }
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════
+   DAIRELER MODULE
+═══════════════════════════════════════════════ */
+.daire-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap: 12px;
+  padding: 20px;
+}
+.daire-card {
+  background: var(--bg2);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  transition: var(--trans);
+  position: relative;
+}
+.daire-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.daire-no { font-size: 22px; font-weight: 900; color: var(--text); }
+.daire-sakin { font-size: 13px; color: var(--text2); margin-top: 4px; font-weight: 600; }
+.daire-status { position: absolute; top: 12px; right: 12px; }
+.daire-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════════
+   AİDAT MODULE
+═══════════════════════════════════════════════ */
+.aidat-header {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.year-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.year-tab {
+  padding: 6px 12px;
+  border-radius: var(--radius-s);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--trans);
+}
+.year-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+}
+.month-cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--trans);
+  border: 1.5px solid var(--border);
+}
+.month-cell.paid { background: rgba(82,183,136,.15); border-color: var(--success); color: var(--success); }
+.month-cell.unpaid { background: rgba(224,122,95,.08); border-color: rgba(224,122,95,.3); color: var(--warn); }
+.month-cell.future { background: var(--bg3); color: var(--text3); }
+
+/* ═══════════════════════════════════════════════
+   KASA MODULE
+═══════════════════════════════════════════════ */
+.kasa-top {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.kasa-stat {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  text-align: center;
+}
+.kasa-stat-label { font-size: 12px; color: var(--text2); font-weight: 600; margin-bottom: 8px; }
+.kasa-stat-value { font-size: 28px; font-weight: 900; }
+.kasa-gelir .kasa-stat-value { color: var(--success); }
+.kasa-gider .kasa-stat-value { color: var(--warn); }
+.kasa-bakiye .kasa-stat-value { color: var(--gold); }
+
+/* ═══════════════════════════════════════════════
+   KAMPANYA
+═══════════════════════════════════════════════ */
+.kampanya-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 12px;
+  transition: var(--trans);
+}
+.kampanya-card:hover { box-shadow: var(--shadow); }
+.kampanya-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.kampanya-title { font-size: 16px; font-weight: 800; }
+.kampanya-desc { font-size: 13px; color: var(--text2); margin-bottom: 12px; }
+.kampanya-progress { height: 6px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+.kampanya-bar { height: 100%; background: var(--accent); border-radius: 3px; transition: width .5s ease; }
+.kampanya-stats { display: flex; gap: 16px; font-size: 12px; color: var(--text2); font-weight: 600; }
+
+/* ═══════════════════════════════════════════════
+   ARIZA
+═══════════════════════════════════════════════ */
+.ariza-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: var(--trans);
+}
+.ariza-item:hover { border-color: var(--accent); }
+.ariza-icon {
+  width: 44px; height: 44px;
+  border-radius: var(--radius-s);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.ariza-bekliyor .ariza-icon { background: rgba(224,122,95,.12); }
+.ariza-devam .ariza-icon { background: rgba(212,168,67,.12); }
+.ariza-tamamlandi .ariza-icon { background: rgba(82,183,136,.12); }
+.ariza-info { flex: 1; }
+.ariza-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+.ariza-meta { font-size: 12px; color: var(--text2); }
+.ariza-actions { display: flex; gap: 6px; align-items: center; }
+
+/* ═══════════════════════════════════════════════
+   DUYURU
+═══════════════════════════════════════════════ */
+.duyuru-item {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 10px;
+  transition: var(--trans);
+}
+.duyuru-item:hover { box-shadow: var(--shadow); }
+.duyuru-header { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.duyuru-title { font-size: 15px; font-weight: 800; flex: 1; }
+.duyuru-date { font-size: 11px; color: var(--text3); }
+.duyuru-body { font-size: 13px; color: var(--text2); line-height: 1.6; }
+
+/* ═══════════════════════════════════════════════
+   RAPORLAR
+═══════════════════════════════════════════════ */
+.rapor-opts {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.rapor-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-s);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  transition: var(--trans);
+}
+.rapor-check input { accent-color: var(--accent); }
+.rapor-check.selected { border-color: var(--accent); color: var(--accent-l); }
+
+/* ═══════════════════════════════════════════════
+   AYARLAR
+═══════════════════════════════════════════════ */
+.settings-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.settings-section-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg2);
+}
+.settings-section-body { padding: 20px; }
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-info { flex: 1; }
+.setting-label { font-size: 14px; font-weight: 600; color: var(--text); }
+.setting-desc { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+/* Toggle */
+.toggle {
+  position: relative;
+  width: 44px; height: 24px;
+  background: var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: var(--trans);
+  flex-shrink: 0;
+  border: none;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 18px; height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform .2s ease;
+}
+.toggle.on::after { transform: translateX(20px); }
+
+/* ═══════════════════════════════════════════════
+   SIDEBAR OVERLAY (mobile)
+═══════════════════════════════════════════════ */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 99;
+  display: none;
+}
+.sidebar-overlay.show { display: block; }
+
+/* ═══════════════════════════════════════════════
+   OFFLINE / LOADING
+═══════════════════════════════════════════════ */
+.loading-spin {
+  width: 20px; height: 20px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  display: inline-block;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--text3);
+  text-align: center;
+}
+.empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: .5; }
+.empty-state-text { font-size: 15px; font-weight: 600; }
+.empty-state-sub { font-size: 13px; margin-top: 6px; }
+
+/* ═══════════════════════════════════════════════
+   BAKIYE BUDGET CHART
+═══════════════════════════════════════════════ */
+.chart-bar-wrap { display: flex; flex-direction: column; gap: 10px; }
+.chart-bar-item { display: flex; align-items: center; gap: 12px; }
+.chart-bar-label { font-size: 12px; font-weight: 600; color: var(--text2); width: 100px; text-align: right; white-space: nowrap; }
+.chart-bar-track { flex: 1; height: 10px; background: var(--bg3); border-radius: 5px; overflow: hidden; }
+.chart-bar-fill { height: 100%; border-radius: 5px; transition: width .6s ease; }
+.chart-bar-val { font-size: 12px; font-weight: 700; color: var(--text); width: 80px; }
+
+/* ═══════════════════════════════════════════════
+   BAKIYE MODULE SPECIFIC
+═══════════════════════════════════════════════ */
+.ledger-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg2);
+  padding: 4px;
+  border-radius: var(--radius-s);
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  width: fit-content;
+}
+.ledger-tab {
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--trans);
+  background: transparent;
+  color: var(--text2);
+}
+.ledger-tab.active { background: var(--accent); color: #fff; }
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow);
+  }
+  .main-wrap { margin-left: 0; }
+  .menu-toggle { display: flex; }
+  .dash-grid { grid-template-columns: 1fr; }
+  .kasa-top { grid-template-columns: 1fr 1fr; }
+  .fields-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .content { padding: 16px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .month-grid { grid-template-columns: repeat(6,1fr); }
+  .kasa-top { grid-template-columns: 1fr; }
+  .daire-grid { grid-template-columns: repeat(auto-fill, minmax(150px,1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+
+/* ═══════════════════════════════════════════════
+   SCROLLBAR STYLING (SAKIN PANEL)
+═══════════════════════════════════════════════ */
+.sakin-only { display: none; }
+.yonetici-only { display: none; }
+body.role-yonetici .yonetici-only { display: flex; }
+body.role-sakin .sakin-only { display: flex; }
+body.role-yonetici .sakin-only { display: none !important; }
+body.role-sakin .yonetici-only { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════ -->
+<div id="loginScreen" class="screen active">
+  <div class="login-box">
+    <div class="logo-wrap">
+      <img src="logo.svg" alt="BinaPlus" style="width:260px;max-width:100%;height:auto;display:block;margin:0 auto 8px"/>
+    </div>
+
+    <!-- Bina başlığı: URL parametresi varsa sadece o bina gösterilir -->
+    <div id="binaSelectWrap">
+      <!-- Tek bina modu (URL parametreli) -->
+      <div id="binaTekMode" style="display:none;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-s);padding:12px 14px">
+          <span style="font-size:22px">🏢</span>
+          <div>
+            <div id="binaTekAdi" style="font-size:15px;font-weight:800;color:var(--text)">—</div>
+            <div id="binaTekId" style="font-size:11px;color:var(--text3)">—</div>
+          </div>
+          <span class="badge badge-success" style="margin-left:auto">✓ Bağlı</span>
+        </div>
+      </div>
+
+      <!-- Çoklu bina modu (URL parametresi yoksa) -->
+      <div id="binaListMode" style="display:none">
+        <span class="bina-select-label">Bina Seçin</span>
+        <div id="binaGrid" class="bina-grid">
+          <div style="text-align:center;padding:20px;color:var(--text3);font-size:13px;grid-column:1/-1;">
+            <span class="loading-spin"></span>
+            <br><br>Binalar yükleniyor...
+          </div>
+        </div>
+      </div>
+
+      <!-- Yükleniyor -->
+      <div id="binaLoadMode" style="text-align:center;padding:16px;color:var(--text3);font-size:13px">
+        <span class="loading-spin"></span>
+        <br><br>Bina bilgisi alınıyor...
+      </div>
+    </div>
+
+    <!-- Login Tabs -->
+    <div class="login-tabs" id="loginTabs">
+      <button class="tab-btn active" onclick="setLoginMode('yonetici')">🔑 Yönetici</button>
+      <button class="tab-btn" onclick="setLoginMode('sakin')">🏠 Sakin</button>
+    </div>
+
+    <!-- Yönetici Form -->
+    <div id="formYonetici">
+      <div class="form-group">
+        <label class="form-label">E-posta</label>
+        <input class="form-input" type="email" id="inpEmail" placeholder="yonetici@email.com" autocomplete="email"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Şifre</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="inpPass" placeholder="••••••••" autocomplete="current-password" style="padding-right:42px"/>
+          <span class="input-icon" onclick="togglePwd('inpPass',this)">👁️</span>
+        </div>
+      </div>
+      <div id="twofaRow" class="form-group" style="display:none">
+        <label class="form-label">2FA Kodu</label>
+        <input class="form-input" type="text" id="inp2FA" placeholder="6 haneli kod" maxlength="6" inputmode="numeric"/>
+      </div>
+      <div style="text-align:right;margin-bottom:4px">
+        <button type="button" class="forgot-link" onclick="showResetPanel('yonetici')">🔑 Şifremi Unuttum</button>
+      </div>
+    </div>
+
+    <!-- Sakin Form -->
+    <div id="formSakin" style="display:none">
+      <div class="form-group">
+        <label class="form-label">Daire No</label>
+        <input class="form-input" type="text" id="inpDaireNo" placeholder="Daire numaranızı girin"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Şifre</label>
+        <div class="input-wrap">
+          <input class="form-input" type="password" id="inpSakinPass" placeholder="••••••••" autocomplete="current-password" style="padding-right:42px"/>
+          <span class="input-icon" onclick="togglePwd('inpSakinPass',this)">👁️</span>
+        </div>
+      </div>
+      <div style="text-align:right;margin-bottom:4px">
+        <button type="button" class="forgot-link" onclick="showResetPanel('sakin')">🔑 Şifremi Unuttum</button>
+      </div>
+    </div>
+
+    <div class="remember-row">
+      <input type="checkbox" id="chkRemember"/>
+      <label for="chkRemember">Beni hatırla</label>
+    </div>
+
+    <button class="btn-primary" id="btnLogin" onclick="doLogin()">
+      Giriş Yap
+    </button>
+
+    <div class="login-error" id="loginError"></div>
+    <p class="twofa-info" id="twofaInfo"></p>
+  </div>
+
+  <!-- ── ŞİFRE SIFIRLAMA PANELİ (login ekranında üste gelir) ── -->
+  <div id="resetPanel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center;padding:24px">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:420px;box-shadow:var(--shadow);overflow:hidden">
+      <div style="padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="font-size:17px;font-weight:800" id="resetPanelTitle">🔑 Şifre Sıfırlama</div>
+        <button onclick="hideResetPanel()" style="width:32px;height:32px;background:var(--bg3);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:18px;cursor:pointer;border:none">✕</button>
+      </div>
+      <div style="padding:0 24px 24px">
+
+        <!-- ADIM 1: Kimlik doğrulama -->
+        <div id="resetStep1">
+          <div class="form-group" id="resetDaireNoGroup">
+            <label class="form-label">Daire No</label>
+            <input class="form-input" type="text" id="resetDaireNo" placeholder="Daire numaranız"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="resetEmailLabel">Kayıtlı E-posta</label>
+            <input class="form-input" type="email" id="resetEmail" placeholder="Kayıtlı e-posta adresiniz"/>
+          </div>
+          <button class="btn-primary" onclick="resetStep1()">📧 Doğrulama Kodu Gönder</button>
+        </div>
+
+        <!-- ADIM 2: Kod doğrulama (sadece sakin) -->
+        <div id="resetStep2" style="display:none">
+          <p style="font-size:13px;color:var(--text2);margin-bottom:16px">
+            📧 E-posta adresinize 6 haneli doğrulama kodu gönderdik.
+          </p>
+          <div class="form-group">
+            <label class="form-label">Doğrulama Kodu</label>
+            <input class="form-input" type="text" id="resetKod" placeholder="6 haneli kod" maxlength="6" inputmode="numeric"
+              style="letter-spacing:8px;text-align:center;font-size:22px;font-weight:800"/>
+          </div>
+          <button class="btn-primary" onclick="resetStep2()">✅ Kodu Doğrula</button>
+          <p style="font-size:12px;color:var(--text3);margin-top:10px;text-align:center">
+            Kod gelmedi mi? <button class="forgot-link" onclick="resetStep1()">Tekrar gönder</button>
+          </p>
+        </div>
+
+        <!-- ADIM 3: Yeni şifre -->
+        <div id="resetStep3" style="display:none">
+          <div class="form-group">
+            <label class="form-label">Yeni Şifre</label>
+            <div class="input-wrap">
+              <input class="form-input" type="password" id="resetYeniSifre" placeholder="En az 6 karakter" style="padding-right:42px"/>
+              <span class="input-icon" onclick="togglePwd('resetYeniSifre',this)">👁️</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Yeni Şifre (Tekrar)</label>
+            <input class="form-input" type="password" id="resetYeniSifre2" placeholder="Şifrenizi tekrar girin"/>
+          </div>
+          <button class="btn-primary" onclick="resetStep3()">🔒 Şifremi Güncelle</button>
+        </div>
+
+        <!-- ADIM 4: Tamamlandı -->
+        <div id="resetStep4" style="display:none;text-align:center;padding:20px 0">
+          <div style="font-size:48px;margin-bottom:12px">✅</div>
+          <div style="font-size:16px;font-weight:800;color:var(--success);margin-bottom:8px">Şifre güncellendi!</div>
+          <div style="font-size:13px;color:var(--text2);margin-bottom:20px">Yeni şifrenizle giriş yapabilirsiniz.</div>
+          <button class="btn-primary" onclick="hideResetPanel()">Giriş Ekranına Dön</button>
+        </div>
+
+        <div class="login-error" id="resetError" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     APP SCREEN
+═══════════════════════════════════════════ -->
+<div id="appScreen" class="screen">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">
+        <img src="logo-icon.svg" alt="BinaPlus" width="36" height="36" style="border-radius:10px"/>
+      </div>
+      <div class="sidebar-logo-text">Bina<span>Plus</span></div>
+    </div>
+    <div class="sidebar-bina">
+      <div class="sidebar-bina-label">Aktif Bina</div>
+      <div class="sidebar-bina-name" id="activeBinaName">—</div>
+      <div class="sidebar-bina-id" id="activeBinaId"></div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- Yönetici Nav -->
+      <div class="yonetici-only" id="navYonetici" style="flex-direction:column">
+        <div class="nav-section-label">Yönetim</div>
+        <div class="nav-item active" onclick="showModule('dashboard')" data-module="dashboard"><span class="nav-icon">📊</span>Panel</div>
+        <div class="nav-item" onclick="showModule('kasa')" data-module="kasa"><span class="nav-icon">💰</span>Kasa</div>
+        <div class="nav-item" onclick="showModule('daireler')" data-module="daireler"><span class="nav-icon">🏠</span>Daireler</div>
+        <div class="nav-item" onclick="showModule('aidat')" data-module="aidat"><span class="nav-icon">📅</span>Aidat</div>
+        <div class="nav-item" onclick="showModule('kampanya')" data-module="kampanya"><span class="nav-icon">🎯</span>Kampanya</div>
+        <div class="nav-item" onclick="showModule('ariza')" data-module="ariza"><span class="nav-icon">🔨</span>Arıza<span class="nav-badge" id="badgeAriza" style="display:none">0</span></div>
+        <div class="nav-section-label">İletişim</div>
+        <div class="nav-item" onclick="showModule('duyuru')" data-module="duyuru"><span class="nav-icon">📢</span>Duyurular</div>
+        <div class="nav-item" onclick="showModule('faturalar')" data-module="faturalar"><span class="nav-icon">🧾</span>Faturalar</div>
+        <div class="nav-section-label">Araçlar</div>
+        <div class="nav-item" onclick="showModule('bakim')" data-module="bakim"><span class="nav-icon">🔧</span>Bakım Takvimi<span class="nav-badge" id="badgeBakim" style="display:none">!</span></div>
+        <div class="nav-item" onclick="showModule('firmalar')" data-module="firmalar"><span class="nav-icon">🏪</span>Firma Rehberi</div>
+        <div class="nav-item" onclick="showModule('raporlar')" data-module="raporlar"><span class="nav-icon">📈</span>Raporlar</div>
+        <div class="nav-item" onclick="showModule('ayarlar')" data-module="ayarlar"><span class="nav-icon">⚙️</span>Ayarlar</div>
+      </div>
+      <!-- Sakin Nav -->
+      <div class="sakin-only" id="navSakin" style="flex-direction:column">
+        <div class="nav-section-label">Dairem</div>
+        <div class="nav-item active" onclick="showModule('sakin-aidat')" data-module="sakin-aidat"><span class="nav-icon">📅</span>Aidat Durumum</div>
+        <div class="nav-item" onclick="showModule('sakin-kampanya')" data-module="sakin-kampanya"><span class="nav-icon">🎯</span>Kampanyalar</div>
+        <div class="nav-item" onclick="showModule('sakin-duyuru')" data-module="sakin-duyuru"><span class="nav-icon">📢</span>Duyurular</div>
+        <div class="nav-item" onclick="showModule('sakin-ariza')" data-module="sakin-ariza"><span class="nav-icon">🔨</span>Arıza Bildir</div>
+        <div class="nav-item" onclick="showModule('sakin-giderler')" data-module="sakin-giderler"><span class="nav-icon">🧾</span>Giderler</div>
+        <div class="nav-item" onclick="showModule('sakin-ayarlar')" data-module="sakin-ayarlar"><span class="nav-icon">⚙️</span>Ayarlar</div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Kullanıcı</div>
+          <div class="user-role" id="userRole">—</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">🚪 Çıkış Yap</button>
+    </div>
+  </nav>
+
+  <!-- MAIN WRAP -->
+  <div class="main-wrap">
+    <div class="topbar">
+      <button class="icon-btn menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="page-title" id="pageTitle">Panel</div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="toggleTheme()" title="Tema değiştir" id="themeBtn">🌙</button>
+        <button class="icon-btn" onclick="showModule('ayarlar')" title="Bildirimler" id="notifBtn">
+          🔔<span class="notif-dot" id="notifDot" style="display:none"></span>
+        </button>
+        <button class="icon-btn" onclick="showBinaSwitch()" title="Bina değiştir">🏢</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ─────────────────────────────────────
+           DASHBOARD
+      ───────────────────────────────────── -->
+      <div class="module active" id="mod-dashboard">
+        <div class="stats-grid" id="dashStats">
+          <div class="stat-card" style="--stat-color:var(--gold)">
+            <div class="stat-label">Toplam Bakiye</div>
+            <div class="stat-value" id="dsBakiye">₺0</div>
+            <div class="stat-sub">Bu ayki nakit</div>
+            <div class="stat-icon">💰</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--warn)">
+            <div class="stat-label">Bekleyen Borç</div>
+            <div class="stat-value" id="dsBorcToplamı">₺0</div>
+            <div class="stat-sub" id="dsBorcSayi">0 daire</div>
+            <div class="stat-icon">⚠️</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--success)">
+            <div class="stat-label">Bu Ay Tahsilat</div>
+            <div class="stat-value" id="dsTahsilat">₺0</div>
+            <div class="stat-sub" id="dsTahsilatOran">%0 tahsil</div>
+            <div class="stat-icon">✅</div>
+          </div>
+          <div class="stat-card" style="--stat-color:var(--accent)">
+            <div class="stat-label">Toplam Daire</div>
+            <div class="stat-value" id="dsDaire">0</div>
+            <div class="stat-sub" id="dsDoluBos">0 dolu / 0 boş</div>
+            <div class="stat-icon">🏠</div>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">📊 Gelir/Gider Özeti</div>
+              <span id="dashAyLabel" style="font-size:12px;color:var(--text2)"></span>
+            </div>
+            <div class="dash-card-body">
+              <div class="chart-bar-wrap" id="dashChart">
+                <div class="empty-state"><div class="loading-spin"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-header">
+              <div class="dash-card-title">🔔 Son Aktivite</div>
+            </div>
+            <div class="dash-card-body" id="dashActivity">
+              <div class="empty-state">
+                <div class="empty-state-icon">📋</div>
+                <div class="empty-state-text">Henüz aktivite yok</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           KASA
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-kasa">
+        <div class="kasa-top">
+          <div class="kasa-stat kasa-gelir">
+            <div class="kasa-stat-label">Toplam Gelir</div>
+            <div class="kasa-stat-value" id="kasaGelir">₺0</div>
+          </div>
+          <div class="kasa-stat kasa-gider">
+            <div class="kasa-stat-label">Toplam Gider</div>
+            <div class="kasa-stat-value" id="kasaGider">₺0</div>
+          </div>
+          <div class="kasa-stat kasa-bakiye">
+            <div class="kasa-stat-label">Net Bakiye</div>
+            <div class="kasa-stat-value" id="kasaBakiye">₺0</div>
+          </div>
+        </div>
+
+        <div class="ledger-tabs">
+          <button class="ledger-tab active" onclick="kasaTab('tum',this)">Tümü</button>
+          <button class="ledger-tab" onclick="kasaTab('gelir',this)">Gelirler</button>
+          <button class="ledger-tab" onclick="kasaTab('gider',this)">Giderler</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💰 Kasa Hareketleri</div>
+            <div class="card-actions">
+              <button class="btn btn-accent" onclick="openModal('modalKasaEkle')">➕ Hareket Ekle</button>
+              <button class="btn btn-ghost" onclick="kasaExport('pdf')">📄 PDF</button>
+              <button class="btn btn-ghost" onclick="kasaExport('excel')">📊 Excel</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Tarih</th><th>Açıklama</th><th>Kategori</th><th>Tür</th><th>Tutar</th><th>İşlem</th>
+              </tr></thead>
+              <tbody id="kasaBody">
+                <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:32px">
+                  <span class="loading-spin"></span>
+                </td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           DAİRELER
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-daireler">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🏠 Daireler</div>
+            <div class="card-actions">
+              <input class="form-input" style="width:200px" type="text" placeholder="🔍 Daire ara..." id="daireSearch" oninput="filterDaireler()"/>
+              <button class="btn btn-accent" onclick="openModal('modalDaireEkle')">➕ Daire Ekle</button>
+            </div>
+          </div>
+          <div class="daire-grid" id="daireGrid">
+            <div class="empty-state" style="grid-column:1/-1">
+              <span class="loading-spin"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           AİDAT
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-aidat">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📅 Aidat Yönetimi</div>
+            <div class="card-actions">
+              <div class="year-tabs" id="aidatYears"></div>
+              <button class="btn btn-ghost btn-sm" onclick="exportAidatPDF()">📄 PDF Makbuz</button>
+              <button class="btn btn-ghost btn-sm" onclick="exportAidatExcel()">📊 Excel</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="overflow-x:auto">
+              <table id="aidatTable" style="min-width:700px">
+                <thead id="aidatHead"></thead>
+                <tbody id="aidatBody">
+                  <tr><td colspan="15" style="text-align:center;padding:32px">
+                    <span class="loading-spin"></span>
+                  </td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           KAMPANYA
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-kampanya">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">🎯 Kampanyalar</div>
+            <div class="card-actions">
+              <button class="btn btn-ghost btn-sm" onclick="filterKampanya('aktif',this)">Aktif</button>
+              <button class="btn btn-ghost btn-sm" onclick="filterKampanya('arsiv',this)">Arşiv</button>
+              <button class="btn btn-ghost btn-sm" onclick="filterKampanya('tum',this)">Tümü</button>
+              <button class="btn btn-accent" onclick="openModal('modalKampanyaEkle')">➕ Yeni Kampanya</button>
+            </div>
+          </div>
+        </div>
+        <div id="kampanyaList">
+          <div class="empty-state">
+            <div class="empty-state-icon">🎯</div>
+            <div class="empty-state-text">Henüz kampanya yok</div>
+            <div class="empty-state-sub">İlk kampanyanı oluşturmak için ➕ Yeni Kampanya'ya tıkla</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           ARIZA
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-ariza">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">🔨 Arıza Takibi</div>
+            <div class="card-actions">
+              <button class="btn btn-ghost btn-sm" onclick="filterAriza('bekliyor',this)">⏳ Bekliyor</button>
+              <button class="btn btn-ghost btn-sm" onclick="filterAriza('devam',this)">🔧 Devam</button>
+              <button class="btn btn-ghost btn-sm" onclick="filterAriza('tamamlandi',this)">✅ Tamamlandı</button>
+              <button class="btn btn-ghost btn-sm" onclick="filterAriza('tum',this)">Tümü</button>
+            </div>
+          </div>
+        </div>
+        <div id="arizaList">
+          <div class="empty-state">
+            <div class="empty-state-icon">🔨</div>
+            <div class="empty-state-text">Arıza bildirimi yok</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           DUYURU
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-duyuru">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">📢 Duyurular</div>
+            <div class="card-actions">
+              <button class="btn btn-accent" onclick="openModal('modalDuyuruEkle')">➕ Duyuru Ekle</button>
+            </div>
+          </div>
+        </div>
+        <div id="duyuruList">
+          <div class="empty-state">
+            <div class="empty-state-icon">📢</div>
+            <div class="empty-state-text">Henüz duyuru yok</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           FATURALAR
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-faturalar">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧾 Faturalar</div>
+            <div class="card-actions">
+              <button class="btn btn-accent" onclick="openModal('modalFaturaEkle')">➕ Fatura Ekle</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Fatura Türü</th><th>Dönem</th><th>Tutar</th><th>Son Ödeme</th><th>Durum</th><th>İşlem</th>
+              </tr></thead>
+              <tbody id="faturaBody">
+                <tr><td colspan="6" class="empty-state" style="padding:32px;text-align:center;color:var(--text3)">Fatura bulunamadı</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           BAKIM TAKVİMİ
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-bakim">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🔧 Bakım Takvimi</div>
+            <div class="card-actions">
+              <button class="btn btn-accent" onclick="openModal('modalBakimEkle')">➕ Bakım Ekle</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Bakım Adı</th><th>Periyot</th><th>Son Bakım</th><th>Sonraki Bakım</th><th>Durum</th><th>İşlem</th>
+              </tr></thead>
+              <tbody id="bakimBody">
+                <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">Bakım kaydı yok</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           FİRMA REHBERİ
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-firmalar">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🏪 Firma Rehberi</div>
+            <div class="card-actions">
+              <input class="form-input" style="width:180px" type="text" placeholder="🔍 Firma ara..." id="firmaSearch" oninput="filterFirmalar()"/>
+              <select class="form-input" style="width:150px" id="firmaKatFilter" onchange="filterFirmalar()">
+                <option value="">Tüm Kategoriler</option>
+              </select>
+              <button class="btn btn-accent" onclick="openModal('modalFirmaEkle')">➕ Firma Ekle</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr>
+                <th>Firma Adı</th><th>Kategori</th><th>Telefon</th><th>WhatsApp</th><th>Not</th><th>İşlem</th>
+              </tr></thead>
+              <tbody id="firmaBody">
+                <tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">Firma bulunamadı</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           RAPORLAR
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-raporlar">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📊 Raporlar</div>
+          </div>
+          <div class="card-body">
+            <div class="fields-grid" style="margin-bottom:20px">
+              <div class="field">
+                <label>Başlangıç Tarihi</label>
+                <input type="date" id="raporBaslangic"/>
+              </div>
+              <div class="field">
+                <label>Bitiş Tarihi</label>
+                <input type="date" id="raporBitis"/>
+              </div>
+            </div>
+            <div class="rapor-opts" id="raporOpts">
+              <label class="rapor-check selected"><input type="checkbox" checked onchange="this.closest('.rapor-check').classList.toggle('selected',this.checked)"> Gelir/Gider</label>
+              <label class="rapor-check"><input type="checkbox" onchange="this.closest('.rapor-check').classList.toggle('selected',this.checked)"> Aidat Dökümü</label>
+              <label class="rapor-check"><input type="checkbox" onchange="this.closest('.rapor-check').classList.toggle('selected',this.checked)"> Borç Listesi</label>
+              <label class="rapor-check"><input type="checkbox" onchange="this.closest('.rapor-check').classList.toggle('selected',this.checked)"> Gider Kategorileri</label>
+              <label class="rapor-check"><input type="checkbox" onchange="this.closest('.rapor-check').classList.toggle('selected',this.checked)"> Bütçe Analizi</label>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <button class="btn btn-warn" onclick="exportRapor('pdf')">📄 PDF İndir</button>
+              <button class="btn btn-success" onclick="exportRapor('excel')">📊 Excel İndir</button>
+              <button class="btn btn-ghost" onclick="exportRapor('preview')">👁️ Önizle</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="dash-grid" style="margin-top:16px">
+          <div class="dash-card">
+            <div class="dash-card-header"><div class="dash-card-title">📈 Bütçe Planlama</div></div>
+            <div class="dash-card-body">
+              <div class="chart-bar-wrap" id="budgetChart">
+                <div class="empty-state">Bütçe verisi yok</div>
+              </div>
+            </div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-header"><div class="dash-card-title">🍰 Gider Kategorileri</div></div>
+            <div class="dash-card-body" id="catChart">
+              <div class="empty-state">Kategori verisi yok</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           AYARLAR
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-ayarlar">
+        <div class="settings-section">
+          <div class="settings-section-header">🔒 Güvenlik</div>
+          <div class="settings-section-body">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Şifre Değiştir</div>
+                <div class="setting-desc">Mevcut şifrenizi güncelleyin</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="openModal('modalSifreGuncelle')">Değiştir</button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">2FA (Google Authenticator)</div>
+                <div class="setting-desc">İki faktörlü kimlik doğrulama</div>
+              </div>
+              <button class="toggle" id="toggle2FA" onclick="toggle2FA(this)"></button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Master Şifre Bypass</div>
+                <div class="setting-desc">Süper admin erişim şifresi</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="openModal('modalMasterSifre')">Güncelle</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">🔔 Bildirimler</div>
+          <div class="settings-section-body">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Push Bildirimleri (FCM)</div>
+                <div class="setting-desc">Anlık bildirimler için izin</div>
+              </div>
+              <button class="toggle" id="togglePush" onclick="toggleSetting('push',this)"></button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">E-posta Bildirimleri</div>
+                <div class="setting-desc">EmailJS ile otomatik e-posta</div>
+              </div>
+              <button class="toggle" id="toggleEmail" onclick="toggleSetting('email',this)"></button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">SMS Bildirimleri (Netgsm)</div>
+                <div class="setting-desc">Borç hatırlatma SMS'i</div>
+              </div>
+              <button class="toggle" id="toggleSMS" onclick="toggleSetting('sms',this)"></button>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Aylık Hatırlatma Günü</div>
+                <div class="setting-desc">Her ayın kaçında hatırlatma gönderilsin?</div>
+              </div>
+              <input type="number" min="1" max="28" id="inpBildirimGun" class="form-input" style="width:80px" placeholder="5"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">💰 Finansal Ayarlar</div>
+          <div class="settings-section-body">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Aidat Başlangıç Tarihi</div>
+                <div class="setting-desc">Yönetimin başladığı ay/yıl</div>
+              </div>
+              <input type="month" id="inpBaslangic" class="form-input" style="width:160px"/>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Aylık Aidat Tutarı</div>
+                <div class="setting-desc">Varsayılan aidat miktarı (₺)</div>
+              </div>
+              <input type="number" id="inpAidatTutar" class="form-input" style="width:120px" placeholder="500"/>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Gecikme Faizi (%)</div>
+                <div class="setting-desc">Aylık gecikme faiz oranı</div>
+              </div>
+              <input type="number" id="inpFaiz" class="form-input" style="width:80px" placeholder="1.5" step="0.1"/>
+            </div>
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Yıllık Bütçe (₺)</div>
+                <div class="setting-desc">Yıllık harcama bütçesi hedefi</div>
+              </div>
+              <input type="number" id="inpButce" class="form-input" style="width:140px" placeholder="60000"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">📱 VAPID & FCM</div>
+          <div class="settings-section-body">
+            <div class="field">
+              <label>VAPID Anahtar</label>
+              <input type="text" id="inpVapid" placeholder="VAPID public key"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section">
+          <div class="settings-section-header">🌙 Görünüm</div>
+          <div class="settings-section-body">
+            <div class="setting-row">
+              <div class="setting-info">
+                <div class="setting-label">Karanlık Mod</div>
+              </div>
+              <button class="toggle on" id="toggleTheme" onclick="toggleTheme()"></button>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <button class="btn btn-accent" onclick="saveSettings()">💾 Ayarları Kaydet</button>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────────
+           SAKİN PANELİ
+      ───────────────────────────────────── -->
+      <div class="module" id="mod-sakin-aidat">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">📅 Aidat Durumum</div></div>
+          <div class="card-body">
+            <div class="year-tabs" id="sakinYearTabs" style="margin-bottom:16px"></div>
+            <div id="sakinAidatGrid" class="month-grid"></div>
+            <div id="sakinBorcBilgi" style="margin-top:16px;padding:12px;background:var(--bg2);border-radius:var(--radius-s);font-size:13px;color:var(--text2)">
+              Borç bilgisi yükleniyor...
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="module" id="mod-sakin-kampanya">
+        <div class="card"><div class="card-header"><div class="card-title">🎯 Kampanyalar</div></div></div>
+        <div id="sakinKampanyaList" style="margin-top:12px">
+          <div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">Aktif kampanya yok</div></div>
+        </div>
+      </div>
+
+      <div class="module" id="mod-sakin-duyuru">
+        <div class="card"><div class="card-header"><div class="card-title">📢 Duyurular</div></div></div>
+        <div id="sakinDuyuruList" style="margin-top:12px">
+          <div class="empty-state"><div class="empty-state-icon">📢</div><div class="empty-state-text">Duyuru yok</div></div>
+        </div>
+      </div>
+
+      <div class="module" id="mod-sakin-ariza">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔨 Arıza Bildir</div></div>
+          <div class="card-body">
+            <div class="field"><label>Arıza Başlığı</label><input type="text" id="sakinArizaBaslik" placeholder="Kısa açıklama"/></div>
+            <div class="field"><label>Açıklama</label><textarea id="sakinArizaAciklama" placeholder="Detaylı açıklama..."></textarea></div>
+            <div class="field"><label>Fotoğraf (isteğe bağlı)</label><input type="file" id="sakinArizaFoto" accept="image/*"/></div>
+            <button class="btn btn-accent" onclick="sakinArizaBildir()">📤 Bildir</button>
+          </div>
+        </div>
+        <div style="margin-top:16px" id="sakinArizaList"></div>
+      </div>
+
+      <div class="module" id="mod-sakin-giderler">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🧾 Bina Giderleri</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Tarih</th><th>Açıklama</th><th>Tutar</th><th>Kategori</th></tr></thead>
+              <tbody id="sakinGiderBody"><tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text3)">Gider bulunamadı</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="module" id="mod-sakin-ayarlar">
+        <div class="settings-section">
+          <div class="settings-section-header">🔒 Şifre Değiştir</div>
+          <div class="settings-section-body">
+            <div class="field"><label>Mevcut Şifre</label><input type="password" id="sakinEskiSifre"/></div>
+            <div class="field"><label>Yeni Şifre</label><input type="password" id="sakinYeniSifre"/></div>
+            <div class="field"><label>Yeni Şifre (Tekrar)</label><input type="password" id="sakinYeniSifre2"/></div>
+            <button class="btn btn-accent" onclick="sakinSifreGuncelle()">🔒 Şifreyi Güncelle</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-wrap -->
+</div><!-- /appScreen -->
+
+<!-- ═══════════════════════════════════════════
+     MODALS
+═══════════════════════════════════════════ -->
+
+<!-- Kasa Ekle -->
+<div class="modal-overlay" id="modalKasaEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💰 Kasa Hareketi Ekle</div>
+      <button class="modal-close" onclick="closeModal('modalKasaEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fields-grid">
+        <div class="field">
+          <label>Tür</label>
+          <select id="kasaTur">
+            <option value="gelir">📈 Gelir</option>
+            <option value="gider">📉 Gider</option>
+          </select>
+        </div>
+        <div class="field"><label>Tutar (₺)</label><input type="number" id="kasaTutar" placeholder="0.00" step="0.01"/></div>
+      </div>
+      <div class="field"><label>Açıklama</label><input type="text" id="kasaAciklama" placeholder="Hareket açıklaması"/></div>
+      <div class="fields-grid">
+        <div class="field">
+          <label>Kategori</label>
+          <select id="kasaKategori">
+            <option>Aidat</option><option>Elektrik</option><option>Su</option><option>Doğalgaz</option>
+            <option>Temizlik</option><option>Güvenlik</option><option>Bakım-Onarım</option>
+            <option>Sigorta</option><option>Asansör</option><option>Diğer</option>
+          </select>
+        </div>
+        <div class="field"><label>Tarih</label><input type="date" id="kasaTarih"/></div>
+      </div>
+      <div class="field"><label>Not (isteğe bağlı)</label><textarea id="kasaNot" placeholder="Ek notlar..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalKasaEkle')">İptal</button>
+      <button class="btn btn-accent" onclick="kasaEkle()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Daire Ekle -->
+<div class="modal-overlay" id="modalDaireEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏠 Daire Ekle / Düzenle</div>
+      <button class="modal-close" onclick="closeModal('modalDaireEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fields-grid">
+        <div class="field"><label>Daire No</label><input type="text" id="daireNo" placeholder="1A"/></div>
+        <div class="field"><label>Kat</label><input type="number" id="daireKat" placeholder="1"/></div>
+      </div>
+      <div class="fields-grid">
+        <div class="field"><label>Sakin Adı</label><input type="text" id="daireSakin" placeholder="Ad Soyad"/></div>
+        <div class="field"><label>Telefon</label><input type="tel" id="daireTel" placeholder="+90"/></div>
+      </div>
+      <div class="field"><label>E-posta</label><input type="email" id="daireEmail" placeholder="sakin@email.com"/></div>
+      <div class="fields-grid">
+        <div class="field"><label>Giriş Şifresi (SHA-256)</label><input type="password" id="daireSifre" placeholder="Sakin şifresi"/></div>
+        <div class="field">
+          <label>Durum</label>
+          <select id="daireDurum">
+            <option value="dolu">Dolu</option>
+            <option value="bos">Boş</option>
+            <option value="kiralik">Kiralık</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="daireHatirla" style="accent-color:var(--accent)"/>
+          Beni hatırla iznine sahip
+        </label>
+      </div>
+      <div class="field"><label>Aylık Aidat (₺ — boş bırakırsan varsayılan)</label><input type="number" id="daireAidat" placeholder="Varsayılan kullanılır"/></div>
+      <div class="field"><label>Devreden Borç (₺)</label><input type="number" id="daireDevredenBorc" placeholder="0.00" step="0.01"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalDaireEkle')">İptal</button>
+      <button class="btn btn-accent" onclick="daireKaydet()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Kampanya Ekle -->
+<div class="modal-overlay" id="modalKampanyaEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎯 Kampanya Ekle</div>
+      <button class="modal-close" onclick="closeModal('modalKampanyaEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Kampanya Başlığı</label><input type="text" id="kampBaslik" placeholder="Yaz Bakım Kampanyası"/></div>
+      <div class="field"><label>Açıklama</label><textarea id="kampAciklama" placeholder="Kampanya detayları..."></textarea></div>
+      <div class="fields-grid">
+        <div class="field"><label>Hedef Tutar (₺)</label><input type="number" id="kampHedef" placeholder="10000"/></div>
+        <div class="field"><label>Bitiş Tarihi</label><input type="date" id="kampBitis"/></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalKampanyaEkle')">İptal</button>
+      <button class="btn btn-accent" onclick="kampanyaEkle()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Duyuru Ekle -->
+<div class="modal-overlay" id="modalDuyuruEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📢 Duyuru Ekle</div>
+      <button class="modal-close" onclick="closeModal('modalDuyuruEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Başlık</label><input type="text" id="duyuruBaslik" placeholder="Duyuru başlığı"/></div>
+      <div class="field"><label>İçerik</label><textarea id="duyuruIcerik" placeholder="Duyuru metni..." style="min-height:120px"></textarea></div>
+      <div class="field">
+        <label>Gönderim Kanalları</label>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="kanalPush" checked style="accent-color:var(--accent)"> 🔔 Push
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="kanalEmail" style="accent-color:var(--accent)"> 📧 E-posta
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="kanalSMS" style="accent-color:var(--accent)"> 💬 SMS
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+            <input type="checkbox" id="kanalWA" style="accent-color:var(--accent)"> 🟢 WhatsApp
+          </label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalDuyuruEkle')">İptal</button>
+      <button class="btn btn-accent" onclick="duyuruEkle()">📤 Gönder & Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Fatura Ekle -->
+<div class="modal-overlay" id="modalFaturaEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🧾 Fatura Ekle</div>
+      <button class="modal-close" onclick="closeModal('modalFaturaEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fields-grid">
+        <div class="field">
+          <label>Fatura Türü</label>
+          <select id="faturaTur">
+            <option>Elektrik</option><option>Su</option><option>Doğalgaz</option>
+            <option>İnternet</option><option>Asansör Bakım</option><option>Temizlik</option><option>Diğer</option>
+          </select>
+        </div>
+        <div class="field"><label>Dönem</label><input type="month" id="faturaDot"/></div>
+      </div>
+      <div class="fields-grid">
+        <div class="field"><label>Tutar (₺)</label><input type="number" id="faturaTutar" placeholder="0.00" step="0.01"/></div>
+        <div class="field"><label>Son Ödeme Tarihi</label><input type="date" id="faturaVade"/></div>
+      </div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="faturaKasaDus" checked style="accent-color:var(--accent)"/>
+          Kasadan otomatik düş (gider olarak kaydet)
+        </label>
+      </div>
+      <div class="field"><label>Fatura Fotoğrafı (isteğe bağlı)</label><input type="file" id="faturaFoto" accept="image/*,application/pdf"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalFaturaEkle')">İptal</button>
+      <button class="btn btn-accent" onclick="faturaEkle()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bakım Ekle -->
+<div class="modal-overlay" id="modalBakimEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔧 Bakım Kaydı Ekle</div>
+      <button class="modal-close" onclick="closeModal('modalBakimEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Bakım Adı</label><input type="text" id="bakimAd" placeholder="Asansör bakımı"/></div>
+      <div class="fields-grid">
+        <div class="field">
+          <label>Periyot</label>
+          <select id="bakimPeriod">
+            <option value="1">Her Ay</option>
+            <option value="3">3 Ayda Bir</option>
+            <option value="6">6 Ayda Bir</option>
+            <option value="12">Yılda Bir</option>
+            <option value="24">2 Yılda Bir</option>
+          </select>
+        </div>
+        <div class="field"><label>Son Bakım Tarihi</label><input type="date" id="bakimSon"/></div>
+      </div>
+      <div class="field"><label>Sorumlu Firma</label><input type="text" id="bakimFirma" placeholder="Firma adı"/></div>
+      <div class="field"><label>Tahmini Maliyet (₺)</label><input type="number" id="bakimMaliyet" placeholder="0"/></div>
+      <div class="field">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="bakimPush" checked style="accent-color:var(--accent)"/> Push uyarısı gönder
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalBakimEkle')">İptal</button>
+      <button class="btn btn-accent" onclick="bakimEkle()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Firma Ekle -->
+<div class="modal-overlay" id="modalFirmaEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏪 Firma Ekle</div>
+      <button class="modal-close" onclick="closeModal('modalFirmaEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Firma Adı</label><input type="text" id="firmaAd" placeholder="Firma adı"/></div>
+      <div class="fields-grid">
+        <div class="field">
+          <label>Kategori</label>
+          <select id="firmaKat">
+            <option>Elektrik</option><option>Su-Tesisat</option><option>Asansör</option>
+            <option>Temizlik</option><option>Güvenlik</option><option>Çilingir</option>
+            <option>Boyacı</option><option>Cam</option><option>Diğer</option>
+          </select>
+        </div>
+        <div class="field"><label>Telefon</label><input type="tel" id="firmaTel" placeholder="+90 5xx xxx xx xx"/></div>
+      </div>
+      <div class="field"><label>WhatsApp Numarası (opsiyonel)</label><input type="tel" id="firmaWA" placeholder="+90 5xx xxx xx xx"/></div>
+      <div class="field"><label>Not</label><textarea id="firmaNot" placeholder="Firma hakkında not..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalFirmaEkle')">İptal</button>
+      <button class="btn btn-accent" onclick="firmaEkle()">💾 Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Şifre Güncelle -->
+<div class="modal-overlay" id="modalSifreGuncelle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔒 Şifre Değiştir</div>
+      <button class="modal-close" onclick="closeModal('modalSifreGuncelle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Mevcut Şifre</label><input type="password" id="eskiSifre"/></div>
+      <div class="field"><label>Yeni Şifre</label><input type="password" id="yeniSifre1"/></div>
+      <div class="field"><label>Yeni Şifre (Tekrar)</label><input type="password" id="yeniSifre2"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalSifreGuncelle')">İptal</button>
+      <button class="btn btn-accent" onclick="sifreGuncelle()">🔒 Güncelle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bina Seçimi (geçiş) -->
+<div class="modal-overlay" id="modalBinaSec">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏢 Bina Değiştir</div>
+      <button class="modal-close" onclick="closeModal('modalBinaSec')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="bina-grid" id="modalBinaGrid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toastContainer"></div>
+
+
+<!-- ═══════════════════════════════════════════
+     FIREBASE + APP JS  (Sub-collection mimarisi)
+     Tüm Firebase kodu bu dosyada gömülü.
+═══════════════════════════════════════════ -->
+<script type="module">
+// ── db.js içeriği gömülü ──
+/**
+ * BinaPlus — Veritabanı Katmanı (db.js)
+ * ─────────────────────────────────────
+ * Versiyon: 2.0
+ *
+ * KORUMA MEKANİZMALARI:
+ *   1. Şifre Güvenliği       — Firebase yüklenmeden şifre kontrolü YAPILMAZ
+ *   2. Yazma Koruma Penceresi — Kendi yazmandan sonra 3sn snapshot yoksayılır
+ *   3. Çift Katman Yedek     — Her yazma localStorage'a da kopyalanır
+ *   4. localStorage Geri Yük — Çevrimdışıyken localStorage'dan okur
+ *
+ * GENİŞLETME KURALI:
+ *   Yeni modül eklemek için:
+ *   1. COL objesine yol ekle
+ *   2. Dosyanın altındaki YENİ MODÜL ŞABLONU'nu kopyala
+ *   3. firestore.rules'a match bloğu ekle
+ *   4. seed.json'a şema örneği ekle
+ *   Mevcut fonksiyonlara dokunma.
+ */
+
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {
+  getFirestore,
+  collection, doc, getDoc, getDocs, addDoc, setDoc,
+  updateDoc, deleteDoc, onSnapshot, serverTimestamp,
+  query, where, orderBy, limit, writeBatch, runTransaction
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {
+  getAuth, signInWithEmailAndPassword, signOut,
+  updatePassword, onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+
+// ── Firebase başlatma (çift başlatmayı önle) ──────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyD6vTEjXSx9yTBE7o_y-PgE9EQydFzt7Rs",
+  authDomain:        "binapulus-4ae17.firebaseapp.com",
+  projectId:         "binapulus-4ae17",
+  storageBucket:     "binapulus-4ae17.firebasestorage.app",
+  messagingSenderId: "74314699158",
+  appId:             "1:74314699158:web:c8c4c40d9ab17960cccdb7",
+  measurementId:     "G-LH3N7X20MQ"
+};
+
+const fbApp   = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+const auth    = getAuth(fbApp);
+const db      = getFirestore(fbApp);
+const storage = getStorage(fbApp);
+
+// ── Firebase hazır sinyali ────────────────────────────────────
+// Timeout ekli — maksimum 5 saniye bekle, sonra devam et
+let _fbReady = false;
+let _fbReadyResolve;
+const fbReady = new Promise(res => { _fbReadyResolve = res; });
+
+// 5 saniye timeout — askıda kalmasın
+const _fbTimeout = setTimeout(() => {
+  _fbReady = true;
+  _fbReadyResolve();
+}, 5000);
+
+// Firestore'a basit bağlantı testi — hata da olsa hazır say
+getDoc(doc(db, 'anayonetici', 'config'))
+  .catch(() => {}) // 404 normal — sadece bağlantıyı test ediyoruz
+  .finally(() => {
+    clearTimeout(_fbTimeout);
+    _fbReady = true;
+    _fbReadyResolve();
+  });
+
+async function waitFirebase() {
+  if (_fbReady) return;
+  await fbReady;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GÜVENLİK KATMANLARI
+// ═══════════════════════════════════════════════════════════════
+
+// ── 1. RATE LİMİTER ──────────────────────────────────────────
+// Brute force koruması: 5 hatalı denemede 15 dakika kilit
+const _rateLimiter = new Map();
+// key: 'login:binaId:daireNo' veya 'login:email'
+// value: { count, lockedUntil }
+
+const RateLimit = {
+  MAX_ATTEMPTS: 5,
+  LOCK_MS:      15 * 60 * 1000, // 15 dakika
+  WARN_AT:      3,              // 3. denemede uyar
+
+  check(key) {
+    const rec = _rateLimiter.get(key);
+    if (!rec) return { ok: true, remaining: this.MAX_ATTEMPTS };
+
+    // Kilit süresi dolmuş mu?
+    if (rec.lockedUntil && Date.now() > rec.lockedUntil) {
+      _rateLimiter.delete(key);
+      return { ok: true, remaining: this.MAX_ATTEMPTS };
+    }
+
+    // Hâlâ kilitli
+    if (rec.lockedUntil) {
+      const kalan = Math.ceil((rec.lockedUntil - Date.now()) / 60000);
+      return { ok: false, locked: true, minutesLeft: kalan };
+    }
+
+    const remaining = this.MAX_ATTEMPTS - rec.count;
+    return { ok: remaining > 0, remaining, count: rec.count };
+  },
+
+  fail(key) {
+    const rec = _rateLimiter.get(key) || { count: 0 };
+    rec.count++;
+    if (rec.count >= this.MAX_ATTEMPTS) {
+      rec.lockedUntil = Date.now() + this.LOCK_MS;
+    }
+    _rateLimiter.set(key, rec);
+    return this.check(key);
+  },
+
+  reset(key) {
+    _rateLimiter.delete(key);
+  },
+
+  // localStorage'a da yedekle (sayfa yenilemesinde sıfırlanmasın)
+  persist(key) {
+    try {
+      const rec = _rateLimiter.get(key);
+      if (rec) localStorage.setItem(`bp_rl_${key}`, JSON.stringify(rec));
+    } catch(e) {}
+  },
+
+  restore(key) {
+    try {
+      const raw = localStorage.getItem(`bp_rl_${key}`);
+      if (!raw) return;
+      const rec = JSON.parse(raw);
+      // Kilit süresi dolmuşsa yükleme
+      if (!rec.lockedUntil || Date.now() < rec.lockedUntil) {
+        _rateLimiter.set(key, rec);
+      } else {
+        localStorage.removeItem(`bp_rl_${key}`);
+      }
+    } catch(e) {}
+  }
+};
+
+// ── 2. SALT'LI HASH ──────────────────────────────────────────
+// SHA-256(şifre) yerine SHA-256(binaId + ":" + daireNo + ":" + şifre)
+// Rainbow table saldırısını engeller.
+// Salt = binaId + daireNo — sunucuya gönderilmez, client'ta hesaplanır.
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Sakin şifre hash'i — salt eklenmiş
+async function hashSakinSifre(sifre, binaId, daireNo) {
+  // Format: SHA-256("binaplus:binaId:daireNo:sifre")
+  return sha256(`binaplus:${binaId}:${daireNo}:${sifre}`);
+}
+
+// Geriye dönük uyumluluk: eski salt'sız hash ile de dene
+async function hashSakinSifreLegacy(sifre) {
+  return sha256(sifre);
+}
+
+// ── 3. ADMİN TOKEN — MEMORY ONLY ─────────────────────────────
+// Token URL'de değil, memory'de tutulur.
+// admin.html → index.html arası postMessage ile iletilir.
+// sessionStorage'a YAZILMAZ → XSS riski azalır.
+const _adminTokenStore = new Map();
+// key: token, value: { binaId, expiresAt, used }
+
+const AdminToken = {
+  EXPIRE_MS: 5 * 60 * 1000, // 5 dakika
+
+  async create(masterSifre, binaId) {
+    const timestamp = Date.now();
+    const raw       = `binaplus:admin:${masterSifre}:${binaId}:${timestamp}`;
+    const token     = await sha256(raw);
+    _adminTokenStore.set(token, {
+      binaId,
+      expiresAt: timestamp + this.EXPIRE_MS,
+      used: false
+    });
+    return { token, timestamp };
+  },
+
+  verify(token, binaId) {
+    const rec = _adminTokenStore.get(token);
+    if (!rec)                        return { ok: false, reason: 'token_not_found' };
+    if (rec.used)                    return { ok: false, reason: 'token_used' };
+    if (Date.now() > rec.expiresAt)  return { ok: false, reason: 'token_expired' };
+    if (rec.binaId !== binaId)       return { ok: false, reason: 'bina_mismatch' };
+    return { ok: true };
+  },
+
+  consume(token) {
+    const rec = _adminTokenStore.get(token);
+    if (rec) { rec.used = true; _adminTokenStore.set(token, rec); }
+  },
+
+  // Süresi dolmuş token'ları temizle
+  cleanup() {
+    const now = Date.now();
+    for (const [k, v] of _adminTokenStore.entries()) {
+      if (now > v.expiresAt || v.used) _adminTokenStore.delete(k);
+    }
+  }
+};
+
+// Her 5 dakikada bir eski token'ları temizle
+setInterval(() => AdminToken.cleanup(), 5 * 60 * 1000);
+const COL = {
+  binalar:    (binaId)     => doc(db, 'binalar', binaId),
+  daireler:   (binaId)     => collection(db, 'binalar', binaId, 'daireler'),
+  daire:      (binaId, id) => doc(db, 'binalar', binaId, 'daireler', id),
+  kasa:       (binaId)     => collection(db, 'binalar', binaId, 'kasa'),
+  kasaDoc:    (binaId, id) => doc(db, 'binalar', binaId, 'kasa', id),
+  kampanyalar:(binaId)     => collection(db, 'binalar', binaId, 'kampanyalar'),
+  kampanya:   (binaId, id) => doc(db, 'binalar', binaId, 'kampanyalar', id),
+  arizalar:   (binaId)     => collection(db, 'binalar', binaId, 'arizalar'),
+  ariza:      (binaId, id) => doc(db, 'binalar', binaId, 'arizalar', id),
+  duyurular:  (binaId)     => collection(db, 'binalar', binaId, 'duyurular'),
+  duyuru:     (binaId, id) => doc(db, 'binalar', binaId, 'duyurular', id),
+  faturalar:  (binaId)     => collection(db, 'binalar', binaId, 'faturalar'),
+  fatura:     (binaId, id) => doc(db, 'binalar', binaId, 'faturalar', id),
+  bakim:      (binaId)     => collection(db, 'binalar', binaId, 'bakim'),
+  bakimDoc:   (binaId, id) => doc(db, 'binalar', binaId, 'bakim', id),
+  firmalar:   (binaId)     => collection(db, 'binalar', binaId, 'firmalar'),
+  firma:      (binaId, id) => doc(db, 'binalar', binaId, 'firmalar', id),
+  settings:   (binaId)     => doc(db, 'binalar', binaId, 'settings', 'config'),
+  adminConfig: ()          => doc(db, 'anayonetici', 'config'),
+  adminLogs:  ()           => collection(db, 'anayonetici', 'logs'),
+  // ── YENİ MODÜL EKLEMEK İÇİN BURAYA EKLE ──
+};
+// COL
+
+// ── Yardımcı fonksiyonlar ─────────────────────────────────────
+function snapToArr(snap) {
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+const ts       = () => ({ guncellemeTarihi: serverTimestamp() });
+const tsCreate = () => ({ olusturmaTarihi: serverTimestamp(), guncellemeTarihi: serverTimestamp() });
+
+// ═══════════════════════════════════════════════════════════════
+//  KORUMA 1: YAZMA KORUMA PENCERESİ
+//  Sorun 2'nin çözümü: Kendi yazmandan sonra 3 saniye boyunca
+//  o koleksiyona gelen onSnapshot güncellemeleri yoksayılır.
+//  Bu sayede "kendi yazmam geri alındı" yanılgısı olmaz.
+// ═══════════════════════════════════════════════════════════════
+const _writeGuard = new Map(); // koleksiyon yolu → timestamp
+
+function setWriteGuard(path) {
+  _writeGuard.set(path, Date.now());
+}
+
+function isWriteGuarded(path) {
+  const t = _writeGuard.get(path);
+  if (!t) return false;
+  if (Date.now() - t < 3000) return true; // 3 saniye koruma
+  _writeGuard.delete(path);
+  return false;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  KORUMA 2: ÇİFT KATMAN YEDEK (localStorage)
+//  Her başarılı Firestore yazmasından sonra veri localStorage'a
+//  da kaydedilir. Çevrimdışında localStorage'dan okunur.
+// ═══════════════════════════════════════════════════════════════
+const LS = {
+  KEY: (binaId, col) => `bp_${binaId}_${col}`,
+
+  save(binaId, col, data) {
+    try {
+      localStorage.setItem(
+        this.KEY(binaId, col),
+        JSON.stringify({ data, ts: Date.now() })
+      );
+    } catch(e) {
+      // localStorage dolu olabilir — sessizce geç
+      console.warn('localStorage yazma hatası:', e.message);
+    }
+  },
+
+  load(binaId, col) {
+    try {
+      const raw = localStorage.getItem(this.KEY(binaId, col));
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // 7 günden eski localStorage verisini kullanma
+      if (Date.now() - parsed.ts > 7 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(this.KEY(binaId, col));
+        return null;
+      }
+      return parsed.data;
+    } catch(e) {
+      return null;
+    }
+  },
+
+  // Tüm yedek anahtarlarını listele
+  listKeys(binaId) {
+    const prefix = `bp_${binaId}_`;
+    return Object.keys(localStorage)
+      .filter(k => k.startsWith(prefix))
+      .map(k => k.replace(prefix, ''));
+  },
+
+  // Manuel yedek: tüm localStorage verisini JSON olarak indir
+  exportJSON(binaId) {
+    const result = {};
+    this.listKeys(binaId).forEach(col => {
+      result[col] = this.load(binaId, col);
+    });
+    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `binaplus_yedek_${binaId}_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  },
+
+  // Yedekten geri yükle
+  async importJSON(binaId, jsonStr) {
+    const data = JSON.parse(jsonStr);
+    const results = [];
+    for (const [col, arr] of Object.entries(data)) {
+      if (!Array.isArray(arr)) continue;
+      this.save(binaId, col, arr);
+      results.push(col);
+    }
+    return results;
+  }
+};
+
+// LS
+
+// Snapshot'ı hem döndür hem localStorage'a kaydet
+function snapAndCache(binaId, col, snap, cb) {
+  const guardPath = `${binaId}/${col}`;
+  if (isWriteGuarded(guardPath)) return; // ← Koruma penceresi aktif, yoksay
+  const arr = snapToArr(snap);
+  LS.save(binaId, col, arr);
+  cb(arr);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BİNA META
+// ═══════════════════════════════════════════════════════════════
+const BinaCRUD = {
+  async getAll() {
+    await waitFirebase();
+    const snap = await getDocs(collection(db, 'binalar'));
+    return snapToArr(snap);
+  },
+  async get(binaId) {
+    await waitFirebase();
+    const snap = await getDoc(COL.binalar(binaId));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    await setDoc(COL.binalar(binaId), { ...data, ...tsCreate() });
+  },
+  async update(binaId, data) {
+    await waitFirebase();
+    await updateDoc(COL.binalar(binaId), { ...data, ...ts() });
+  },
+  async delete(binaId) {
+    await waitFirebase();
+    await deleteDoc(COL.binalar(binaId));
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  SETTINGS (tek döküman)
+// ═══════════════════════════════════════════════════════════════
+const SettingsCRUD = {
+  async get(binaId) {
+    await waitFirebase();
+    const snap = await getDoc(COL.settings(binaId));
+    if (snap.exists()) {
+      LS.save(binaId, 'settings', snap.data());
+      return snap.data();
+    }
+    // Çevrimdışı fallback
+    return LS.load(binaId, 'settings') || {};
+  },
+  async set(binaId, data) {
+    await waitFirebase();
+    await setDoc(COL.settings(binaId), { ...data, ...ts() }, { merge: true });
+    LS.save(binaId, 'settings', data);
+  },
+  onSnapshot(binaId, cb) {
+    return onSnapshot(COL.settings(binaId), snap => {
+      if (isWriteGuarded(`${binaId}/settings`)) return;
+      const d = snap.exists() ? snap.data() : (LS.load(binaId, 'settings') || {});
+      LS.save(binaId, 'settings', d);
+      cb(d);
+    });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  DAİRELER
+// ═══════════════════════════════════════════════════════════════
+const DaireCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(COL.daireler(binaId));
+      const arr = snapToArr(snap);
+      LS.save(binaId, 'daireler', arr);
+      return arr;
+    } catch(e) {
+      // Çevrimdışı fallback
+      return LS.load(binaId, 'daireler') || [];
+    }
+  },
+  async get(binaId, daireId) {
+    await waitFirebase();
+    const snap = await getDoc(COL.daire(binaId, daireId));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/daireler`);
+    const ref = await addDoc(COL.daireler(binaId), { ...data, odemeler: {}, ...tsCreate() });
+    return ref;
+  },
+  async update(binaId, daireId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/daireler`);
+    await updateDoc(COL.daire(binaId, daireId), { ...data, ...ts() });
+  },
+  async delete(binaId, daireId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/daireler`);
+    await deleteDoc(COL.daire(binaId, daireId));
+  },
+
+  // ── Ödeme işaretle/kaldır (Transaction ile yarış koruması) ──
+  // Sorun 2'nin tam çözümü: runTransaction ile atomik işlem.
+  // İki cihaz aynı anda yazarsa Firestore çakışmayı kendisi çözer.
+  async toggleOdeme(binaId, daireId, ayStr, tutar) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/daireler`);
+    let eklendi = false;
+    await runTransaction(db, async (transaction) => {
+      const ref  = COL.daire(binaId, daireId);
+      const snap = await transaction.get(ref);
+      if (!snap.exists()) throw new Error('Daire bulunamadı');
+      const odemeler = { ...(snap.data().odemeler || {}) };
+      if (odemeler[ayStr]) {
+        delete odemeler[ayStr];
+        eklendi = false;
+      } else {
+        odemeler[ayStr] = {
+          tarih:    new Date().toISOString(),
+          tutar,
+          makbuzNo: `MKB-${Date.now()}`
+        };
+        eklendi = true;
+      }
+      transaction.update(ref, { odemeler, ...ts() });
+    });
+    return eklendi;
+  },
+
+  onSnapshot(binaId, cb) {
+    // Çevrimdışı başlangıç: localStorage'dan hemen göster
+    const cached = LS.load(binaId, 'daireler');
+    if (cached) cb(cached);
+    return onSnapshot(COL.daireler(binaId), snap => {
+      snapAndCache(binaId, 'daireler', snap, cb);
+    });
+  },
+
+  // ── SAKİN GİRİŞİ ─────────────────────────────────────────
+  // Koruması:
+  //   1. waitFirebase() — Firebase hazır olmadan kontrol yok
+  //   2. RateLimit      — 5 hatalı denemede 15 dk kilit
+  //   3. Salt'lı hash   — rainbow table koruması
+  async loginSakin(binaId, daireNo, sifre) {
+    await waitFirebase();
+
+    // Rate limit kontrolü
+    const rlKey = `login:${binaId}:${daireNo}`;
+    RateLimit.restore(rlKey);
+    const rl = RateLimit.check(rlKey);
+
+    if (!rl.ok) {
+      if (rl.locked) {
+        throw new Error(`Çok fazla hatalı deneme. ${rl.minutesLeft} dakika sonra tekrar deneyin.`);
+      }
+      throw new Error('Giriş engellendi.');
+    }
+
+    const q    = query(COL.daireler(binaId), where('daireNo', '==', daireNo));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      // Daire bulunamasa da rate limit say — kullanıcı adı tespitini engelle
+      RateLimit.fail(rlKey);
+      RateLimit.persist(rlKey);
+      throw new Error('Daire no veya şifre yanlış');
+    }
+    const daire = { id: snap.docs[0].id, ...snap.docs[0].data() };
+
+    if (!daire.sifreHash) throw new Error('Bu daire için şifre tanımlanmamış. Yöneticinize başvurun.');
+
+    // Salt'lı hash dene (yeni format)
+    const saltedHash = await hashSakinSifre(sifre, binaId, daireNo);
+
+    // Geriye dönük uyumluluk: eski salt'sız hash de kabul et
+    const legacyHash = await hashSakinSifreLegacy(sifre);
+
+    const hashMatch = daire.sifreHash === saltedHash || daire.sifreHash === legacyHash;
+
+    if (!hashMatch) {
+      const result = RateLimit.fail(rlKey);
+      RateLimit.persist(rlKey);
+      const kalan = result.remaining ?? 0;
+      if (result.locked) {
+        throw new Error(`Şifre yanlış. Çok fazla hatalı deneme — 15 dakika beklemeniz gerekiyor.`);
+      }
+      throw new Error(`Şifre yanlış. ${kalan > 0 ? `${kalan} deneme hakkınız kaldı.` : ''}`);
+    }
+
+    // Başarılı giriş — rate limit sıfırla
+    RateLimit.reset(rlKey);
+    localStorage.removeItem(`bp_rl_${rlKey}`);
+
+    // Eski salt'sız hash varsa, salt'lı ile güncelle (sessiz migration)
+    if (daire.sifreHash === legacyHash && daire.sifreHash !== saltedHash) {
+      try {
+        await updateDoc(COL.daire(binaId, daire.id), { sifreHash: saltedHash });
+      } catch(e) { /* Sessiz — kritik değil */ }
+    }
+
+    return daire;
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  KASA
+// ═══════════════════════════════════════════════════════════════
+const KasaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(query(COL.kasa(binaId), orderBy('tarih', 'desc')));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'kasa', arr);
+      return arr;
+    } catch(e) {
+      return LS.load(binaId, 'kasa') || [];
+    }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kasa`);
+    return await addDoc(COL.kasa(binaId), { ...data, ...tsCreate() });
+  },
+  async update(binaId, kasaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kasa`);
+    await updateDoc(COL.kasaDoc(binaId, kasaId), { ...data, ...ts() });
+  },
+  async delete(binaId, kasaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kasa`);
+    await deleteDoc(COL.kasaDoc(binaId, kasaId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'kasa');
+    if (cached) cb(cached);
+    return onSnapshot(
+      query(COL.kasa(binaId), orderBy('tarih', 'desc')),
+      snap => snapAndCache(binaId, 'kasa', snap, cb)
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  KAMPANYALAR
+// ═══════════════════════════════════════════════════════════════
+const KampanyaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(COL.kampanyalar(binaId));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'kampanyalar', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'kampanyalar') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kampanyalar`);
+    return await addDoc(COL.kampanyalar(binaId), { ...data, toplunanTutar: 0, ...tsCreate() });
+  },
+  async update(binaId, kampId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kampanyalar`);
+    await updateDoc(COL.kampanya(binaId, kampId), { ...data, ...ts() });
+  },
+  async delete(binaId, kampId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kampanyalar`);
+    await deleteDoc(COL.kampanya(binaId, kampId));
+  },
+  async setDurum(binaId, kampId, durum) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kampanyalar`);
+    await updateDoc(COL.kampanya(binaId, kampId), { durum, ...ts() });
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'kampanyalar');
+    if (cached) cb(cached);
+    return onSnapshot(COL.kampanyalar(binaId), snap => snapAndCache(binaId, 'kampanyalar', snap, cb));
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  ARIZALAR
+// ═══════════════════════════════════════════════════════════════
+const ArizaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(query(COL.arizalar(binaId), orderBy('bildirimTarihi', 'desc')));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'arizalar', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'arizalar') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    return await addDoc(COL.arizalar(binaId), {
+      ...data, durum: 'bekliyor', fotograflar: [], yorumlar: [],
+      bildirimTarihi: serverTimestamp(), ...tsCreate()
+    });
+  },
+  async update(binaId, arizaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    await updateDoc(COL.ariza(binaId, arizaId), { ...data, ...ts() });
+  },
+  async setDurum(binaId, arizaId, durum) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    const extra = durum === 'tamamlandi' ? { tamamlanmaTarihi: serverTimestamp() } : {};
+    await updateDoc(COL.ariza(binaId, arizaId), { durum, ...extra, ...ts() });
+  },
+  async yorumEkle(binaId, arizaId, yorum) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    await runTransaction(db, async (t) => {
+      const ref  = COL.ariza(binaId, arizaId);
+      const snap = await t.get(ref);
+      const yorumlar = [...(snap.data()?.yorumlar || []), { ...yorum, tarih: new Date().toISOString() }];
+      t.update(ref, { yorumlar, ...ts() });
+    });
+  },
+  async delete(binaId, arizaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    await deleteDoc(COL.ariza(binaId, arizaId));
+  },
+  async fotografYukle(binaId, arizaId, file) {
+    await waitFirebase();
+    const path = `arizalar/${binaId}/${arizaId}/${Date.now()}_${file.name}`;
+    const r    = storageRef(storage, path);
+    await uploadBytes(r, file);
+    const url  = await getDownloadURL(r);
+    setWriteGuard(`${binaId}/arizalar`);
+    await runTransaction(db, async (t) => {
+      const ref  = COL.ariza(binaId, arizaId);
+      const snap = await t.get(ref);
+      const fotograflar = [...(snap.data()?.fotograflar || []), url];
+      t.update(ref, { fotograflar, ...ts() });
+    });
+    return url;
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'arizalar');
+    if (cached) cb(cached);
+    return onSnapshot(
+      query(COL.arizalar(binaId), orderBy('bildirimTarihi', 'desc')),
+      snap => snapAndCache(binaId, 'arizalar', snap, cb)
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  DUYURULAR
+// ═══════════════════════════════════════════════════════════════
+const DuyuruCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(query(COL.duyurular(binaId), orderBy('olusturmaTarihi', 'desc')));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'duyurular', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'duyurular') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/duyurular`);
+    return await addDoc(COL.duyurular(binaId), {
+      ...data, tarih: new Date().toLocaleDateString('tr-TR'), ...tsCreate()
+    });
+  },
+  async delete(binaId, duyuruId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/duyurular`);
+    await deleteDoc(COL.duyuru(binaId, duyuruId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'duyurular');
+    if (cached) cb(cached);
+    return onSnapshot(
+      query(COL.duyurular(binaId), orderBy('olusturmaTarihi', 'desc')),
+      snap => snapAndCache(binaId, 'duyurular', snap, cb)
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  FATURALAR
+// ═══════════════════════════════════════════════════════════════
+const FaturaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(query(COL.faturalar(binaId), orderBy('olusturmaTarihi', 'desc')));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'faturalar', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'faturalar') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/faturalar`);
+    return await addDoc(COL.faturalar(binaId), { ...data, odendi: false, ...tsCreate() });
+  },
+  async toggleOdendi(binaId, faturaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/faturalar`);
+    let odendi = false;
+    await runTransaction(db, async (t) => {
+      const ref  = COL.fatura(binaId, faturaId);
+      const snap = await t.get(ref);
+      odendi = !snap.data()?.odendi;
+      t.update(ref, { odendi, odemeTarihi: odendi ? serverTimestamp() : null, ...ts() });
+    });
+    return odendi;
+  },
+  async delete(binaId, faturaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/faturalar`);
+    await deleteDoc(COL.fatura(binaId, faturaId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'faturalar');
+    if (cached) cb(cached);
+    return onSnapshot(
+      query(COL.faturalar(binaId), orderBy('olusturmaTarihi', 'desc')),
+      snap => snapAndCache(binaId, 'faturalar', snap, cb)
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  BAKIM TAKVİMİ
+// ═══════════════════════════════════════════════════════════════
+const BakimCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(COL.bakim(binaId));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'bakim', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'bakim') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/bakim`);
+    return await addDoc(COL.bakim(binaId), { ...data, ...tsCreate() });
+  },
+  async tamamlandi(binaId, bakimId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/bakim`);
+    await updateDoc(COL.bakimDoc(binaId, bakimId), {
+      sonBakimTarihi: new Date().toISOString().split('T')[0], ...ts()
+    });
+  },
+  async delete(binaId, bakimId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/bakim`);
+    await deleteDoc(COL.bakimDoc(binaId, bakimId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'bakim');
+    if (cached) cb(cached);
+    return onSnapshot(COL.bakim(binaId), snap => snapAndCache(binaId, 'bakim', snap, cb));
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  FİRMA REHBERİ
+// ═══════════════════════════════════════════════════════════════
+const FirmaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(COL.firmalar(binaId));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'firmalar', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'firmalar') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/firmalar`);
+    return await addDoc(COL.firmalar(binaId), { ...data, ...tsCreate() });
+  },
+  async update(binaId, firmaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/firmalar`);
+    await updateDoc(COL.firma(binaId, firmaId), { ...data, ...ts() });
+  },
+  async delete(binaId, firmaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/firmalar`);
+    await deleteDoc(COL.firma(binaId, firmaId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'firmalar');
+    if (cached) cb(cached);
+    return onSnapshot(COL.firmalar(binaId), snap => snapAndCache(binaId, 'firmalar', snap, cb));
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════════════════════════════
+const AdminCRUD = {
+  async getConfig() {
+    await waitFirebase();
+    const snap = await getDoc(COL.adminConfig());
+    return snap.exists() ? snap.data() : null;
+  },
+  async setConfig(data) {
+    await waitFirebase();
+    await setDoc(COL.adminConfig(), { ...data, guncellemeTarihi: serverTimestamp() }, { merge: true });
+  },
+  async log(entry) {
+    try {
+      await addDoc(COL.adminLogs(), { ...entry, tarih: serverTimestamp() });
+    } catch(e) {
+      // Log yazma başarısız olursa sessizce geç — ana işlemi engelleme
+      console.warn('Log yazma hatası:', e.message);
+    }
+  },
+  async getLogs(limitSayi = 100) {
+    await waitFirebase();
+    const snap = await getDocs(query(COL.adminLogs(), orderBy('tarih', 'desc'), limit(limitSayi)));
+    return snapToArr(snap);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════════
+const AuthService = {
+  async loginYonetici(email, password) {
+    await waitFirebase();
+
+    // Rate limit kontrolü — e-posta bazlı
+    const rlKey = `login:yonetici:${email.toLowerCase()}`;
+    RateLimit.restore(rlKey);
+    const rl = RateLimit.check(rlKey);
+    if (!rl.ok && rl.locked) {
+      throw new Error(`Çok fazla hatalı deneme. ${rl.minutesLeft} dakika sonra tekrar deneyin.`);
+    }
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      RateLimit.reset(rlKey);
+      localStorage.removeItem(`bp_rl_${rlKey}`);
+      return cred;
+    } catch(e) {
+      const result = RateLimit.fail(rlKey);
+      RateLimit.persist(rlKey);
+      if (result.locked) {
+        throw new Error('Çok fazla hatalı deneme. 15 dakika sonra tekrar deneyin.');
+      }
+      const kalan = result.remaining ?? 0;
+      // Firebase hata mesajlarını Türkçeleştir
+      if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+        throw new Error(`E-posta veya şifre yanlış.${kalan > 0 ? ` ${kalan} deneme hakkınız kaldı.` : ''}`);
+      }
+      if (e.code === 'auth/user-not-found') {
+        throw new Error('Bu e-posta ile kayıtlı hesap bulunamadı.');
+      }
+      if (e.code === 'auth/too-many-requests') {
+        throw new Error('Firebase: Çok fazla istek. Lütfen bekleyin.');
+      }
+      throw new Error(e.message || 'Giriş başarısız');
+    }
+  },
+  async logout() {
+    await signOut(auth);
+  },
+  async updatePassword(newPassword) {
+    if (!auth.currentUser) throw new Error('Giriş yapılmamış');
+    await updatePassword(auth.currentUser, newPassword);
+  },
+  onStateChange(cb) {
+    return onAuthStateChanged(auth, cb);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  TOPLU SUBSCRIPTION
+//  Yazma koruma penceresi snapAndCache üzerinden otomatik çalışır.
+//  Çevrimdışıyken cached veriden başlar, bağlantı gelince güncellenir.
+// ═══════════════════════════════════════════════════════════════
+function subscribeBina(binaId, callbacks) {
+  const unsubs = [];
+  const {
+    onSettings, onDaireler, onKasa, onKampanyalar,
+    onArizalar, onDuyurular, onFaturalar, onBakim, onFirmalar
+  } = callbacks;
+
+  if (onSettings)    unsubs.push(SettingsCRUD.onSnapshot(binaId, onSettings));
+  if (onDaireler)    unsubs.push(DaireCRUD.onSnapshot(binaId, onDaireler));
+  if (onKasa)        unsubs.push(KasaCRUD.onSnapshot(binaId, onKasa));
+  if (onKampanyalar) unsubs.push(KampanyaCRUD.onSnapshot(binaId, onKampanyalar));
+  if (onArizalar)    unsubs.push(ArizaCRUD.onSnapshot(binaId, onArizalar));
+  if (onDuyurular)   unsubs.push(DuyuruCRUD.onSnapshot(binaId, onDuyurular));
+  if (onFaturalar)   unsubs.push(FaturaCRUD.onSnapshot(binaId, onFaturalar));
+  if (onBakim)       unsubs.push(BakimCRUD.onSnapshot(binaId, onBakim));
+  if (onFirmalar)    unsubs.push(FirmaCRUD.onSnapshot(binaId, onFirmalar));
+
+  return () => unsubs.forEach(u => u());
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MANUEL YEDEK API (index.html'den çağrılır)
+// ═══════════════════════════════════════════════════════════════
+const YedekService = {
+  // localStorage'daki tüm veriyi JSON olarak indir
+  exportLocal(binaId) {
+    LS.exportJSON(binaId);
+  },
+
+  // Firestore'dan taze veri çek, hem LS'e hem JSON'a yaz
+  async exportFirestore(binaId) {
+    await waitFirebase();
+    const [daireler, kasa, kampanyalar, arizalar, duyurular, faturalar, bakim, firmalar, settings] =
+      await Promise.all([
+        DaireCRUD.getAll(binaId),
+        KasaCRUD.getAll(binaId),
+        KampanyaCRUD.getAll(binaId),
+        ArizaCRUD.getAll(binaId),
+        DuyuruCRUD.getAll(binaId),
+        FaturaCRUD.getAll(binaId),
+        BakimCRUD.getAll(binaId),
+        FirmaCRUD.getAll(binaId),
+        SettingsCRUD.get(binaId),
+      ]);
+    const data = { binaId, tarih: new Date().toISOString(), daireler, kasa, kampanyalar, arizalar, duyurular, faturalar, bakim, firmalar, settings };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `binaplus_tam_yedek_${binaId}_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return data;
+  },
+
+  // JSON dosyasından Firestore'a geri yükle (batch write)
+  async importFirestore(binaId, jsonStr) {
+    await waitFirebase();
+    const data   = JSON.parse(jsonStr);
+    const batch  = writeBatch(db);
+    let   count  = 0;
+
+    const colMap = {
+      daireler:    (d) => doc(COL.daireler(binaId), d.id),
+      kasa:        (d) => doc(COL.kasa(binaId), d.id),
+      kampanyalar: (d) => doc(COL.kampanyalar(binaId), d.id),
+      arizalar:    (d) => doc(COL.arizalar(binaId), d.id),
+      duyurular:   (d) => doc(COL.duyurular(binaId), d.id),
+      faturalar:   (d) => doc(COL.faturalar(binaId), d.id),
+      bakim:       (d) => doc(COL.bakim(binaId), d.id),
+      firmalar:    (d) => doc(COL.firmalar(binaId), d.id),
+    };
+
+    for (const [col, arr] of Object.entries(colMap)) {
+      if (!Array.isArray(data[col])) continue;
+      data[col].forEach(item => {
+        const { id, ...rest } = item;
+        batch.set(colMap[col]({ id }), rest, { merge: true });
+        count++;
+      });
+    }
+
+    if (data.settings) {
+      batch.set(COL.settings(binaId), data.settings, { merge: true });
+      count++;
+    }
+
+    await batch.commit();
+    return count;
+  }
+};
+
+// ── YENİ MODÜL ŞABLONU ────────────────────────────────────────
+// Kopyala, adını ve col adını değiştir:
+//
+// const YeniModulCRUD = {
+//   async getAll(binaId) {
+//     await waitFirebase();
+//     try {
+//       const snap = await getDocs(COL.yeniModul(binaId));
+//       const arr  = snapToArr(snap);
+//       LS.save(binaId, 'yeniModul', arr);
+//       return arr;
+//     } catch(e) { return LS.load(binaId, 'yeniModul') || []; }
+//   },
+//   async create(binaId, data) {
+//     await waitFirebase();
+//     setWriteGuard(`${binaId}/yeniModul`);
+//     return await addDoc(COL.yeniModul(binaId), { ...data, ...tsCreate() });
+//   },
+//   async update(binaId, docId, data) {
+//     await waitFirebase();
+//     setWriteGuard(`${binaId}/yeniModul`);
+//     await updateDoc(doc(db,'binalar',binaId,'yeniModul',docId), { ...data, ...ts() });
+//   },
+//   async delete(binaId, docId) {
+//     await waitFirebase();
+//     setWriteGuard(`${binaId}/yeniModul`);
+//     await deleteDoc(doc(db,'binalar',binaId,'yeniModul',docId));
+//   },
+//   onSnapshot(binaId, cb) {
+//     const cached = LS.load(binaId, 'yeniModul');
+//     if (cached) cb(cached);
+//     return onSnapshot(COL.yeniModul(binaId), snap => snapAndCache(binaId, 'yeniModul', snap, cb));
+//   }
+// };
+
+
+// ─── STATE ───────────────────────────────────────────
+const STATE = {
+  user: null, role: null,
+  binaId: null, binaData: null,
+  loginMode: 'yonetici', daireNoSakin: null, daireIdSakin: null,
+  unsubscribe: null,
+  // Canlı veri store'ları (snapshot'lardan güncellenir)
+  settings: {}, daireler: [], kasa: [], kampanyalar: [],
+  arizalar: [], duyurular: [], faturalar: [], bakim: [], firmalar: [],
+};
+window.STATE = STATE;
+
+// ─── UTILS ───────────────────────────────────────────
+const MONTHS_TR = ['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'];
+
+function toast(msg, type='info') {
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warn:'⚠️' };
+  const el = document.createElement('div');
+  el.className = `toast toast-${type==='error'?'error':type==='success'?'success':'info'}`;
+  el.innerHTML = `<span class="toast-icon">${icons[type]||'ℹ️'}</span><span class="toast-msg">${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+window.toast = toast;
+
+function fmtPara(v) {
+  v = parseFloat(v)||0;
+  return '₺' + v.toLocaleString('tr-TR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+window.fmtPara = fmtPara;
+
+function aidatTutar() {
+  return parseFloat(STATE.settings?.aidat?.tutar || STATE.settings?.aidatTutar || 500);
+}
+
+// ─── SÜPER ADMİN TOKEN BYPASS (postMessage) ──────────
+// Token URL'de değil — admin.html'den postMessage ile gelir.
+// F12/Network'te görünmez, kopyalanamaz, başka origin kullanamaz.
+
+function setupAdminTokenReceiver() {
+  const params    = new URLSearchParams(window.location.search);
+  const adminOpen = params.get('adminOpen');
+  if (!adminOpen) return; // Normal giriş — listener kurma
+
+  let _tokenReceived = false;
+
+  window.addEventListener('message', async function handler(event) {
+    // ── Güvenlik kontrolleri ──────────────────────────
+    // 1. Sadece aynı origin'den gelen mesajları kabul et
+    if (event.origin !== window.location.origin) return;
+
+    // 2. Mesaj tipi kontrolü
+    if (!event.data || event.data.type !== 'BP_ADMIN_TOKEN') return;
+
+    // 3. Tekrar işleme engeli
+    if (_tokenReceived) return;
+
+    const { token, binaId, timestamp } = event.data;
+
+    // 4. binaId URL parametresiyle eşleşmeli
+    const urlBinaId = params.get('bina') || params.get('binaId');
+    if (binaId !== urlBinaId) return;
+
+    // 5. 5 dakika geçerlilik
+    if (Date.now() - timestamp > 5 * 60 * 1000) {
+      toast('Admin token süresi dolmuş. Lütfen admin panelinden tekrar girin.', 'error');
+      return;
+    }
+
+    // 6. db.js AdminToken ile doğrula (memory'den)
+    // AdminToken zaten gömülü
+    const result = AdminToken.verify(token, binaId);
+    if (!result.ok) {
+      console.warn('Admin token geçersiz:', result.reason);
+      return;
+    }
+
+    // Tüm kontroller geçti — token tüket
+    _tokenReceived = true;
+    AdminToken.consume(token);
+    window.removeEventListener('message', handler);
+
+    // Bina yükle ve giriş yap
+    try {
+      await waitFirebase();
+      const bina = await BinaCRUD.get(binaId);
+      if (!bina) throw new Error('Bina bulunamadı');
+
+      STATE.binaId   = bina.id;
+      STATE.binaData = bina;
+      STATE.role     = 'yonetici';
+      STATE.user     = { displayName: '👑 Süper Admin', email: 'superadmin' };
+
+      // URL'yi temizle — adminOpen parametresini kaldır
+      window.history.replaceState({}, '', `?bina=${encodeURIComponent(binaId)}`);
+
+      enterApp();
+      toast(`${bina.binaAdi || bina.id} — Süper Admin olarak girildi 👑`, 'success');
+
+    } catch(e) {
+      toast('Bina yüklenemedi: ' + e.message, 'error');
+    }
+  });
+
+  // Listener hazır sinyali — admin.html'e token gönderebileceğini bildir
+  // (window.opener üzerinden gönder)
+  try {
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage({ type: 'BP_READY', origin: window.location.origin }, window.location.origin);
+    }
+  } catch(e) {}
+}
+
+async function checkAdminToken() {
+  // adminOpen parametresi varsa postMessage modundayız
+  // Gerçek token kontrolü setupAdminTokenReceiver'da yapılır
+  const params = new URLSearchParams(window.location.search);
+  return params.get('adminOpen') === '1';
+}
+// URL parametresi varsa → tek bina modu
+// Yoksa → çoklu bina seçim modu
+async function loadBinalar() {
+  const params  = new URLSearchParams(window.location.search);
+  const binaParam = params.get('bina') || params.get('binaId');
+
+  if (binaParam) {
+    // ── TEK BİNA MODU ──────────────────────────────
+    // URL: ?bina=gunes-apt
+    document.getElementById('binaLoadMode').style.display = 'block';
+    document.getElementById('binaTekMode').style.display  = 'none';
+    document.getElementById('binaListMode').style.display = 'none';
+    try {
+      const bina = await BinaCRUD.get(binaParam);
+      if (!bina) throw new Error(`"${binaParam}" ID'li bina bulunamadı`);
+
+      STATE.binaId   = bina.id;
+      STATE.binaData = bina;
+
+      // Tek bina kartını göster
+      document.getElementById('binaTekAdi').textContent = bina.binaAdi || bina.id;
+      document.getElementById('binaTekId').textContent  = bina.id;
+      document.getElementById('binaLoadMode').style.display = 'none';
+      document.getElementById('binaTekMode').style.display  = 'block';
+
+      // Sayfa başlığını güncelle
+      document.title = `${bina.binaAdi || bina.id} — BinaPlus`;
+
+    } catch(e) {
+      document.getElementById('binaLoadMode').innerHTML =
+        `<div style="color:var(--warn);font-size:13px;padding:12px">
+          ⚠️ Bina bulunamadı: <strong>${binaParam}</strong><br>
+          <small>URL'yi kontrol edin veya yöneticinize başvurun.</small>
+         </div>`;
+    }
+
+  } else {
+    // ── ÇOKLU BİNA MODU ────────────────────────────
+    // URL parametresi yok → tüm binalar listelenir
+    document.getElementById('binaLoadMode').style.display = 'none';
+    document.getElementById('binaListMode').style.display = 'block';
+    document.getElementById('binaTekMode').style.display  = 'none';
+    try {
+      const binalar = await BinaCRUD.getAll();
+      const grid = document.getElementById('binaGrid');
+      if (!binalar.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text3);font-size:13px">Bina bulunamadı</div>';
+        return;
+      }
+      grid.innerHTML = '';
+      binalar.forEach(b => {
+        const card = document.createElement('div');
+        card.className = 'bina-card';
+        card.innerHTML = `<div class="bina-card-icon">🏢</div>
+          <div class="bina-card-name">${b.binaAdi || b.id}</div>
+          <div class="bina-card-id">${b.id}</div>`;
+        card.onclick = () => {
+          document.querySelectorAll('.bina-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          STATE.binaId   = b.id;
+          STATE.binaData = b;
+        };
+        grid.appendChild(card);
+      });
+      grid.firstChild?.click();
+    } catch(e) {
+      document.getElementById('binaGrid').innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;color:var(--warn);padding:16px;font-size:13px">Bina yüklenemedi: ' + e.message + '</div>';
+    }
+  }
+}
+
+// ─── LOGIN ───────────────────────────────────────────
+window.setLoginMode = function(mode) {
+  STATE.loginMode = mode;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', mode==='yonetici'?i===0:i===1));
+  document.getElementById('formYonetici').style.display = mode==='yonetici'?'block':'none';
+  document.getElementById('formSakin').style.display = mode==='sakin'?'block':'none';
+};
+
+window.togglePwd = function(id, el) {
+  const inp = document.getElementById(id);
+  if (inp.type==='password') { inp.type='text'; el.textContent='🙈'; }
+  else { inp.type='password'; el.textContent='👁️'; }
+};
+
+window.doLogin = async function() {
+  const btn = document.getElementById('btnLogin');
+  const errEl = document.getElementById('loginError');
+  errEl.classList.remove('show');
+  if (!STATE.binaId) { errEl.textContent='Lütfen önce bir bina seçin.'; errEl.classList.add('show'); return; }
+  btn.disabled=true; btn.textContent='Giriş yapılıyor...';
+
+  try {
+    if (STATE.loginMode === 'yonetici') {
+      const email = document.getElementById('inpEmail').value.trim();
+      const pass  = document.getElementById('inpPass').value;
+      if (!email||!pass) throw new Error('E-posta ve şifre gerekli');
+      const cred = await AuthService.loginYonetici(email, pass);
+      STATE.user = cred.user;
+      STATE.role = 'yonetici';
+
+      // 2FA kontrolü
+      const settings = await SettingsCRUD.get(STATE.binaId);
+      if (settings?.guvenlik?.twofaAktif) {
+        const code = document.getElementById('inp2FA').value;
+        document.getElementById('twofaRow').style.display = 'block';
+        if (!code) { btn.disabled=false; btn.textContent='Giriş Yap'; return; }
+        // Gerçek TOTP doğrulama burada yapılır
+      }
+    } else {
+      const daireNo = document.getElementById('inpDaireNo').value.trim();
+      const pass    = document.getElementById('inpSakinPass').value;
+      if (!daireNo||!pass) throw new Error('Daire no ve şifre gerekli');
+      // Şifre hash'leme artık db.js içinde (salt ile) yapılıyor
+      const daire = await DaireCRUD.loginSakin(STATE.binaId, daireNo, pass);
+      STATE.role = 'sakin';
+      STATE.daireNoSakin = daireNo;
+      STATE.daireIdSakin = daire.id;
+      STATE.user = { displayName: daire.sakin || daireNo, email: null };
+    }
+
+    if (document.getElementById('chkRemember').checked) {
+      localStorage.setItem('bp_remember', JSON.stringify({
+        binaId: STATE.binaId, mode: STATE.loginMode, role: STATE.role,
+        daireNo: STATE.daireNoSakin||null, daireId: STATE.daireIdSakin||null
+      }));
+    }
+    enterApp();
+  } catch(e) {
+    errEl.textContent = e.message || 'Giriş başarısız';
+    errEl.classList.add('show');
+    btn.disabled=false; btn.textContent='Giriş Yap';
+  }
+};
+
+// ─── APP GİRİŞ ───────────────────────────────────────
+function enterApp() {
+  // Admin bekleme ekranını kaldır
+  const w = document.getElementById('adminWaitScreen');
+  if (w) w.remove();
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+  document.body.classList.remove('role-yonetici','role-sakin');
+  document.body.classList.add(`role-${STATE.role}`);
+
+  const name = STATE.user?.displayName || STATE.user?.email || STATE.daireNoSakin || 'Kullanıcı';
+  document.getElementById('userName').textContent = name;
+  document.getElementById('userRole').textContent = STATE.role==='yonetici' ? 'Bina Yöneticisi' : `Daire ${STATE.daireNoSakin}`;
+  document.getElementById('userAvatar').textContent = name.charAt(0).toUpperCase();
+  document.getElementById('activeBinaName').textContent = STATE.binaData?.binaAdi || STATE.binaId;
+  document.getElementById('activeBinaId').textContent = STATE.binaId;
+
+  subscribeAll();
+  showModule(STATE.role==='yonetici' ? 'dashboard' : 'sakin-aidat');
+  requestPushPermission();
+}
+
+// ─── SUBSCRİPTİON — REAL-TİME ────────────────────────
+function subscribeAll() {
+  if (STATE.unsubscribe) STATE.unsubscribe();
+  STATE.unsubscribe = subscribeBina(STATE.binaId, {
+    onSettings:    d  => { STATE.settings = d;    renderAyarlarForm(); updateDashboard(); },
+    onDaireler:    arr=> { STATE.daireler = arr;   renderDaireler(); renderAidat(); updateDashboard(); },
+    onKasa:        arr=> { STATE.kasa = arr;       renderKasa(); updateDashboard(); },
+    onKampanyalar: arr=> { STATE.kampanyalar = arr; renderKampanya(); },
+    onArizalar:    arr=> { STATE.arizalar = arr;   renderAriza(); },
+    onDuyurular:   arr=> { STATE.duyurular = arr;  renderDuyuru(); },
+    onFaturalar:   arr=> { STATE.faturalar = arr;  renderFatura(); },
+    onBakim:       arr=> { STATE.bakim = arr;      renderBakim(); },
+    onFirmalar:    arr=> { STATE.firmalar = arr;   renderFirmalar(); },
+  });
+}
+
+// ─── DASHBOARD ───────────────────────────────────────
+function updateDashboard() {
+  const kasa = STATE.kasa;
+  const gelir = kasa.filter(k=>k.tur==='gelir').reduce((s,k)=>s+parseFloat(k.tutar||0),0);
+  const gider = kasa.filter(k=>k.tur==='gider').reduce((s,k)=>s+parseFloat(k.tutar||0),0);
+  const tutar = aidatTutar();
+  const now = new Date();
+  const ayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  let borclu=0, odenen=0, toplamBorc=0;
+  STATE.daireler.forEach(d => {
+    const paid = !!(d.odemeler||{})[ayStr];
+    if (!paid) { borclu++; toplamBorc += tutar + parseFloat(d.devredenBorc||0); }
+    else odenen++;
+  });
+
+  const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  set('dsBakiye', fmtPara(gelir-gider));
+  set('dsBorcToplamı', fmtPara(toplamBorc));
+  set('dsBorcSayi', `${borclu} daire borçlu`);
+  set('dsTahsilat', fmtPara(odenen*tutar));
+  set('dsTahsilatOran', STATE.daireler.length>0 ? `%${Math.round(odenen/STATE.daireler.length*100)} tahsil` : '%0');
+  set('dsDaire', STATE.daireler.length);
+  const dolu = STATE.daireler.filter(d=>d.durum!=='bos').length;
+  set('dsDoluBos', `${dolu} dolu / ${STATE.daireler.length-dolu} boş`);
+
+  // 6 aylık mini grafik
+  const months = Array.from({length:6},(_,i)=>{
+    const d=new Date(); d.setMonth(d.getMonth()-5+i);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  });
+  const maxVal = Math.max(gelir,gider,1);
+  const chartEl = document.getElementById('dashChart');
+  if (chartEl) chartEl.innerHTML = months.map(m=>{
+    const mg = kasa.filter(k=>k.tur==='gelir'&&k.tarih?.startsWith(m)).reduce((s,k)=>s+parseFloat(k.tutar||0),0);
+    const md = kasa.filter(k=>k.tur==='gider'&&k.tarih?.startsWith(m)).reduce((s,k)=>s+parseFloat(k.tutar||0),0);
+    const lbl = MONTHS_TR[parseInt(m.split('-')[1])-1]+"'"+m.split('-')[0].slice(2);
+    return `<div class="chart-bar-item">
+      <div class="chart-bar-label">${lbl}</div>
+      <div style="flex:1">
+        <div class="chart-bar-track" style="margin-bottom:3px"><div class="chart-bar-fill" style="width:${mg/maxVal*100}%;background:var(--success)"></div></div>
+        <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${md/maxVal*100}%;background:var(--warn)"></div></div>
+      </div>
+      <div class="chart-bar-val" style="font-size:11px;color:var(--text2)">${fmtPara(mg)}<br>${fmtPara(md)}</div>
+    </div>`;
+  }).join('');
+}
+
+// ─── DAİRELER ────────────────────────────────────────
+function renderDaireler() {
+  const grid = document.getElementById('daireGrid');
+  if (!grid) return;
+  const q = (document.getElementById('daireSearch')?.value||'').toLowerCase();
+  const list = STATE.daireler.filter(d => !q || JSON.stringify(d).toLowerCase().includes(q));
+  grid.innerHTML = list.length ? list.map(d=>`
+    <div class="daire-card">
+      <div class="daire-no">${d.daireNo||'?'}</div>
+      <div class="daire-sakin">${d.sakin||'Boş'}</div>
+      <div class="daire-status">
+        <span class="badge ${d.durum==='dolu'?'badge-success':d.durum==='kiralik'?'badge-gold':'badge-muted'}">
+          ${d.durum==='dolu'?'Dolu':d.durum==='kiralik'?'Kiralık':'Boş'}
+        </span>
+      </div>
+      <div class="daire-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editDaire('${d.id}')">✏️</button>
+        <button class="btn btn-accent btn-sm" onclick="sakinSifreSifirlaYonetici('${d.id}')">🔑</button>
+        <button class="btn btn-warn btn-sm" onclick="deleteDaire('${d.id}')">🗑️</button>
+      </div>
+    </div>`).join('')
+  : '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">🏠</div><div class="empty-state-text">Daire yok</div></div>';
+}
+window.filterDaireler = () => renderDaireler();
+
+window.editDaire = function(id) {
+  const d = STATE.daireler.find(x=>x.id===id);
+  if (!d) return;
+  const modal = document.getElementById('modalDaireEkle');
+  modal.dataset.editId = id;
+  document.getElementById('daireNo').value = d.daireNo||'';
+  document.getElementById('daireKat').value = d.kat||'';
+  document.getElementById('daireSakin').value = d.sakin||'';
+  document.getElementById('daireTel').value = d.telefon||'';
+  document.getElementById('daireEmail').value = d.email||'';
+  document.getElementById('daireDurum').value = d.durum||'dolu';
+  document.getElementById('daireHatirla').checked = d.hatirlaIzni||false;
+  document.getElementById('daireAidat').value = d.aidatTutar||'';
+  document.getElementById('daireDevredenBorc').value = d.devredenBorc||'';
+  openModal('modalDaireEkle');
+};
+
+window.deleteDaire = async function(id) {
+  if (!confirm('Bu daireyi silmek istiyor musunuz?')) return;
+  try { await DaireCRUD.delete(STATE.binaId, id); toast('Daire silindi','success'); }
+  catch(e) { toast('Hata: '+e.message,'error'); }
+};
+
+window.daireKaydet = async function() {
+  const modal = document.getElementById('modalDaireEkle');
+  const editId = modal.dataset.editId;
+  const sifreRaw = document.getElementById('daireSifre').value;
+  const data = {
+    daireNo:     document.getElementById('daireNo').value.trim(),
+    kat:         parseInt(document.getElementById('daireKat').value)||null,
+    sakin:       document.getElementById('daireSakin').value.trim(),
+    telefon:     document.getElementById('daireTel').value.trim(),
+    email:       document.getElementById('daireEmail').value.trim(),
+    durum:       document.getElementById('daireDurum').value,
+    hatirlaIzni: document.getElementById('daireHatirla').checked,
+    aidatTutar:  parseFloat(document.getElementById('daireAidat').value)||null,
+    devredenBorc:parseFloat(document.getElementById('daireDevredenBorc').value)||0,
+  };
+  if (sifreRaw) data.sifreHash = await sha256(sifreRaw);
+  try {
+    if (editId) await DaireCRUD.update(STATE.binaId, editId, data);
+    else await DaireCRUD.create(STATE.binaId, data);
+    toast('Daire kaydedildi','success');
+    closeModal('modalDaireEkle');
+    delete modal.dataset.editId;
+  } catch(e) { toast('Hata: '+e.message,'error'); }
+};
+
+// ─── KASA ────────────────────────────────────────────
+function renderKasa() {
+  const arr = STATE.kasa;
+  const gelir = arr.filter(k=>k.tur==='gelir').reduce((s,k)=>s+parseFloat(k.tutar||0),0);
+  const gider = arr.filter(k=>k.tur==='gider').reduce((s,k)=>s+parseFloat(k.tutar||0),0);
+  const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  set('kasaGelir',fmtPara(gelir)); set('kasaGider',fmtPara(gider)); set('kasaBakiye',fmtPara(gelir-gider));
+  const f = STATE._kasaFilter;
+  const filtered = f ? arr.filter(k=>k.tur===f) : arr;
+  const body = document.getElementById('kasaBody');
+  if (!body) return;
+  body.innerHTML = filtered.length ? filtered.map(k=>`
+    <tr>
+      <td>${k.tarih||'—'}</td>
+      <td>${k.aciklama||'—'}</td>
+      <td><span class="badge badge-muted">${k.kategori||'—'}</span></td>
+      <td><span class="badge ${k.tur==='gelir'?'badge-success':'badge-warn'}">${k.tur==='gelir'?'Gelir':'Gider'}</span></td>
+      <td style="font-weight:700;color:${k.tur==='gelir'?'var(--success)':'var(--warn)'}">${fmtPara(k.tutar)}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="deleteKasa('${k.id}')">🗑️</button></td>
+    </tr>`).join('')
+  : '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">Kayıt yok</td></tr>';
+}
+
+window.kasaTab = function(filter, btn) {
+  document.querySelectorAll('.ledger-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  STATE._kasaFilter = filter==='tum'?null:filter;
+  renderKasa();
+};
+window.kasaEkle = async function() {
+  try {
+    await KasaCRUD.create(STATE.binaId, {
+      tur:      document.getElementById('kasaTur').value,
+      tutar:    parseFloat(document.getElementById('kasaTutar').value)||0,
+      aciklama: document.getElementById('kasaAciklama').value.trim(),
+      kategori: document.getElementById('kasaKategori').value,
+      tarih:    document.getElementById('kasaTarih').value || new Date().toISOString().split('T')[0],
+      not:      document.getElementById('kasaNot').value.trim(),
+    });
+    toast('Hareket eklendi','success');
+    closeModal('modalKasaEkle');
+  } catch(e) { toast('Hata: '+e.message,'error'); }
+};
+window.deleteKasa = async function(id) {
+  if (!confirm('Bu kaydı silmek istiyor musunuz?')) return;
+  try { await KasaCRUD.delete(STATE.binaId, id); toast('Silindi','success'); }
+  catch(e) { toast('Hata','error'); }
+};
+window.kasaExport = (type) => toast(`${type.toUpperCase()} export — jsPDF/SheetJS ile entegre edilebilir`,'info');
+
+// ─── AİDAT ───────────────────────────────────────────
+function renderAidat() {
+  const tutar = aidatTutar();
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const startYear = parseInt(STATE.settings?.aidat?.baslangicAy?.split('-')[0] || curYear-2);
+  const yearsEl = document.getElementById('aidatYears');
+  if (!yearsEl) return;
+  yearsEl.innerHTML = '';
+  for (let y=startYear; y<=curYear; y++) {
+    const btn = document.createElement('button');
+    btn.className = 'year-tab'+(y===curYear?' active':'');
+    btn.textContent = y;
+    btn.onclick = () => {
+      document.querySelectorAll('#aidatYears .year-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAidatYear(y, tutar, now);
+    };
+    yearsEl.appendChild(btn);
+  }
+  renderAidatYear(curYear, tutar, now);
+}
+
+function renderAidatYear(year, tutar, now) {
+  const head = document.getElementById('aidatHead');
+  const body = document.getElementById('aidatBody');
+  if (!head||!body) return;
+  head.innerHTML = `<tr><th>Daire</th><th>Sakin</th>${MONTHS_TR.map(m=>`<th>${m}</th>`).join('')}<th>Borç</th></tr>`;
+  body.innerHTML = STATE.daireler.map(d => {
+    const odemeler = d.odemeler||{};
+    let borc = parseFloat(d.devredenBorc||0);
+    const cells = Array.from({length:12},(_,mi)=>{
+      const mKey = `${year}-${String(mi+1).padStart(2,'0')}`;
+      const isFuture = year===now.getFullYear() && mi>now.getMonth();
+      const paid = !!odemeler[mKey];
+      if (!isFuture&&!paid) borc += tutar;
+      return `<td style="text-align:center"><span class="badge ${paid?'badge-success':isFuture?'badge-muted':'badge-warn'}" style="cursor:pointer" onclick="toggleOdeme('${d.id}','${mKey}')">${isFuture?'—':paid?'✓':'✗'}</span></td>`;
+    }).join('');
+    return `<tr><td><strong>${d.daireNo||'?'}</strong></td><td>${d.sakin||'—'}</td>${cells}
+      <td style="font-weight:700;color:${borc>0?'var(--warn)':'var(--success)'}">${fmtPara(borc)}</td></tr>`;
+  }).join('') || '<tr><td colspan="15" style="text-align:center;padding:24px;color:var(--text3)">Daire yok</td></tr>';
+}
+
+window.toggleOdeme = async function(daireId, ayStr) {
+  try {
+    const eklendi = await DaireCRUD.toggleOdeme(STATE.binaId, daireId, ayStr, aidatTutar());
+    toast(eklendi ? 'Ödeme işaretlendi ✅' : 'Ödeme kaldırıldı','success');
+  } catch(e) { toast('Hata: '+e.message,'error'); }
+};
+window.exportAidatPDF = () => toast('PDF makbuz — jsPDF entegrasyonu gerekli','info');
+window.exportAidatExcel = () => toast('Excel — SheetJS entegrasyonu gerekli','info');
+
+// ─── KAMPANYA ────────────────────────────────────────
+function renderKampanya() {
+  const container = document.getElementById('kampanyaList');
+  if (!container) return;
+  const f = STATE._kampFilter||'tum';
+  const list = STATE.kampanyalar.filter(k => f==='tum'||k.durum===f);
+  container.innerHTML = list.length ? list.map(k=>{
+    const pct = k.hedefTutar>0 ? Math.min(100,(k.toplunanTutar||0)/k.hedefTutar*100) : 0;
+    return `<div class="kampanya-card">
+      <div class="kampanya-header">
+        <div>
+          <div class="kampanya-title">${k.baslik||'Kampanya'}</div>
+          <span class="badge ${k.durum==='aktif'?'badge-success':'badge-muted'}">${k.durum}</span>
+        </div>
+        <div style="display:flex;gap:6px">
+          ${k.durum==='aktif'
+            ? `<button class="btn btn-ghost btn-sm" onclick="kampanyaDurum('${k.id}','kapali')">⏹️</button>`
+            : `<button class="btn btn-ghost btn-sm" onclick="kampanyaDurum('${k.id}','aktif')">▶️</button>
+               <button class="btn btn-ghost btn-sm" onclick="kampanyaDurum('${k.id}','arsiv')">📦</button>`}
+          <button class="btn btn-warn btn-sm" onclick="deleteKampanya('${k.id}')">🗑️</button>
+        </div>
+      </div>
+      <div class="kampanya-desc">${k.aciklama||''}</div>
+      <div class="kampanya-progress"><div class="kampanya-bar" style="width:${pct}%"></div></div>
+      <div class="kampanya-stats">
+        <span>🎯 ${fmtPara(k.hedefTutar||0)}</span>
+        <span>✅ ${fmtPara(k.toplunanTutar||0)}</span>
+        <span>%${Math.round(pct)}</span>
+      </div>
+    </div>`;
+  }).join('')
+  : '<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">Kampanya yok</div></div>';
+}
+window.filterKampanya = (f) => { STATE._kampFilter=f; renderKampanya(); };
+window.kampanyaDurum = async (id, durum) => {
+  await KampanyaCRUD.setDurum(STATE.binaId, id, durum);
+  toast('Güncellendi','success');
+};
+window.deleteKampanya = async (id) => {
+  if (!confirm('Silinsin mi?')) return;
+  await KampanyaCRUD.delete(STATE.binaId, id);
+  toast('Silindi','success');
+};
+window.kampanyaEkle = async function() {
+  await KampanyaCRUD.create(STATE.binaId, {
+    baslik:     document.getElementById('kampBaslik').value.trim(),
+    aciklama:   document.getElementById('kampAciklama').value.trim(),
+    hedefTutar: parseFloat(document.getElementById('kampHedef').value)||0,
+    bitisTarihi:document.getElementById('kampBitis').value,
+    durum: 'aktif',
+  });
+  toast('Kampanya eklendi','success');
+  closeModal('modalKampanyaEkle');
+};
+
+// ─── ARIZA ───────────────────────────────────────────
+function renderAriza() {
+  const container = document.getElementById('arizaList');
+  if (!container) return;
+  const f = STATE._arizaFilter||'tum';
+  const list = STATE.arizalar.filter(a => f==='tum'||a.durum===f);
+  const bekliyor = STATE.arizalar.filter(a=>a.durum==='bekliyor').length;
+  const badge = document.getElementById('badgeAriza');
+  if (badge) { badge.style.display = bekliyor>0?'':'none'; badge.textContent = bekliyor; }
+
+  const ikonlar = { bekliyor:'⏳', devam:'🔧', tamamlandi:'✅' };
+  container.innerHTML = list.length ? list.map(a=>`
+    <div class="ariza-item ariza-${a.durum||'bekliyor'}">
+      <div class="ariza-icon">${ikonlar[a.durum]||'⏳'}</div>
+      <div class="ariza-info">
+        <div class="ariza-title">${a.baslik||'Arıza'}</div>
+        <div class="ariza-meta">Daire ${a.daireNo||'?'} · ${a.aciklama?.slice(0,60)||''}</div>
+      </div>
+      <div class="ariza-actions">
+        ${a.durum!=='tamamlandi'?`<button class="btn btn-success btn-sm" onclick="arizaDurum('${a.id}','tamamlandi')">✅</button>`:''}
+        ${a.durum==='bekliyor'?`<button class="btn btn-ghost btn-sm" onclick="arizaDurum('${a.id}','devam')">🔧</button>`:''}
+        <button class="btn btn-warn btn-sm" onclick="deleteAriza('${a.id}')">🗑️</button>
+      </div>
+    </div>`).join('')
+  : '<div class="empty-state"><div class="empty-state-icon">🔨</div><div class="empty-state-text">Arıza yok</div></div>';
+}
+window.filterAriza = (f) => { STATE._arizaFilter=f; renderAriza(); };
+window.arizaDurum = async (id, durum) => {
+  await ArizaCRUD.setDurum(STATE.binaId, id, durum);
+  toast('Durum güncellendi','success');
+};
+window.deleteAriza = async (id) => {
+  if (!confirm('Silinsin mi?')) return;
+  await ArizaCRUD.delete(STATE.binaId, id);
+  toast('Silindi','success');
+};
+
+// ─── DUYURU ──────────────────────────────────────────
+function renderDuyuru() {
+  const el = document.getElementById('duyuruList');
+  if (!el) return;
+  el.innerHTML = STATE.duyurular.length ? STATE.duyurular.map(d=>`
+    <div class="duyuru-item">
+      <div class="duyuru-header">
+        <div class="duyuru-title">${d.baslik||'Duyuru'}</div>
+        <span class="duyuru-date">${d.tarih||'—'}</span>
+        <button class="btn btn-warn btn-sm" onclick="deleteDuyuru('${d.id}')">🗑️</button>
+      </div>
+      <div class="duyuru-body">${d.icerik||''}</div>
+    </div>`).join('')
+  : '<div class="empty-state"><div class="empty-state-icon">📢</div><div class="empty-state-text">Duyuru yok</div></div>';
+  const sakinEl = document.getElementById('sakinDuyuruList');
+  if (sakinEl) sakinEl.innerHTML = el.innerHTML;
+}
+window.deleteDuyuru = async (id) => {
+  if (!confirm('Silinsin mi?')) return;
+  await DuyuruCRUD.delete(STATE.binaId, id);
+  toast('Silindi','success');
+};
+window.duyuruEkle = async function() {
+  await DuyuruCRUD.create(STATE.binaId, {
+    baslik:   document.getElementById('duyuruBaslik').value.trim(),
+    icerik:   document.getElementById('duyuruIcerik').value.trim(),
+    kanallar: {
+      push:      document.getElementById('kanalPush').checked,
+      email:     document.getElementById('kanalEmail').checked,
+      sms:       document.getElementById('kanalSMS').checked,
+      whatsapp:  document.getElementById('kanalWA').checked,
+    }
+  });
+  toast('Duyuru eklendi','success');
+  closeModal('modalDuyuruEkle');
+};
+
+// ─── FATURA ──────────────────────────────────────────
+function renderFatura() {
+  const body = document.getElementById('faturaBody');
+  if (!body) return;
+  body.innerHTML = STATE.faturalar.length ? STATE.faturalar.map(f=>`
+    <tr>
+      <td>${f.tur||'—'}</td><td>${f.donem||'—'}</td>
+      <td style="font-weight:700">${fmtPara(f.tutar)}</td>
+      <td>${f.vadeTarihi||'—'}</td>
+      <td><span class="badge ${f.odendi?'badge-success':'badge-warn'}">${f.odendi?'Ödendi':'Bekliyor'}</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-success btn-sm" onclick="faturaOdendi('${f.id}')">✅</button>
+        <button class="btn btn-warn btn-sm" onclick="deleteFatura('${f.id}')">🗑️</button>
+      </td>
+    </tr>`).join('')
+  : '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">Fatura yok</td></tr>';
+  // Sakin giderler
+  const sakinBody = document.getElementById('sakinGiderBody');
+  if (sakinBody) {
+    const giderler = STATE.kasa.filter(k=>k.tur==='gider');
+    sakinBody.innerHTML = giderler.length ? giderler.map(k=>`
+      <tr><td>${k.tarih||'—'}</td><td>${k.aciklama||'—'}</td><td>${fmtPara(k.tutar)}</td><td>${k.kategori||'—'}</td></tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text3)">Gider yok</td></tr>';
+  }
+}
+window.faturaEkle = async function() {
+  const tutar = parseFloat(document.getElementById('faturaTutar').value)||0;
+  const tur = document.getElementById('faturaTur').value;
+  await FaturaCRUD.create(STATE.binaId, {
+    tur, donem: document.getElementById('faturaDot').value,
+    tutar, vadeTarihi: document.getElementById('faturaVade').value,
+  });
+  if (document.getElementById('faturaKasaDus').checked) {
+    await KasaCRUD.create(STATE.binaId, {
+      tur:'gider', tutar, aciklama:`${tur} faturası`,
+      kategori: tur, tarih: new Date().toISOString().split('T')[0],
+    });
+  }
+  toast('Fatura eklendi','success');
+  closeModal('modalFaturaEkle');
+};
+window.faturaOdendi = async (id) => {
+  const odendi = await FaturaCRUD.toggleOdendi(STATE.binaId, id);
+  toast(odendi?'Ödendi işaretlendi':'Ödenmedi olarak güncellendi','success');
+};
+window.deleteFatura = async (id) => {
+  if (!confirm('Silinsin mi?')) return;
+  await FaturaCRUD.delete(STATE.binaId, id);
+  toast('Silindi','success');
+};
+
+// ─── BAKIM ───────────────────────────────────────────
+function renderBakim() {
+  const body = document.getElementById('bakimBody');
+  if (!body) return;
+  const now = new Date();
+  let alertCount = 0;
+  body.innerHTML = STATE.bakim.length ? STATE.bakim.map(b=>{
+    const last = new Date(b.sonBakimTarihi||'2000-01-01');
+    const next = new Date(last); next.setMonth(next.getMonth()+parseInt(b.periodAy||12));
+    const daysLeft = Math.ceil((next-now)/(1000*60*60*24));
+    if (daysLeft<=30) alertCount++;
+    const cls = daysLeft<=0?'badge-warn':daysLeft<=30?'badge-gold':'badge-success';
+    const txt = daysLeft<=0?'Gecikti':daysLeft<=30?`${daysLeft} gün`:'Normal';
+    return `<tr>
+      <td><strong>${b.ad||'—'}</strong></td>
+      <td>${b.periodAy} ay</td>
+      <td>${b.sonBakimTarihi||'—'}</td>
+      <td style="color:${daysLeft<=0?'var(--warn)':daysLeft<=30?'var(--gold)':'var(--text)'}">${next.toLocaleDateString('tr-TR')}</td>
+      <td><span class="badge ${cls}">${txt}</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-success btn-sm" onclick="bakimTamamlandi('${b.id}')">✅ Yapıldı</button>
+        <button class="btn btn-warn btn-sm" onclick="deleteBakim('${b.id}')">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('')
+  : '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">Bakım kaydı yok</td></tr>';
+  const badge = document.getElementById('badgeBakim');
+  if (badge) badge.style.display = alertCount>0?'':'none';
+}
+window.bakimEkle = async function() {
+  await BakimCRUD.create(STATE.binaId, {
+    ad:            document.getElementById('bakimAd').value.trim(),
+    periodAy:      parseInt(document.getElementById('bakimPeriod').value)||12,
+    sonBakimTarihi:document.getElementById('bakimSon').value,
+    sorumluFirma:  document.getElementById('bakimFirma').value.trim(),
+    tahminiMaliyet:parseFloat(document.getElementById('bakimMaliyet').value)||0,
+    pushUyari:     document.getElementById('bakimPush').checked,
+  });
+  toast('Bakım eklendi','success');
+  closeModal('modalBakimEkle');
+};
+window.bakimTamamlandi = async (id) => {
+  await BakimCRUD.tamamlandi(STATE.binaId, id);
+  toast('Bakım tamamlandı ✅','success');
+};
+window.deleteBakim = async (id) => {
+  if (!confirm('Silinsin mi?')) return;
+  await BakimCRUD.delete(STATE.binaId, id);
+  toast('Silindi','success');
+};
+
+// ─── FİRMALAR ────────────────────────────────────────
+function renderFirmalar() {
+  const body = document.getElementById('firmaBody');
+  if (!body) return;
+  const q = (document.getElementById('firmaSearch')?.value||'').toLowerCase();
+  const kat = document.getElementById('firmaKatFilter')?.value||'';
+  const list = STATE.firmalar.filter(f=>
+    (!q||(f.ad||'').toLowerCase().includes(q))&&(!kat||f.kategori===kat)
+  );
+  const kats = [...new Set(STATE.firmalar.map(f=>f.kategori).filter(Boolean))];
+  const sel = document.getElementById('firmaKatFilter');
+  if (sel) {
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Tüm Kategoriler</option>'+kats.map(k=>`<option${k===cur?' selected':''}>${k}</option>`).join('');
+  }
+  body.innerHTML = list.length ? list.map(f=>`
+    <tr>
+      <td><strong>${f.ad||'—'}</strong></td>
+      <td><span class="badge badge-muted">${f.kategori||'—'}</span></td>
+      <td><a href="tel:${f.telefon}" style="color:var(--accent-l)">${f.telefon||'—'}</a></td>
+      <td>${f.whatsapp?`<a href="https://wa.me/${f.whatsapp.replace(/\D/g,'')}" target="_blank" class="btn btn-success btn-sm">💬 WA</a>`:'—'}</td>
+      <td style="color:var(--text2);font-size:12px">${f.not||'—'}</td>
+      <td><button class="btn btn-warn btn-sm" onclick="deleteFirma('${f.id}')">🗑️</button></td>
+    </tr>`).join('')
+  : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Firma yok</td></tr>';
+}
+window.filterFirmalar = () => renderFirmalar();
+window.firmaEkle = async function() {
+  await FirmaCRUD.create(STATE.binaId, {
+    ad:       document.getElementById('firmaAd').value.trim(),
+    kategori: document.getElementById('firmaKat').value,
+    telefon:  document.getElementById('firmaTel').value.trim(),
+    whatsapp: document.getElementById('firmaWA').value.trim(),
+    not:      document.getElementById('firmaNot').value.trim(),
+  });
+  toast('Firma eklendi','success');
+  closeModal('modalFirmaEkle');
+};
+window.deleteFirma = async (id) => {
+  if (!confirm('Silinsin mi?')) return;
+  await FirmaCRUD.delete(STATE.binaId, id);
+  toast('Silindi','success');
+};
+
+// ─── AYARLAR ─────────────────────────────────────────
+function renderAyarlarForm() {
+  const s = STATE.settings;
+  const set = (id, v) => { const e=document.getElementById(id); if(e&&v!==undefined) e.value=v; };
+  set('inpAidatTutar', s?.aidat?.tutar||s?.aidatTutar||500);
+  set('inpBaslangic', s?.aidat?.baslangicAy||'');
+  set('inpFaiz', s?.finansal?.gecikmeFaizOrani||1.5);
+  set('inpButce', s?.finansal?.yillikButce||0);
+  set('inpBildirimGun', s?.bildirim?.aylikHatirlatmaGunu||5);
+  set('inpVapid', s?.bildirim?.vapidAnahtar||'');
+  const toggles = [
+    ['togglePush', s?.bildirim?.pushAktif],
+    ['toggleEmail', s?.bildirim?.emailAktif],
+    ['toggleSMS', s?.bildirim?.smsAktif],
+    ['toggle2FA', s?.guvenlik?.twofaAktif],
+  ];
+  toggles.forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('on', !!val);
+  });
+}
+
+window.saveSettings = async function() {
+  await SettingsCRUD.set(STATE.binaId, {
+    aidat: {
+      tutar:        parseFloat(document.getElementById('inpAidatTutar').value)||500,
+      baslangicAy:  document.getElementById('inpBaslangic').value,
+    },
+    finansal: {
+      gecikmeFaizOrani: parseFloat(document.getElementById('inpFaiz').value)||1.5,
+      yillikButce:      parseFloat(document.getElementById('inpButce').value)||0,
+      paraBirimi: 'TRY',
+    },
+    bildirim: {
+      aylikHatirlatmaGunu: parseInt(document.getElementById('inpBildirimGun').value)||5,
+      pushAktif:   document.getElementById('togglePush')?.classList.contains('on')||false,
+      emailAktif:  document.getElementById('toggleEmail')?.classList.contains('on')||false,
+      smsAktif:    document.getElementById('toggleSMS')?.classList.contains('on')||false,
+      vapidAnahtar:document.getElementById('inpVapid')?.value.trim()||'',
+    },
+    guvenlik: {
+      twofaAktif: document.getElementById('toggle2FA')?.classList.contains('on')||false,
+    },
+    gorunum: {
+      karanlikMod: document.documentElement.getAttribute('data-theme')==='dark',
+    }
+  });
+  toast('Ayarlar kaydedildi ✅','success');
+};
+window.toggleSetting = (k, btn) => btn.classList.toggle('on');
+window.toggle2FA = (btn) => {
+  btn.classList.toggle('on');
+  toast(btn.classList.contains('on')? '2FA etkinleştirildi':'2FA devre dışı','info');
+};
+window.sifreGuncelle = async function() {
+  const y1 = document.getElementById('yeniSifre1').value;
+  const y2 = document.getElementById('yeniSifre2').value;
+  if (y1!==y2) { toast('Şifreler eşleşmiyor','error'); return; }
+  if (y1.length<6) { toast('En az 6 karakter','error'); return; }
+  try {
+    await AuthService.updatePassword(y1);
+    toast('Şifre güncellendi ✅','success');
+    closeModal('modalSifreGuncelle');
+  } catch(e) { toast('Hata: '+e.message,'error'); }
+};
+
+// ─── SAKİN PANELİ ────────────────────────────────────
+window.sakinArizaBildir = async function() {
+  const baslik = document.getElementById('sakinArizaBaslik').value.trim();
+  if (!baslik) { toast('Başlık gerekli','error'); return; }
+  await ArizaCRUD.create(STATE.binaId, {
+    baslik,
+    aciklama: document.getElementById('sakinArizaAciklama').value.trim(),
+    daireNo:  STATE.daireNoSakin,
+  });
+  toast('Arıza bildirildi ✅','success');
+  document.getElementById('sakinArizaBaslik').value='';
+  document.getElementById('sakinArizaAciklama').value='';
+  renderSakinAriza();
+};
+
+function renderSakinAriza() {
+  const el = document.getElementById('sakinArizaList');
+  if (!el) return;
+  const list = STATE.arizalar.filter(a=>a.daireNo===STATE.daireNoSakin);
+  const ikonlar = { bekliyor:'⏳', devam:'🔧', tamamlandi:'✅' };
+  el.innerHTML = list.map(a=>`
+    <div class="ariza-item ariza-${a.durum||'bekliyor'}">
+      <div class="ariza-icon">${ikonlar[a.durum]||'⏳'}</div>
+      <div class="ariza-info"><div class="ariza-title">${a.baslik}</div></div>
+      <span class="badge ${a.durum==='tamamlandi'?'badge-success':a.durum==='devam'?'badge-gold':'badge-warn'}">${a.durum}</span>
+    </div>`).join('');
+}
+
+window.sakinSifreGuncelle = async function() {
+  const eski = document.getElementById('sakinEskiSifre').value;
+  const yeni = document.getElementById('sakinYeniSifre').value;
+  const yeni2 = document.getElementById('sakinYeniSifre2').value;
+  if (yeni!==yeni2) { toast('Şifreler eşleşmiyor','error'); return; }
+  if (yeni.length<6) { toast('En az 6 karakter','error'); return; }
+  const eskiHash = await sha256(eski);
+  const daire = STATE.daireler.find(d=>d.id===STATE.daireIdSakin);
+  if (!daire||daire.sifreHash!==eskiHash) { toast('Mevcut şifre yanlış','error'); return; }
+  await DaireCRUD.update(STATE.binaId, STATE.daireIdSakin, { sifreHash: await sha256(yeni) });
+  toast('Şifre güncellendi ✅','success');
+};
+
+// Sakin aidat görünümü (snapshot'lardan otomatik güncellenir)
+function renderSakinAidat() {
+  const daire = STATE.daireler.find(d=>d.id===STATE.daireIdSakin);
+  if (!daire) return;
+  const tutar = aidatTutar();
+  const now = new Date();
+  const curYear = now.getFullYear();
+  const tabs = document.getElementById('sakinYearTabs');
+  if (!tabs) return;
+  tabs.innerHTML = '';
+  for (let y=curYear-2; y<=curYear; y++) {
+    const btn=document.createElement('button');
+    btn.className='year-tab'+(y===curYear?' active':'');
+    btn.textContent=y;
+    btn.onclick=()=>{
+      document.querySelectorAll('#sakinYearTabs .year-tab').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderSakinAidatYear(daire,y,tutar,now);
+    };
+    tabs.appendChild(btn);
+  }
+  renderSakinAidatYear(daire,curYear,tutar,now);
+}
+
+function renderSakinAidatYear(daire,year,tutar,now) {
+  const odemeler = daire.odemeler||{};
+  let borc = parseFloat(daire.devredenBorc||0);
+  const grid = document.getElementById('sakinAidatGrid');
+  if (!grid) return;
+  grid.innerHTML = MONTHS_TR.map((m,i)=>{
+    const mKey=`${year}-${String(i+1).padStart(2,'0')}`;
+    const isFuture = year===now.getFullYear()&&i>now.getMonth();
+    const paid = !!odemeler[mKey];
+    if (!isFuture&&!paid) borc+=tutar;
+    return `<div class="month-cell ${isFuture?'future':paid?'paid':'unpaid'}"><span>${m}</span><span>${isFuture?'—':paid?'✓':'✗'}</span></div>`;
+  }).join('');
+  const info = document.getElementById('sakinBorcBilgi');
+  if (info) info.innerHTML = `<div style="display:flex;gap:16px;flex-wrap:wrap">
+    <span>📅 Yıl: <strong>${year}</strong></span>
+    <span style="color:${borc>0?'var(--warn)':'var(--success)'}">💳 Borç: <strong>${fmtPara(borc)}</strong></span>
+    <span>💰 Aidat: <strong>${fmtPara(tutar)}/ay</strong></span>
+  </div>`;
+}
+
+// Arizalar snapshot'ta güncellenir, sakin ariza listesini de güncelle
+const _origArizaSnap = subscribeBina;
+// Sakin modül render'ları subscription'da tetiklenir
+STATE._sakinRenders = () => {
+  if (STATE.role==='sakin') {
+    renderSakinAidat();
+    renderSakinAriza();
+    // Sakin kampanya
+    const el = document.getElementById('sakinKampanyaList');
+    if (el) {
+      const aktif = STATE.kampanyalar.filter(k=>k.durum==='aktif');
+      el.innerHTML = aktif.length ? aktif.map(k=>`
+        <div class="kampanya-card">
+          <div class="kampanya-title">${k.baslik}</div>
+          <div class="kampanya-desc">${k.aciklama||''}</div>
+          <div class="kampanya-progress"><div class="kampanya-bar" style="width:${k.hedefTutar>0?Math.min(100,(k.toplunanTutar||0)/k.hedefTutar*100):0}%"></div></div>
+        </div>`).join('')
+      : '<div class="empty-state"><div class="empty-state-icon">🎯</div><div class="empty-state-text">Aktif kampanya yok</div></div>';
+    }
+  }
+};
+
+// ─── ŞİFRE SIFIRLAMA ─────────────────────────────────
+// Geçici kod store'u (sadece oturum boyunca hafızada)
+const _resetStore = {
+  mode: null,        // 'yonetici' | 'sakin'
+  email: null,
+  daireId: null,
+  kod: null,
+  kodZamani: null,
+};
+
+// EmailJS ile doğrulama kodu gönder
+async function sendResetKod(email, kod) {
+  // EmailJS public key ve service/template ayarlardan okunur
+  const settings = STATE.settings?.bildirim || {};
+  const serviceId  = settings.emailjsServiceId  || 'YOUR_SERVICE_ID';
+  const templateId = settings.emailjsTemplateId || 'YOUR_TEMPLATE_ID';
+  const publicKey  = settings.emailjsPublicKey  || 'YOUR_PUBLIC_KEY';
+
+  // EmailJS CDN yüklü değilse dinamik yükle
+  if (!window.emailjs) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+    window.emailjs.init(publicKey);
+  }
+
+  await window.emailjs.send(serviceId, templateId, {
+    to_email: email,
+    reset_kod: kod,
+    bina_adi: STATE.binaData?.binaAdi || 'BinaPlus',
+    gecerlilik: '10 dakika',
+  });
+}
+
+window.showResetPanel = function(mode) {
+  _resetStore.mode = mode;
+  _resetStore.kod  = null;
+
+  // Panel görünümünü moda göre ayarla
+  const daireGroup = document.getElementById('resetDaireNoGroup');
+  const emailLabel = document.getElementById('resetEmailLabel');
+  const title      = document.getElementById('resetPanelTitle');
+
+  if (mode === 'sakin') {
+    title.textContent = '🏠 Sakin Şifre Sıfırlama';
+    daireGroup.style.display = 'block';
+    emailLabel.textContent   = 'Kayıtlı E-posta';
+  } else {
+    title.textContent = '🔑 Yönetici Şifre Sıfırlama';
+    daireGroup.style.display = 'none';
+    emailLabel.textContent   = 'Giriş E-postanız';
+  }
+
+  // Adım 1'e sıfırla
+  ['resetStep1','resetStep2','resetStep3','resetStep4'].forEach((id, i) => {
+    document.getElementById(id).style.display = i === 0 ? 'block' : 'none';
+  });
+  document.getElementById('resetError').classList.remove('show');
+  document.getElementById('resetPanel').style.display = 'flex';
+};
+
+window.hideResetPanel = function() {
+  document.getElementById('resetPanel').style.display = 'none';
+  _resetStore.mode = null;
+  _resetStore.kod  = null;
+};
+
+// ADIM 1: E-posta doğrula ve kod gönder
+window.resetStep1 = async function() {
+  const errEl = document.getElementById('resetError');
+  errEl.classList.remove('show');
+
+  const email    = document.getElementById('resetEmail').value.trim();
+  const daireNo  = document.getElementById('resetDaireNo')?.value.trim();
+
+  if (!email) { errEl.textContent = 'E-posta adresi gerekli'; errEl.classList.add('show'); return; }
+  if (!STATE.binaId) { errEl.textContent = 'Lütfen önce bina seçin'; errEl.classList.add('show'); return; }
+
+  try {
+    if (_resetStore.mode === 'sakin') {
+      // Daire no + e-posta eşleşiyor mu kontrol et
+      if (!daireNo) throw new Error('Daire numarası gerekli');
+      await waitFirebase();
+      const { query: q, where: w, getDocs: gd, collection: col } =
+        await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
+      // DaireCRUD üzerinden ara
+      const daireler = await DaireCRUD.getAll(STATE.binaId);
+      const daire = daireler.find(d =>
+        d.daireNo === daireNo &&
+        (d.email || '').toLowerCase() === email.toLowerCase()
+      );
+      if (!daire) throw new Error('Bu daire no ve e-posta eşleşmiyor');
+      _resetStore.daireId = daire.id;
+      _resetStore.email   = email;
+
+      // 6 haneli rastgele kod üret
+      const kod = String(Math.floor(100000 + Math.random() * 900000));
+      _resetStore.kod      = kod;
+      _resetStore.kodZamani = Date.now();
+
+      await sendResetKod(email, kod);
+      document.getElementById('resetStep1').style.display = 'none';
+      document.getElementById('resetStep2').style.display = 'block';
+      toast('Doğrulama kodu gönderildi 📧','success');
+
+    } else {
+      // Yönetici: Firebase sendPasswordResetEmail
+      const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+      await sendPasswordResetEmail(auth, email);
+      document.getElementById('resetStep1').style.display = 'none';
+      document.getElementById('resetStep4').style.display = 'block';
+      document.querySelector('#resetStep4 div:nth-child(2)').textContent = 'Şifre sıfırlama linki e-postanıza gönderildi!';
+      document.querySelector('#resetStep4 div:nth-child(3)').textContent = 'E-postanızı kontrol edin ve linke tıklayın.';
+      toast('Sıfırlama e-postası gönderildi 📧','success');
+    }
+  } catch(e) {
+    errEl.textContent = e.message || 'Bir hata oluştu';
+    errEl.classList.add('show');
+  }
+};
+
+// ADIM 2: Kodu doğrula (sadece sakin)
+window.resetStep2 = function() {
+  const errEl = document.getElementById('resetError');
+  errEl.classList.remove('show');
+  const girilen = document.getElementById('resetKod').value.trim();
+
+  // 10 dakika geçerlilik
+  if (Date.now() - (_resetStore.kodZamani || 0) > 10 * 60 * 1000) {
+    errEl.textContent = 'Kodun süresi doldu. Lütfen tekrar gönderin.';
+    errEl.classList.add('show');
+    return;
+  }
+  if (girilen !== _resetStore.kod) {
+    errEl.textContent = 'Kod yanlış. Tekrar deneyin.';
+    errEl.classList.add('show');
+    return;
+  }
+  document.getElementById('resetStep2').style.display = 'none';
+  document.getElementById('resetStep3').style.display = 'block';
+};
+
+// ADIM 3: Yeni şifreyi kaydet (sadece sakin)
+window.resetStep3 = async function() {
+  const errEl = document.getElementById('resetError');
+  errEl.classList.remove('show');
+  const sifre1 = document.getElementById('resetYeniSifre').value;
+  const sifre2 = document.getElementById('resetYeniSifre2').value;
+
+  if (sifre1.length < 6) { errEl.textContent = 'Şifre en az 6 karakter olmalı'; errEl.classList.add('show'); return; }
+  if (sifre1 !== sifre2) { errEl.textContent = 'Şifreler eşleşmiyor'; errEl.classList.add('show'); return; }
+
+  try {
+    const hash = await sha256(sifre1);
+    await DaireCRUD.update(STATE.binaId, _resetStore.daireId, { sifreHash: hash });
+    _resetStore.kod = null; // Kodu geçersiz kıl
+
+    document.getElementById('resetStep3').style.display = 'none';
+    document.getElementById('resetStep4').style.display = 'block';
+    toast('Şifre güncellendi ✅','success');
+  } catch(e) {
+    errEl.textContent = 'Şifre kaydedilemedi: ' + e.message;
+    errEl.classList.add('show');
+  }
+};
+
+// ─── YÖNETİCİ PANELİNDEN SAKİN ŞİFRE SIFIRLAMA ─────
+// Daire düzenleme modalında "Şifre Sıfırla" butonu çağırır
+window.sakinSifreSifirlaYonetici = async function(daireId) {
+  const yeni = prompt('Sakin için yeni şifre girin (en az 6 karakter):');
+  if (!yeni) return;
+  if (yeni.length < 6) { toast('Şifre en az 6 karakter olmalı','error'); return; }
+  const hash = await sha256(yeni);
+  try {
+    await DaireCRUD.update(STATE.binaId, daireId, { sifreHash: hash });
+    toast('Sakin şifresi güncellendi ✅','success');
+  } catch(e) {
+    toast('Hata: ' + e.message,'error');
+  }
+};
+
+// ─── LOGOUT ──────────────────────────────────────────
+window.doLogout = async function() {
+  if (STATE.unsubscribe) STATE.unsubscribe();
+  if (auth.currentUser) await AuthService.logout();
+  localStorage.removeItem('bp_remember');
+  Object.assign(STATE, {role:null,user:null,binaId:null,daireler:[],kasa:[],
+    kampanyalar:[],arizalar:[],duyurular:[],faturalar:[],bakim:[],firmalar:[]});
+  document.getElementById('appScreen').classList.remove('active');
+  document.getElementById('loginScreen').classList.add('active');
+  document.body.classList.remove('role-yonetici','role-sakin');
+  toast('Çıkış yapıldı','info');
+};
+
+// ─── BINA DEĞİŞTİR ───────────────────────────────────
+window.showBinaSwitch = async function() {
+  // Tek bina modunda bina değiştirme devre dışı
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('bina') || params.get('binaId')) {
+    toast('Bu bina için sabit URL kullanıyorsunuz — bina değiştirilemez','info');
+    return;
+  }
+  const grid = document.getElementById('modalBinaGrid');
+  grid.innerHTML = '<div style="text-align:center;padding:20px"><span class="loading-spin"></span></div>';
+  openModal('modalBinaSec');
+  const binalar = await BinaCRUD.getAll();
+  grid.innerHTML = '';
+  binalar.forEach(b=>{
+    const card=document.createElement('div');
+    card.className='bina-card'+(b.id===STATE.binaId?' selected':'');
+    card.innerHTML=`<div class="bina-card-icon">🏢</div><div class="bina-card-name">${b.binaAdi||b.id}</div>`;
+    card.onclick=()=>{
+      STATE.binaId=b.id; STATE.binaData=b;
+      document.getElementById('activeBinaName').textContent=b.binaAdi||b.id;
+      document.getElementById('activeBinaId').textContent=b.id;
+      subscribeAll();
+      closeModal('modalBinaSec');
+      toast('Bina değiştirildi: '+(b.binaAdi||b.id),'success');
+    };
+    grid.appendChild(card);
+  });
+};
+
+// ─── RAPOR ───────────────────────────────────────────
+window.exportRapor = (type) => toast(`${type.toUpperCase()} raporu — jsPDF/SheetJS entegrasyonu gerekli`,'info');
+
+// ─── THEME ───────────────────────────────────────────
+window.toggleTheme = function() {
+  const html = document.documentElement;
+  const isDark = html.getAttribute('data-theme')==='dark';
+  html.setAttribute('data-theme', isDark?'light':'dark');
+  document.getElementById('themeBtn').textContent = isDark?'☀️':'🌙';
+  localStorage.setItem('bp_theme', isDark?'light':'dark');
+};
+
+// ─── MODULE ROUTING ───────────────────────────────────
+const PAGE_TITLES = {
+  dashboard:'📊 Panel', kasa:'💰 Kasa', daireler:'🏠 Daireler', aidat:'📅 Aidat',
+  kampanya:'🎯 Kampanya', ariza:'🔨 Arıza', duyuru:'📢 Duyurular',
+  faturalar:'🧾 Faturalar', bakim:'🔧 Bakım Takvimi', firmalar:'🏪 Firma Rehberi',
+  raporlar:'📊 Raporlar', ayarlar:'⚙️ Ayarlar',
+  'sakin-aidat':'📅 Aidat Durumum', 'sakin-kampanya':'🎯 Kampanyalar',
+  'sakin-duyuru':'📢 Duyurular', 'sakin-ariza':'🔨 Arıza Bildir',
+  'sakin-giderler':'🧾 Giderler', 'sakin-ayarlar':'⚙️ Ayarlar',
+};
+window.showModule = function(name) {
+  document.querySelectorAll('.module').forEach(m=>m.classList.remove('active'));
+  document.getElementById('mod-'+name)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.toggle('active',i.dataset.module===name));
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[name]||name;
+  if (window.innerWidth<=900) toggleSidebar(false);
+};
+
+// ─── SIDEBAR ─────────────────────────────────────────
+let _sbOpen=false;
+window.toggleSidebar=function(f){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sidebarOverlay');
+  _sbOpen=typeof f==='boolean'?f:!_sbOpen;
+  sb.classList.toggle('open',_sbOpen);
+  ov?.classList.toggle('show',_sbOpen);
+};
+
+// ─── MODAL ───────────────────────────────────────────
+window.openModal=(id)=>document.getElementById(id)?.classList.add('open');
+window.closeModal=(id)=>document.getElementById(id)?.classList.remove('open');
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+// ─── PUSH ────────────────────────────────────────────
+async function requestPushPermission() {
+  if (!('Notification' in window)||Notification.permission==='granted') return;
+  const p = await Notification.requestPermission();
+  if (p==='granted') toast('Bildirimler etkinleştirildi 🔔','success');
+}
+
+// ─── INIT ────────────────────────────────────────────
+(async function init() {
+  // Tema
+  const t = localStorage.getItem('bp_theme');
+  if (t) {
+    document.documentElement.setAttribute('data-theme', t);
+    document.getElementById('themeBtn').textContent = t==='dark'?'🌙':'☀️';
+  }
+  // Varsayılan tarih alanları
+  document.getElementById('kasaTarih').value = new Date().toISOString().split('T')[0];
+  document.getElementById('raporBaslangic').value = new Date(new Date().getFullYear(),0,1).toISOString().split('T')[0];
+  document.getElementById('raporBitis').value = new Date().toISOString().split('T')[0];
+
+  // ── 1. SÜPER ADMİN TOKEN KONTROLÜ (en önce) ──────
+  await waitFirebase();
+
+  // postMessage alıcısını kur (adminOpen=1 varsa)
+  setupAdminTokenReceiver();
+
+  // adminOpen modunda login ekranını göster ama bina seçimini gizle
+  const tokenHandled = await checkAdminToken();
+  if (tokenHandled) {
+    // adminOpen modunda — postMessage bekleniyor
+    // Login ekranını gizle, bekle mesajı göster
+    document.getElementById('loginScreen').style.display = 'none';
+    const wait = document.createElement('div');
+    wait.id = 'adminWaitScreen';
+    wait.style.cssText = 'position:fixed;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--bg);z-index:999';
+    wait.innerHTML = `
+      <div style="font-size:48px">🔐</div>
+      <div style="font-size:16px;font-weight:800;color:var(--text)">Admin bağlantısı bekleniyor...</div>
+      <div style="font-size:13px;color:var(--text2)">Admin paneli token gönderiyor</div>
+      <span class="loading-spin" style="width:32px;height:32px;border-width:3px"></span>`;
+    document.body.appendChild(wait);
+
+    // enterApp çağrıldığında bekleme ekranını kaldır
+    const origEnter = window.enterApp;
+    // enterApp setupAdminTokenReceiver içinde çağrılır — wait screen'i kaldır
+    const removeWait = () => {
+      const w = document.getElementById('adminWaitScreen');
+      if (w) w.remove();
+    };
+    // postMessage handler içinde enterApp çağrılıyor, orası kendisi handle eder
+    // 30 saniye sonra timeout
+    setTimeout(() => {
+      if (document.getElementById('adminWaitScreen')) {
+        removeWait();
+        document.getElementById('loginScreen').style.display = '';
+        toast('Admin bağlantısı zaman aşımına uğradı. Normal giriş yapın.', 'error');
+      }
+    }, 30000);
+    return;
+  }
+
+  // ── 2. URL PARAMETRESİ & BİNA YÜKLEME ───────────
+  const params    = new URLSearchParams(window.location.search);
+  const binaParam = params.get('bina') || params.get('binaId');
+
+  // Bina değiştir butonunu tek bina modunda gizle
+  const binaSwBtn = document.getElementById('notifBtn')?.parentElement
+    ?.querySelector('[onclick="showBinaSwitch()"]');
+
+  // Binalar yükle (URL parametreli veya liste)
+  await loadBinalar();
+
+  // ── 3. BENİ HATIRLA ──────────────────────────────
+  // URL parametresi varsa onu önceliklendir
+  const rem = localStorage.getItem('bp_remember');
+  if (rem) {
+    try {
+      const r = JSON.parse(rem);
+      if (!binaParam && r.binaId) {
+        STATE.binaId       = r.binaId;
+        STATE.role         = r.role;
+        STATE.loginMode    = r.mode;
+        STATE.daireNoSakin = r.daireNo;
+        STATE.daireIdSakin = r.daireId;
+        setTimeout(() => {
+          document.querySelectorAll('.bina-card').forEach(c => {
+            if (c.querySelector('.bina-card-id')?.textContent === r.binaId) c.click();
+          });
+        }, 600);
+      }
+    } catch(e) {}
+  }
+})();
+</script>
+
+<!-- PWA SW Registration -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,3317 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#0a0c12"/>
+<title>BinaPlus — Süper Admin</title>
+<link rel="icon" href="logo-icon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="logo-icon.svg"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════ */
+:root {
+  --accent:   #4A6FA5;
+  --accent-l: #6b8fc7;
+  --warn:     #e07a5f;
+  --success:  #52b788;
+  --gold:     #d4a843;
+  --purple:   #8b5cf6;
+  --bg:       #0a0c12;
+  --bg2:      #12151f;
+  --bg3:      #181c28;
+  --border:   #232840;
+  --text:     #e8eaf0;
+  --text2:    #8892a4;
+  --text3:    #444e61;
+  --card:     #12151f;
+  --card-h:   #181c28;
+  --radius:   12px;
+  --radius-s: 8px;
+  --shadow:   0 4px 32px rgba(0,0,0,.6);
+  --trans:    all .2s ease;
+  --font:     'Nunito', sans-serif;
+  --sw:       240px;
+}
+[data-theme="light"] {
+  --bg: #f0f2f7; --bg2: #fff; --bg3: #e8ecf4;
+  --border: #d4d9e8; --text: #1a1f2e; --text2: #4a5568;
+  --text3: #8892a4; --card: #fff; --card-h: #f5f7fc;
+  --shadow: 0 4px 24px rgba(0,0,0,.1);
+}
+
+/* ═══════════════════════════════════════
+   RESET
+═══════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:var(--font)}
+ul{list-style:none}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+
+/* ═══════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════ */
+.screen{display:none}
+.screen.active{display:flex}
+
+/* ═══════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════ */
+#loginScreen{
+  min-height:100vh;align-items:center;justify-content:center;
+  flex-direction:column;padding:24px;
+  background: radial-gradient(ellipse at 20% 50%, rgba(139,92,246,.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(74,111,165,.08) 0%, transparent 50%),
+              var(--bg);
+}
+.login-box{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:44px 40px;
+  width:100%;max-width:420px;
+  box-shadow:var(--shadow);
+  position:relative;overflow:hidden;
+}
+.login-box::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--purple),var(--accent),var(--gold));
+}
+.logo-wrap{display:flex;align-items:center;gap:14px;margin-bottom:8px;justify-content:center}
+.logo-icon{
+  width:52px;height:52px;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--success) 100%);
+  border-radius:15px;display:flex;align-items:center;justify-content:center;
+  font-size:26px;box-shadow:0 4px 20px rgba(212,168,67,.3);
+}
+.logo-text{font-size:28px;font-weight:900;letter-spacing:-.5px}
+.logo-text span{color:var(--gold)}
+.admin-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.3);
+  color:#a78bfa;font-size:11px;font-weight:800;letter-spacing:.8px;
+  text-transform:uppercase;padding:4px 12px;border-radius:20px;
+  margin:0 auto 28px;width:fit-content;
+}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.9px;margin-bottom:6px}
+.form-input{
+  width:100%;background:var(--bg2);border:1.5px solid var(--border);
+  border-radius:var(--radius-s);padding:12px 14px;color:var(--text);
+  font-size:14px;font-weight:600;transition:var(--trans);
+}
+.form-input:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.form-input::placeholder{color:var(--text3)}
+.input-wrap{position:relative}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:17px;cursor:pointer;color:var(--text3);background:none;border:none}
+.btn-login{
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,var(--purple),var(--accent));
+  color:#fff;border-radius:var(--radius-s);font-size:15px;font-weight:800;
+  transition:var(--trans);box-shadow:0 4px 20px rgba(139,92,246,.35);
+  letter-spacing:.3px;
+}
+.btn-login:hover{opacity:.9;transform:translateY(-1px)}
+.btn-login:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.login-err{
+  background:rgba(224,122,95,.1);border:1px solid rgba(224,122,95,.3);
+  border-radius:var(--radius-s);padding:10px 14px;font-size:13px;
+  color:var(--warn);margin-top:12px;display:none;
+}
+.login-err.show{display:block}
+.login-hint{font-size:11px;color:var(--text3);text-align:center;margin-top:16px}
+
+/* ═══════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════ */
+#appScreen{min-height:100vh;flex-direction:row}
+
+/* SIDEBAR */
+.sidebar{
+  width:var(--sw);background:var(--bg2);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;
+  z-index:100;transition:transform .3s ease;
+}
+.sidebar-top{
+  padding:20px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.s-logo-icon{
+  width:38px;height:38px;
+  background:linear-gradient(135deg,var(--gold),var(--success));
+  border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.s-logo-text{font-size:18px;font-weight:900}
+.s-logo-text span{color:var(--gold)}
+.s-role{
+  margin:0 12px 12px;
+  background:rgba(139,92,246,.12);border:1px solid rgba(139,92,246,.25);
+  border-radius:var(--radius-s);padding:6px 10px;
+  font-size:11px;font-weight:800;color:#a78bfa;letter-spacing:.6px;text-transform:uppercase;
+  display:flex;align-items:center;gap:6px;
+}
+.s-nav{flex:1;overflow-y:auto;padding:8px}
+.s-section{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:1px;padding:10px 8px 4px}
+.s-item{
+  display:flex;align-items:center;gap:10px;padding:9px 10px;
+  border-radius:var(--radius-s);cursor:pointer;transition:var(--trans);
+  color:var(--text2);font-size:13px;font-weight:600;margin-bottom:2px;position:relative;
+}
+.s-item:hover{background:var(--bg3);color:var(--text)}
+.s-item.active{background:rgba(139,92,246,.12);color:#a78bfa}
+.s-item .icon{font-size:16px;width:22px;text-align:center;flex-shrink:0}
+.s-badge{
+  margin-left:auto;background:var(--warn);color:#fff;font-size:10px;
+  font-weight:800;padding:2px 6px;border-radius:20px;min-width:18px;text-align:center;
+}
+.s-footer{padding:12px;border-top:1px solid var(--border)}
+.s-user{display:flex;align-items:center;gap:10px;padding:8px;border-radius:var(--radius-s);margin-bottom:6px}
+.s-avatar{
+  width:34px;height:34px;background:linear-gradient(135deg,var(--purple),var(--accent));
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:15px;font-weight:900;color:#fff;flex-shrink:0;
+}
+.s-uname{font-size:12px;font-weight:700;color:var(--text)}
+.s-urole{font-size:10px;color:var(--text3)}
+.btn-logout{
+  display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;
+  border-radius:var(--radius-s);background:transparent;color:var(--warn);
+  font-size:12px;font-weight:700;transition:var(--trans);
+}
+.btn-logout:hover{background:rgba(224,122,95,.1)}
+
+/* TOPBAR */
+.main{flex:1;margin-left:var(--sw);display:flex;flex-direction:column;min-height:100vh}
+.topbar{
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  padding:0 24px;height:60px;display:flex;align-items:center;gap:16px;
+  position:sticky;top:0;z-index:50;
+}
+.page-title{font-size:17px;font-weight:800;flex:1}
+.topbar-actions{display:flex;align-items:center;gap:8px}
+.icon-btn{
+  width:36px;height:36px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:var(--radius-s);display:flex;align-items:center;justify-content:center;
+  color:var(--text2);font-size:16px;cursor:pointer;transition:var(--trans);
+}
+.icon-btn:hover{color:var(--text);border-color:var(--purple)}
+.menu-toggle{display:none;background:transparent;color:var(--text2);font-size:20px;padding:6px;border-radius:8px}
+
+/* CONTENT */
+.content{flex:1;padding:24px;max-width:1400px;width:100%}
+.module{display:none}
+.module.active{display:block}
+
+/* ═══════════════════════════════════════
+   COMPONENTS
+═══════════════════════════════════════ */
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.card-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
+}
+.card-title{font-size:15px;font-weight:800}
+.card-body{padding:20px}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* Stat cards */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;position:relative;overflow:hidden;transition:var(--trans);
+}
+.stat-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:var(--sc,var(--accent))}
+.stat-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.stat-label{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.stat-value{font-size:28px;font-weight:900;line-height:1}
+.stat-sub{font-size:12px;color:var(--text2);margin-top:6px}
+.stat-icon{position:absolute;right:16px;top:16px;font-size:28px;opacity:.12}
+
+/* Table */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{padding:10px 16px;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;text-align:left;background:var(--bg2);border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:12px 16px;font-size:13px;color:var(--text);border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--card-h)}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius-s);font-size:13px;font-weight:700;cursor:pointer;transition:var(--trans);white-space:nowrap;border:none}
+.btn-purple{background:var(--purple);color:#fff}
+.btn-purple:hover{opacity:.85;transform:translateY(-1px)}
+.btn-accent{background:var(--accent);color:#fff}
+.btn-accent:hover{background:var(--accent-l)}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{opacity:.85}
+.btn-warn{background:var(--warn);color:#fff}
+.btn-warn:hover{opacity:.85}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--purple)}
+.btn-gold{background:var(--gold);color:#000}
+.btn-gold:hover{opacity:.85}
+.btn-sm{padding:5px 10px;font-size:12px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-success{background:rgba(82,183,136,.15);color:var(--success)}
+.badge-warn{background:rgba(224,122,95,.15);color:var(--warn)}
+.badge-accent{background:rgba(74,111,165,.15);color:var(--accent-l)}
+.badge-gold{background:rgba(212,168,67,.15);color:var(--gold)}
+.badge-muted{background:var(--bg3);color:var(--text2)}
+.badge-purple{background:rgba(139,92,246,.15);color:#a78bfa}
+
+/* Fields */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-s);padding:10px 14px;color:var(--text);font-size:14px;font-weight:500;transition:var(--trans)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(139,92,246,.15)}
+.field select{appearance:none;cursor:pointer}
+.field textarea{resize:vertical;min-height:80px}
+.fields-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+/* Modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;padding:16px;
+  opacity:0;visibility:hidden;transition:opacity .2s,visibility .2s;
+}
+.modal-overlay.open{opacity:1;visibility:visible}
+.modal{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  width:100%;max-width:520px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+  transform:scale(.95) translateY(10px);transition:transform .2s;
+}
+.modal-overlay.open .modal{transform:scale(1) translateY(0)}
+.modal-lg{max-width:740px}
+.modal-header{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:17px;font-weight:800}
+.modal-close{width:32px;height:32px;background:var(--bg3);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:18px;cursor:pointer;border:none;transition:var(--trans)}
+.modal-close:hover{background:var(--border);color:var(--text)}
+.modal-body{padding:0 24px 24px}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+/* Toast */
+#toastCont{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 8px 32px rgba(0,0,0,.5);min-width:280px;max-width:360px;animation:slideIn .3s ease;font-size:13px;font-weight:600}
+.toast-s{border-left:3px solid var(--success)}
+.toast-e{border-left:3px solid var(--warn)}
+.toast-i{border-left:3px solid var(--purple)}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* Toggle */
+.toggle{position:relative;width:44px;height:24px;background:var(--border);border-radius:12px;cursor:pointer;transition:var(--trans);flex-shrink:0;border:none}
+.toggle.on{background:var(--purple)}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle.on::after{transform:translateX(20px)}
+
+/* Loading */
+.spin{width:20px;height:20px;border:2.5px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;color:var(--text3);text-align:center}
+.empty-icon{font-size:48px;margin-bottom:16px;opacity:.5}
+.empty-text{font-size:15px;font-weight:600}
+
+/* Setting row */
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);gap:16px}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:14px;font-weight:600;color:var(--text)}
+.setting-desc{font-size:12px;color:var(--text2);margin-top:2px}
+
+/* Progress */
+.progress-track{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:4px;transition:width .5s ease}
+
+/* Abonelik kartı */
+.sub-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;
+  transition:var(--trans);
+}
+.sub-card:hover{box-shadow:var(--shadow);border-color:var(--purple)}
+.sub-info{flex:1}
+.sub-name{font-size:15px;font-weight:800;margin-bottom:4px}
+.sub-meta{font-size:12px;color:var(--text2)}
+.sub-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* Bina kart */
+.bina-list-card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:18px 20px;margin-bottom:10px;transition:var(--trans);
+}
+.bina-list-card:hover{box-shadow:var(--shadow);border-color:var(--accent)}
+.bina-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
+.bina-name{font-size:16px;font-weight:800}
+.bina-id{font-size:11px;color:var(--text3);margin-top:2px}
+.bina-stats{display:flex;gap:16px;flex-wrap:wrap}
+.bina-stat{font-size:12px;color:var(--text2);font-weight:600}
+
+/* Data monitor */
+.monitor-item{
+  display:flex;align-items:center;gap:12px;padding:12px 0;
+  border-bottom:1px solid var(--border);
+}
+.monitor-item:last-child{border-bottom:none}
+.monitor-label{font-size:13px;font-weight:600;flex:1}
+.monitor-val{font-size:13px;font-weight:700;min-width:80px;text-align:right}
+
+/* Sidebar overlay mobile */
+.s-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:99;display:none}
+.s-overlay.show{display:block}
+
+/* Responsive */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0);box-shadow:var(--shadow)}
+  .main{margin-left:0}
+  .menu-toggle{display:flex}
+  .fields-2{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .content{padding:16px}
+  .stats-grid{grid-template-columns:1fr 1fr}
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen" class="screen active">
+  <div class="login-box">
+    <div class="logo-wrap">
+      <img src="logo.svg" alt="BinaPlus" style="width:240px;max-width:100%;height:auto;display:block;margin:0 auto 8px"/>
+    </div>
+    <div class="admin-badge" style="display:flex;justify-content:center;margin-bottom:28px">
+      🛡️ SÜPER ADMİN PANELİ
+    </div>
+    <div class="form-group">
+      <label class="form-label">Master Şifre</label>
+      <div class="input-wrap">
+        <input class="form-input" type="password" id="inpMaster" placeholder="••••••••••••" autocomplete="current-password" style="padding-right:44px" onkeydown="if(event.key==='Enter')doAdminLogin()"/>
+        <button class="eye-btn" id="eyeBtn">👁️</button>
+      </div>
+    </div>
+    <button class="btn-login" id="btnLogin">🛡️ Giriş Yap</button>
+    <div class="login-err" id="loginErr"></div>
+    <p class="login-hint">Bu panel yalnızca yetkili sistem yöneticileri içindir.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appScreen" class="screen">
+  <div class="s-overlay" id="sOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-top">
+      <div class="s-logo-icon">
+        <img src="logo-icon.svg" alt="BinaPlus" width="38" height="38" style="border-radius:10px"/>
+      </div>
+      <div class="s-logo-text">Bina<span>Plus</span></div>
+    </div>
+    <div class="s-role">🛡️ Süper Admin</div>
+
+    <div class="s-nav">
+      <div class="s-section">Genel Bakış</div>
+      <div class="s-item active" onclick="goTo('dashboard')" data-m="dashboard"><span class="icon">📊</span>Dashboard</div>
+      <div class="s-item" onclick="goTo('binalar')" data-m="binalar"><span class="icon">🏢</span>Tüm Binalar</div>
+
+      <div class="s-section">Yönetim</div>
+      <div class="s-item" onclick="goTo('abonelik')" data-m="abonelik"><span class="icon">💳</span>Abonelikler<span class="s-badge" id="badgeGrace" style="display:none">!</span></div>
+      <div class="s-item" onclick="goTo('kullanicilar')" data-m="kullanicilar"><span class="icon">👥</span>Kullanıcılar</div>
+      <div class="s-item" onclick="goTo('sifresifirla')" data-m="sifresifirla"><span class="icon">🔑</span>Şifre Sıfırla</div>
+      <div class="s-item" onclick="goTo('yedek')" data-m="yedek"><span class="icon">💾</span>Yedekleme</div>
+
+      <div class="s-section">Sistem</div>
+      <div class="s-item" onclick="goTo('monitor')" data-m="monitor"><span class="icon">📡</span>Veri Monitörü</div>
+      <div class="s-item" onclick="goTo('log')" data-m="log"><span class="icon">📋</span>İşlem Logları</div>
+      <div class="s-item" onclick="goTo('ayarlar')" data-m="ayarlar"><span class="icon">⚙️</span>Sistem Ayarları</div>
+    </div>
+
+    <div class="s-footer">
+      <div class="s-user">
+        <div class="s-avatar">SA</div>
+        <div>
+          <div class="s-uname">Süper Admin</div>
+          <div class="s-urole">Tam Yetki</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">🚪 Çıkış Yap</button>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-toggle icon-btn" onclick="toggleSidebar()">☰</button>
+      <div class="page-title" id="pageTitle">📊 Dashboard</div>
+      <div class="topbar-actions">
+        <button class="icon-btn" onclick="toggleTheme()" id="themeBtn" title="Tema">🌙</button>
+        <button class="icon-btn" onclick="refreshAll()" title="Yenile">🔄</button>
+        <a href="index.html" class="icon-btn" title="Kullanıcı paneline git">🏠</a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="module active" id="mod-dashboard">
+        <div class="stats-grid" id="dashStats">
+          <div class="stat-card" style="--sc:var(--purple)">
+            <div class="stat-label">Toplam Bina</div>
+            <div class="stat-value" id="dsTotalBina">—</div>
+            <div class="stat-sub" id="dsTotalBinaSub">Yükleniyor...</div>
+            <div class="stat-icon">🏢</div>
+          </div>
+          <div class="stat-card" style="--sc:var(--success)">
+            <div class="stat-label">Aktif Abonelik</div>
+            <div class="stat-value" id="dsAktif">—</div>
+            <div class="stat-sub" id="dsAktifSub">—</div>
+            <div class="stat-icon">✅</div>
+          </div>
+          <div class="stat-card" style="--sc:var(--warn)">
+            <div class="stat-label">Grace Period</div>
+            <div class="stat-value" id="dsGrace">—</div>
+            <div class="stat-sub">10 günlük muafiyet</div>
+            <div class="stat-icon">⏳</div>
+          </div>
+          <div class="stat-card" style="--sc:var(--gold)">
+            <div class="stat-label">Toplam Kullanıcı</div>
+            <div class="stat-value" id="dsUsers">—</div>
+            <div class="stat-sub">Tüm binalarda</div>
+            <div class="stat-icon">👥</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">🏢 Bina Özeti</div></div>
+            <div class="card-body" id="dashBinaSummary">
+              <div class="empty"><span class="spin"></span></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📋 Son İşlemler</div></div>
+            <div class="card-body" id="dashLog">
+              <div class="empty"><span class="spin"></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TÜM BİNALAR ── -->
+      <div class="module" id="mod-binalar">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">🏢 Tüm Binalar</div>
+            <div class="card-actions">
+              <input class="form-input" style="width:220px" type="text" placeholder="🔍 Bina ara..." id="binaSearch" oninput="filterBinalar()"/>
+              <button class="btn btn-purple" onclick="openModal('modalBinaEkle')">➕ Yeni Bina</button>
+            </div>
+          </div>
+        </div>
+        <div id="binaListEl">
+          <div class="empty"><span class="spin"></span></div>
+        </div>
+      </div>
+
+      <!-- ── ABONELİK ── -->
+      <div class="module" id="mod-abonelik">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">💳 Abonelik Yönetimi</div>
+            <div class="card-actions">
+              <button class="btn btn-ghost btn-sm" onclick="filterSub('tum',this)">Tümü</button>
+              <button class="btn btn-ghost btn-sm" onclick="filterSub('aktif',this)">Aktif</button>
+              <button class="btn btn-ghost btn-sm" onclick="filterSub('grace',this)">Grace Period</button>
+              <button class="btn btn-ghost btn-sm" onclick="filterSub('sureli',this)">Süresi Dolmuş</button>
+            </div>
+          </div>
+        </div>
+        <div id="subList">
+          <div class="empty"><span class="spin"></span></div>
+        </div>
+      </div>
+
+      <!-- ── KULLANICILAR ── -->
+      <div class="module" id="mod-kullanicilar">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">👥 Kullanıcılar</div>
+            <div class="card-actions">
+              <input class="form-input" style="width:200px" type="text" placeholder="🔍 Kullanıcı ara..." id="userSearch" oninput="filterUsers()"/>
+              <button class="btn btn-purple" onclick="openModal('modalYoneticiEkle')">➕ Yönetici Ekle</button>
+            </div>
+          </div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>Ad / E-posta</th><th>Bina</th><th>Rol</th><th>Son Giriş</th><th>Durum</th><th>İşlem</th></tr></thead>
+              <tbody id="userBody">
+                <tr><td colspan="6" style="text-align:center;padding:32px"><span class="spin"></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── YEDEKLEME ── -->
+      <div class="module" id="mod-yedek">
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="stat-card" style="--sc:var(--success)">
+            <div class="stat-label">Son Yedek</div>
+            <div class="stat-value" id="lastBackupTime" style="font-size:18px">—</div>
+            <div class="stat-sub" id="lastBackupSize">Boyut: —</div>
+            <div class="stat-icon">💾</div>
+          </div>
+          <div class="stat-card" style="--sc:var(--accent)">
+            <div class="stat-label">Otomatik Yedek</div>
+            <div class="stat-value" id="autoBackupStatus" style="font-size:18px">Kapalı</div>
+            <div class="stat-sub">Her gece 02:00</div>
+            <div class="stat-icon">🔄</div>
+          </div>
+          <div class="stat-card" style="--sc:var(--gold)">
+            <div class="stat-label">Toplam Yedek</div>
+            <div class="stat-value" id="totalBackups">0</div>
+            <div class="stat-sub">Google Drive</div>
+            <div class="stat-icon">☁️</div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div class="card">
+            <div class="card-header"><div class="card-title">🔧 Manuel Yedek</div></div>
+            <div class="card-body">
+              <div class="field">
+                <label>Yedek Kapsamı</label>
+                <select id="backupScope">
+                  <option value="all">Tüm Binalar</option>
+                  <option value="single">Seçili Bina</option>
+                </select>
+              </div>
+              <div class="field" id="backupBinaField" style="display:none">
+                <label>Bina Seç</label>
+                <select id="backupBinaId"></select>
+              </div>
+              <div class="field">
+                <label>Format</label>
+                <select id="backupFormat">
+                  <option value="json">JSON</option>
+                  <option value="excel">Excel</option>
+                </select>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn btn-purple" onclick="manualBackup()">💾 Şimdi Yedekle</button>
+                <button class="btn btn-success" onclick="driveBackup()">☁️ Drive'a Yedekle</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚙️ Otomatik Yedek</div>
+              <button class="toggle" id="toggleAutoBackup" onclick="this.classList.toggle('on');saveAutoBackupSetting()"></button>
+            </div>
+            <div class="card-body">
+              <div class="field"><label>Saat</label><input type="time" id="backupTime" value="02:00"/></div>
+              <div class="field">
+                <label>Sıklık</label>
+                <select id="backupFreq">
+                  <option value="daily">Her Gün</option>
+                  <option value="weekly">Her Hafta</option>
+                  <option value="monthly">Her Ay</option>
+                </select>
+              </div>
+              <div class="field"><label>Google Drive Klasör ID</label><input type="text" id="driveFolderId" placeholder="1BxiM..."/></div>
+              <button class="btn btn-accent" onclick="saveAutoBackupSetting()">💾 Kaydet</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-header"><div class="card-title">📂 Yedek Geçmişi</div></div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>Tarih/Saat</th><th>Bina</th><th>Format</th><th>Boyut</th><th>Durum</th><th>İşlem</th></tr></thead>
+              <tbody id="backupHistory">
+                <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Yedek geçmişi yok</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VERİ MONİTÖRÜ ── -->
+      <div class="module" id="mod-monitor">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">📡 Firebase Veri Boyutu Monitörü</div>
+            <div class="card-actions">
+              <button class="btn btn-ghost btn-sm" onclick="refreshMonitor()">🔄 Yenile</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="monitorContent">
+              <div class="empty"><span class="spin"></span><br><br>Veri analiz ediliyor...</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 Firestore Kullanım Özeti</div></div>
+          <div class="card-body" id="firestoreUsage">
+            <div class="empty"><span class="spin"></span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── LOG ── -->
+      <div class="module" id="mod-log">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">📋 İşlem Logları</div>
+            <div class="card-actions">
+              <select class="form-input" style="width:160px" id="logBinaFilter" onchange="filterLogs()">
+                <option value="">Tüm Binalar</option>
+              </select>
+              <select class="form-input" style="width:140px" id="logTypeFilter" onchange="filterLogs()">
+                <option value="">Tüm İşlemler</option>
+                <option value="login">Giriş</option>
+                <option value="odeme">Ödeme</option>
+                <option value="ariza">Arıza</option>
+                <option value="duyuru">Duyuru</option>
+                <option value="backup">Yedek</option>
+              </select>
+              <button class="btn btn-ghost btn-sm" onclick="exportLogs()">📊 Dışa Aktar</button>
+            </div>
+          </div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>Tarih/Saat</th><th>Bina</th><th>Kullanıcı</th><th>İşlem</th><th>Detay</th></tr></thead>
+              <tbody id="logBody">
+                <tr><td colspan="5" style="text-align:center;padding:32px"><span class="spin"></span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:16px;display:flex;justify-content:center;gap:8px" id="logPagination"></div>
+        </div>
+      </div>
+
+      <!-- ── AYARLAR ── -->
+      <div class="module" id="mod-ayarlar">
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">🔒 Güvenlik</div></div>
+          <div class="card-body">
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Master Şifre</div>
+                <div class="setting-desc">Süper admin giriş şifresini değiştir</div>
+              </div>
+              <button class="btn btn-ghost btn-sm" onclick="openModal('modalMasterSifre')">🔒 Değiştir</button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">IP Kısıtlama</div>
+                <div class="setting-desc">Admin paneline erişimi belirli IP'lerle sınırla</div>
+              </div>
+              <button class="toggle" id="toggleIP" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Oturum Süresi</div>
+                <div class="setting-desc">Hareketsizlik sonrası otomatik çıkış (dakika)</div>
+              </div>
+              <input class="form-input" type="number" id="sessionTimeout" value="60" style="width:80px"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">💳 Abonelik Ayarları</div></div>
+          <div class="card-body">
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Grace Period (Gün)</div>
+                <div class="setting-desc">Abonelik bitiminden sonra erişim muafiyeti</div>
+              </div>
+              <input class="form-input" type="number" id="gracePeriod" value="10" style="width:80px"/>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Abonelik Kilidi</div>
+                <div class="setting-desc">Grace period dolunca otomatik kilitle</div>
+              </div>
+              <button class="toggle on" id="toggleSubLock" onclick="this.classList.toggle('on')"></button>
+            </div>
+            <div class="setting-row">
+              <div>
+                <div class="setting-label">Hatırlatma E-postası</div>
+                <div class="setting-desc">Bitiş öncesi kaç gün hatırlat</div>
+              </div>
+              <input class="form-input" type="number" id="subReminderDays" value="7" style="width:80px"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">🌐 Sistem</div></div>
+          <div class="card-body">
+            <div class="fields-2">
+              <div class="field"><label>EmailJS Service ID</label><input type="text" id="emailjsService" placeholder="service_xxx"/></div>
+              <div class="field"><label>EmailJS Template ID</label><input type="text" id="emailjsTemplate" placeholder="template_xxx"/></div>
+              <div class="field"><label>Netgsm API Key</label><input type="text" id="netgsmKey" placeholder="API anahtarı"/></div>
+              <div class="field"><label>Netgsm Kullanıcı</label><input type="text" id="netgsmUser" placeholder="Kullanıcı adı"/></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header"><div class="card-title">🌙 Görünüm</div></div>
+          <div class="card-body">
+            <div class="setting-row">
+              <div><div class="setting-label">Karanlık Mod</div></div>
+              <button class="toggle on" id="toggleThemeBtn" onclick="toggleTheme()"></button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-purple" onclick="saveSystemSettings()">💾 Sistem Ayarlarını Kaydet</button>
+      </div>
+
+      <!-- ── ŞİFRE SIFIRLAMA MODÜLÜ ── -->
+      <div class="module" id="mod-sifresifirla">
+
+        <!-- Sakin Şifre Sıfırla -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-header">
+            <div class="card-title">🏠 Sakin Şifre Sıfırla</div>
+            <button class="btn btn-purple" onclick="openModal('modalSakinSifre');initSakinSifreModal()">🔑 Şifre Sıfırla</button>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">
+              Bir sakin şifresini unuttuğunda, süper admin olarak doğrudan yeni şifre belirleyebilirsin. Sakin ayrıca login ekranındaki "Şifremi Unuttum" linkinden e-posta ile sıfırlama yapabilir.
+            </p>
+            <div class="fields-2">
+              <div class="field">
+                <label>Bina Seç</label>
+                <select id="srBina" onchange="srLoadDaireler()">
+                  <option value="">Bina seçin...</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Daire Seç</label>
+                <select id="srDaire">
+                  <option value="">Önce bina seçin...</option>
+                </select>
+              </div>
+            </div>
+            <div class="fields-2">
+              <div class="field">
+                <label>Yeni Şifre</label>
+                <input type="password" id="srYeniSifre" placeholder="En az 6 karakter"/>
+              </div>
+              <div class="field">
+                <label>Yeni Şifre (Tekrar)</label>
+                <input type="password" id="srYeniSifre2" placeholder="Tekrar girin"/>
+              </div>
+            </div>
+            <button class="btn btn-purple" onclick="adminSakinSifreGuncelle2()">🔒 Şifreyi Güncelle</button>
+            <div id="srErr" style="display:none;background:rgba(224,122,95,.1);border:1px solid rgba(224,122,95,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--warn);margin-top:12px"></div>
+            <div id="srOk" style="display:none;background:rgba(82,183,136,.1);border:1px solid rgba(82,183,136,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--success);margin-top:12px">✅ Şifre güncellendi!</div>
+          </div>
+        </div>
+
+        <!-- Yönetici Şifre Sıfırla -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">👤 Yönetici Şifre Sıfırla</div>
+            <button class="btn btn-accent" onclick="openModal('modalYoneticiSifre')">📧 E-posta Gönder</button>
+          </div>
+          <div class="card-body">
+            <p style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:16px">
+              Firebase üzerinden şifre sıfırlama e-postası gönderilir. Yönetici e-postasındaki link ile yeni şifre belirler. Bu yöntem Firebase Auth hesabı olan yöneticiler için geçerlidir.
+            </p>
+            <div class="tw">
+              <table>
+                <thead><tr><th>Bina</th><th>Yönetici E-posta</th><th>İşlem</th></tr></thead>
+                <tbody id="yoneticiListeBody">
+                  <tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text3)">Yükleniyor...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /mod-sifresifirla -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /appScreen -->
+
+<!-- ═══════════════════════════════════════
+     MODALS
+═══════════════════════════════════════ -->
+
+<!-- Bina Ekle -->
+<div class="modal-overlay" id="modalBinaEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏢 Yeni Bina Ekle</div>
+      <button class="modal-close" onclick="closeModal('modalBinaEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fields-2">
+        <div class="field"><label>Bina Adı</label><input type="text" id="binaAdi" placeholder="Güneş Apartmanı"/></div>
+        <div class="field"><label>Bina ID (Firestore key)</label><input type="text" id="binaIdInp" placeholder="gunes-apt-001"/></div>
+      </div>
+      <div class="fields-2">
+        <div class="field"><label>Adres</label><input type="text" id="binaAdres" placeholder="Mahalle, İlçe, İl"/></div>
+        <div class="field"><label>Daire Sayısı</label><input type="number" id="binaDaireSayi" placeholder="20"/></div>
+      </div>
+      <div class="fields-2">
+        <div class="field"><label>Yönetici E-posta</label><input type="email" id="binaYoneticiEmail" placeholder="yonetici@email.com"/></div>
+        <div class="field"><label>Yönetici Şifresi</label><input type="password" id="binaYoneticiSifre" placeholder="En az 8 karakter"/></div>
+      </div>
+      <div class="fields-2">
+        <div class="field">
+          <label>Abonelik Planı</label>
+          <select id="binaAbonelik">
+            <option value="temel">Temel (Aylık)</option>
+            <option value="standart">Standart (Aylık)</option>
+            <option value="premium">Premium (Aylık)</option>
+            <option value="yillik">Yıllık</option>
+            <option value="omurboyu">Ömür Boyu</option>
+          </select>
+        </div>
+        <div class="field"><label>Abonelik Bitiş</label><input type="date" id="binaSubBitis"/></div>
+      </div>
+      <div class="field">
+        <label>Notlar</label>
+        <textarea id="binaNot" placeholder="Ek notlar..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalBinaEkle')">İptal</button>
+      <button class="btn btn-purple" onclick="binaEkle()">🏢 Bina Oluştur</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bina Düzenle -->
+<div class="modal-overlay" id="modalBinaDuzenle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Bina Düzenle</div>
+      <button class="modal-close" onclick="closeModal('modalBinaDuzenle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editBinaId"/>
+      <div class="fields-2">
+        <div class="field"><label>Bina Adı</label><input type="text" id="editBinaAdi"/></div>
+        <div class="field"><label>Adres</label><input type="text" id="editBinaAdres"/></div>
+      </div>
+      <div class="fields-2">
+        <div class="field">
+          <label>Abonelik Planı</label>
+          <select id="editBinaAbonelik">
+            <option value="temel">Temel</option>
+            <option value="standart">Standart</option>
+            <option value="premium">Premium</option>
+            <option value="yillik">Yıllık</option>
+            <option value="omurboyu">Ömür Boyu</option>
+          </select>
+        </div>
+        <div class="field"><label>Abonelik Bitiş</label><input type="date" id="editBinaSubBitis"/></div>
+      </div>
+      <div class="field">
+        <label>Durum</label>
+        <select id="editBinaDurum">
+          <option value="aktif">Aktif</option>
+          <option value="grace">Grace Period</option>
+          <option value="askida">Askıda</option>
+          <option value="iptal">İptal</option>
+        </select>
+      </div>
+      <div class="field"><label>Notlar</label><textarea id="editBinaNot"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalBinaDuzenle')">İptal</button>
+      <button class="btn btn-purple" onclick="binaGuncelle()">💾 Güncelle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Abonelik Uzat -->
+<div class="modal-overlay" id="modalSubUzat">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💳 Abonelik Uzat</div>
+      <button class="modal-close" onclick="closeModal('modalSubUzat')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="subUzatBinaId"/>
+      <div class="field">
+        <label>Bina</label>
+        <input type="text" id="subUzatBinaAdi" readonly style="background:var(--bg3);color:var(--text2)"/>
+      </div>
+      <div class="fields-2">
+        <div class="field">
+          <label>Uzatma Süresi</label>
+          <select id="subUzatSure">
+            <option value="1">1 Ay</option>
+            <option value="3">3 Ay</option>
+            <option value="6">6 Ay</option>
+            <option value="12">12 Ay</option>
+            <option value="lifetime">Ömür Boyu</option>
+          </select>
+        </div>
+        <div class="field"><label>Yeni Bitiş Tarihi</label><input type="date" id="subUzatBitis"/></div>
+      </div>
+      <div class="field"><label>Not</label><textarea id="subUzatNot" placeholder="Ödeme notu..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalSubUzat')">İptal</button>
+      <button class="btn btn-success" onclick="subUzat()">✅ Uzat</button>
+    </div>
+  </div>
+</div>
+
+<!-- Yönetici Ekle -->
+<div class="modal-overlay" id="modalYoneticiEkle">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👤 Yönetici Ekle</div>
+      <button class="modal-close" onclick="closeModal('modalYoneticiEkle')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fields-2">
+        <div class="field"><label>Ad Soyad</label><input type="text" id="ynAd" placeholder="Ad Soyad"/></div>
+        <div class="field"><label>E-posta</label><input type="email" id="ynEmail" placeholder="email@domain.com"/></div>
+      </div>
+      <div class="fields-2">
+        <div class="field"><label>Şifre</label><input type="password" id="ynSifre" placeholder="En az 8 karakter"/></div>
+        <div class="field">
+          <label>Bina Ata</label>
+          <select id="ynBina"><option value="">Bina seçin...</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalYoneticiEkle')">İptal</button>
+      <button class="btn btn-purple" onclick="yoneticiEkle()">👤 Oluştur</button>
+    </div>
+  </div>
+</div>
+
+<!-- Master Şifre Değiştir -->
+<div class="modal-overlay" id="modalMasterSifre">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔒 Master Şifre Değiştir</div>
+      <button class="modal-close" onclick="closeModal('modalMasterSifre')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Mevcut Master Şifre</label><input type="password" id="masterEski"/></div>
+      <div class="field"><label>Yeni Master Şifre</label><input type="password" id="masterYeni1"/></div>
+      <div class="field"><label>Yeni Master Şifre (Tekrar)</label><input type="password" id="masterYeni2"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalMasterSifre')">İptal</button>
+      <button class="btn btn-purple" onclick="masterSifreGuncelle()">🔒 Güncelle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bina URL & QR Kodu -->
+<div class="modal-overlay" id="modalBinaURL">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔗 Bina Giriş Linki & QR Kodu</div>
+      <button class="modal-close" onclick="closeModal('modalBinaURL')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px">
+        Bu linki veya QR kodu sakinlerle paylaş. Açıldığında direkt bu binanın giriş ekranı gelir.
+      </p>
+
+      <!-- Bina adı -->
+      <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:12px" id="qrBinaAdi"></div>
+
+      <!-- URL kutusu -->
+      <div style="background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius-s);padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">🔗</span>
+        <div id="qrURL" style="font-size:12px;color:var(--accent-l);font-weight:600;flex:1;word-break:break-all;font-family:monospace"></div>
+        <button class="btn btn-ghost btn-sm" onclick="copyBinaURL()" id="copyBtn">📋 Kopyala</button>
+      </div>
+
+      <!-- QR Kod -->
+      <div style="text-align:center;margin-bottom:16px">
+        <div id="qrCanvas" style="display:inline-block;background:#fff;padding:16px;border-radius:12px;border:1px solid var(--border)">
+          <canvas id="qrCodeCanvas" width="180" height="180"></canvas>
+        </div>
+        <div style="margin-top:8px;font-size:12px;color:var(--text3)">QR kodu telefonla tara</div>
+      </div>
+
+      <!-- İndirme ve paylaşım -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center">
+        <button class="btn btn-purple" onclick="downloadQR()">📥 QR İndir (PNG)</button>
+        <button class="btn btn-accent" onclick="copyBinaURL()">📋 Linki Kopyala</button>
+        <button class="btn btn-success" onclick="whatsappShare()">💬 WhatsApp'ta Paylaş</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Sakin Şifre Sıfırla (Admin) -->
+<div class="modal-overlay" id="modalSakinSifre">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔑 Sakin Şifre Sıfırla</div>
+      <button class="modal-close" onclick="closeModal('modalSakinSifre')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>Bina</label>
+        <select id="sakinSifreBina" onchange="loadDairelerForReset()">
+          <option value="">Bina seçin...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Daire</label>
+        <select id="sakinSifreDaire">
+          <option value="">Önce bina seçin...</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Yeni Şifre</label>
+        <div style="position:relative">
+          <input type="password" id="sakinYeniSifreAdmin" placeholder="En az 6 karakter" style="padding-right:42px"/>
+          <button onclick="toggleAdminPwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:17px;cursor:pointer;color:var(--text3)" id="sakinSifreEye">👁️</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Yeni Şifre (Tekrar)</label>
+        <input type="password" id="sakinYeniSifreAdmin2" placeholder="Şifreyi tekrar girin"/>
+      </div>
+      <div id="sakinSifreErr" style="display:none;background:rgba(224,122,95,.1);border:1px solid rgba(224,122,95,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--warn);margin-top:8px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalSakinSifre')">İptal</button>
+      <button class="btn btn-purple" onclick="adminSakinSifreGuncelle()">🔒 Şifreyi Güncelle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Yönetici Şifre Sıfırla (Admin) -->
+<div class="modal-overlay" id="modalYoneticiSifre">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📧 Yönetici Şifre Sıfırla</div>
+      <button class="modal-close" onclick="closeModal('modalYoneticiSifre')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.6">
+        Firebase üzerinden şifre sıfırlama e-postası gönderilecek. Yönetici, e-postasındaki linkten yeni şifresini belirleyebilecek.
+      </p>
+      <div class="field">
+        <label>Yönetici E-posta</label>
+        <input type="email" id="yoneticiSifreEmail" placeholder="yonetici@email.com"/>
+      </div>
+      <div id="yoneticiSifreErr" style="display:none;background:rgba(224,122,95,.1);border:1px solid rgba(224,122,95,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--warn);margin-top:8px"></div>
+      <div id="yoneticiSifreOk" style="display:none;background:rgba(82,183,136,.1);border:1px solid rgba(82,183,136,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--success);margin-top:8px">
+        ✅ Sıfırlama e-postası gönderildi!
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalYoneticiSifre')">Kapat</button>
+      <button class="btn btn-accent" onclick="adminYoneticiSifreSifirla()">📧 E-posta Gönder</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastCont"></div>
+
+<!-- ═══════════════════════════════════════
+     JS
+═══════════════════════════════════════ -->
+
+<script type="module">
+// ── db.js içeriği gömülü ──
+/**
+ * BinaPlus — Veritabanı Katmanı (db.js)
+ * ─────────────────────────────────────
+ * Versiyon: 2.0
+ *
+ * KORUMA MEKANİZMALARI:
+ *   1. Şifre Güvenliği       — Firebase yüklenmeden şifre kontrolü YAPILMAZ
+ *   2. Yazma Koruma Penceresi — Kendi yazmandan sonra 3sn snapshot yoksayılır
+ *   3. Çift Katman Yedek     — Her yazma localStorage'a da kopyalanır
+ *   4. localStorage Geri Yük — Çevrimdışıyken localStorage'dan okur
+ *
+ * GENİŞLETME KURALI:
+ *   Yeni modül eklemek için:
+ *   1. COL objesine yol ekle
+ *   2. Dosyanın altındaki YENİ MODÜL ŞABLONU'nu kopyala
+ *   3. firestore.rules'a match bloğu ekle
+ *   4. seed.json'a şema örneği ekle
+ *   Mevcut fonksiyonlara dokunma.
+ */
+
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import {
+  getFirestore,
+  collection, doc, getDoc, getDocs, addDoc, setDoc,
+  updateDoc, deleteDoc, onSnapshot, serverTimestamp,
+  query, where, orderBy, limit, writeBatch, runTransaction
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import {
+  getAuth, signInWithEmailAndPassword, signOut,
+  updatePassword, onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import {
+  getStorage, ref as storageRef, uploadBytes, getDownloadURL
+} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js';
+
+// ── Firebase başlatma (çift başlatmayı önle) ──────────────────
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyD6vTEjXSx9yTBE7o_y-PgE9EQydFzt7Rs",
+  authDomain:        "binapulus-4ae17.firebaseapp.com",
+  projectId:         "binapulus-4ae17",
+  storageBucket:     "binapulus-4ae17.firebasestorage.app",
+  messagingSenderId: "74314699158",
+  appId:             "1:74314699158:web:c8c4c40d9ab17960cccdb7",
+  measurementId:     "G-LH3N7X20MQ"
+};
+
+const fbApp   = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+const auth    = getAuth(fbApp);
+const db      = getFirestore(fbApp);
+const storage = getStorage(fbApp);
+
+// ── Firebase hazır sinyali ────────────────────────────────────
+// Timeout ekli — maksimum 5 saniye bekle, sonra devam et
+let _fbReady = false;
+let _fbReadyResolve;
+const fbReady = new Promise(res => { _fbReadyResolve = res; });
+
+// 5 saniye timeout — askıda kalmasın
+const _fbTimeout = setTimeout(() => {
+  _fbReady = true;
+  _fbReadyResolve();
+}, 5000);
+
+// Firestore'a basit bağlantı testi — hata da olsa hazır say
+getDoc(doc(db, 'anayonetici', 'config'))
+  .catch(() => {}) // 404 normal — sadece bağlantıyı test ediyoruz
+  .finally(() => {
+    clearTimeout(_fbTimeout);
+    _fbReady = true;
+    _fbReadyResolve();
+  });
+
+async function waitFirebase() {
+  if (_fbReady) return;
+  await fbReady;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GÜVENLİK KATMANLARI
+// ═══════════════════════════════════════════════════════════════
+
+// ── 1. RATE LİMİTER ──────────────────────────────────────────
+// Brute force koruması: 5 hatalı denemede 15 dakika kilit
+const _rateLimiter = new Map();
+// key: 'login:binaId:daireNo' veya 'login:email'
+// value: { count, lockedUntil }
+
+const RateLimit = {
+  MAX_ATTEMPTS: 5,
+  LOCK_MS:      15 * 60 * 1000, // 15 dakika
+  WARN_AT:      3,              // 3. denemede uyar
+
+  check(key) {
+    const rec = _rateLimiter.get(key);
+    if (!rec) return { ok: true, remaining: this.MAX_ATTEMPTS };
+
+    // Kilit süresi dolmuş mu?
+    if (rec.lockedUntil && Date.now() > rec.lockedUntil) {
+      _rateLimiter.delete(key);
+      return { ok: true, remaining: this.MAX_ATTEMPTS };
+    }
+
+    // Hâlâ kilitli
+    if (rec.lockedUntil) {
+      const kalan = Math.ceil((rec.lockedUntil - Date.now()) / 60000);
+      return { ok: false, locked: true, minutesLeft: kalan };
+    }
+
+    const remaining = this.MAX_ATTEMPTS - rec.count;
+    return { ok: remaining > 0, remaining, count: rec.count };
+  },
+
+  fail(key) {
+    const rec = _rateLimiter.get(key) || { count: 0 };
+    rec.count++;
+    if (rec.count >= this.MAX_ATTEMPTS) {
+      rec.lockedUntil = Date.now() + this.LOCK_MS;
+    }
+    _rateLimiter.set(key, rec);
+    return this.check(key);
+  },
+
+  reset(key) {
+    _rateLimiter.delete(key);
+  },
+
+  // localStorage'a da yedekle (sayfa yenilemesinde sıfırlanmasın)
+  persist(key) {
+    try {
+      const rec = _rateLimiter.get(key);
+      if (rec) localStorage.setItem(`bp_rl_${key}`, JSON.stringify(rec));
+    } catch(e) {}
+  },
+
+  restore(key) {
+    try {
+      const raw = localStorage.getItem(`bp_rl_${key}`);
+      if (!raw) return;
+      const rec = JSON.parse(raw);
+      // Kilit süresi dolmuşsa yükleme
+      if (!rec.lockedUntil || Date.now() < rec.lockedUntil) {
+        _rateLimiter.set(key, rec);
+      } else {
+        localStorage.removeItem(`bp_rl_${key}`);
+      }
+    } catch(e) {}
+  }
+};
+
+// ── 2. SALT'LI HASH ──────────────────────────────────────────
+// SHA-256(şifre) yerine SHA-256(binaId + ":" + daireNo + ":" + şifre)
+// Rainbow table saldırısını engeller.
+// Salt = binaId + daireNo — sunucuya gönderilmez, client'ta hesaplanır.
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// Sakin şifre hash'i — salt eklenmiş
+async function hashSakinSifre(sifre, binaId, daireNo) {
+  // Format: SHA-256("binaplus:binaId:daireNo:sifre")
+  return sha256(`binaplus:${binaId}:${daireNo}:${sifre}`);
+}
+
+// Geriye dönük uyumluluk: eski salt'sız hash ile de dene
+async function hashSakinSifreLegacy(sifre) {
+  return sha256(sifre);
+}
+
+// ── 3. ADMİN TOKEN — MEMORY ONLY ─────────────────────────────
+// Token URL'de değil, memory'de tutulur.
+// admin.html → index.html arası postMessage ile iletilir.
+// sessionStorage'a YAZILMAZ → XSS riski azalır.
+const _adminTokenStore = new Map();
+// key: token, value: { binaId, expiresAt, used }
+
+const AdminToken = {
+  EXPIRE_MS: 5 * 60 * 1000, // 5 dakika
+
+  async create(masterSifre, binaId) {
+    const timestamp = Date.now();
+    const raw       = `binaplus:admin:${masterSifre}:${binaId}:${timestamp}`;
+    const token     = await sha256(raw);
+    _adminTokenStore.set(token, {
+      binaId,
+      expiresAt: timestamp + this.EXPIRE_MS,
+      used: false
+    });
+    return { token, timestamp };
+  },
+
+  verify(token, binaId) {
+    const rec = _adminTokenStore.get(token);
+    if (!rec)                        return { ok: false, reason: 'token_not_found' };
+    if (rec.used)                    return { ok: false, reason: 'token_used' };
+    if (Date.now() > rec.expiresAt)  return { ok: false, reason: 'token_expired' };
+    if (rec.binaId !== binaId)       return { ok: false, reason: 'bina_mismatch' };
+    return { ok: true };
+  },
+
+  consume(token) {
+    const rec = _adminTokenStore.get(token);
+    if (rec) { rec.used = true; _adminTokenStore.set(token, rec); }
+  },
+
+  // Süresi dolmuş token'ları temizle
+  cleanup() {
+    const now = Date.now();
+    for (const [k, v] of _adminTokenStore.entries()) {
+      if (now > v.expiresAt || v.used) _adminTokenStore.delete(k);
+    }
+  }
+};
+
+// Her 5 dakikada bir eski token'ları temizle
+setInterval(() => AdminToken.cleanup(), 5 * 60 * 1000);
+const COL = {
+  binalar:    (binaId)     => doc(db, 'binalar', binaId),
+  daireler:   (binaId)     => collection(db, 'binalar', binaId, 'daireler'),
+  daire:      (binaId, id) => doc(db, 'binalar', binaId, 'daireler', id),
+  kasa:       (binaId)     => collection(db, 'binalar', binaId, 'kasa'),
+  kasaDoc:    (binaId, id) => doc(db, 'binalar', binaId, 'kasa', id),
+  kampanyalar:(binaId)     => collection(db, 'binalar', binaId, 'kampanyalar'),
+  kampanya:   (binaId, id) => doc(db, 'binalar', binaId, 'kampanyalar', id),
+  arizalar:   (binaId)     => collection(db, 'binalar', binaId, 'arizalar'),
+  ariza:      (binaId, id) => doc(db, 'binalar', binaId, 'arizalar', id),
+  duyurular:  (binaId)     => collection(db, 'binalar', binaId, 'duyurular'),
+  duyuru:     (binaId, id) => doc(db, 'binalar', binaId, 'duyurular', id),
+  faturalar:  (binaId)     => collection(db, 'binalar', binaId, 'faturalar'),
+  fatura:     (binaId, id) => doc(db, 'binalar', binaId, 'faturalar', id),
+  bakim:      (binaId)     => collection(db, 'binalar', binaId, 'bakim'),
+  bakimDoc:   (binaId, id) => doc(db, 'binalar', binaId, 'bakim', id),
+  firmalar:   (binaId)     => collection(db, 'binalar', binaId, 'firmalar'),
+  firma:      (binaId, id) => doc(db, 'binalar', binaId, 'firmalar', id),
+  settings:   (binaId)     => doc(db, 'binalar', binaId, 'settings', 'config'),
+  adminConfig: ()          => doc(db, 'anayonetici', 'config'),
+  adminLogs:  ()           => collection(db, 'anayonetici', 'logs'),
+  // ── YENİ MODÜL EKLEMEK İÇİN BURAYA EKLE ──
+};
+// COL
+
+// ── Yardımcı fonksiyonlar ─────────────────────────────────────
+function snapToArr(snap) {
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+const ts       = () => ({ guncellemeTarihi: serverTimestamp() });
+const tsCreate = () => ({ olusturmaTarihi: serverTimestamp(), guncellemeTarihi: serverTimestamp() });
+
+// ═══════════════════════════════════════════════════════════════
+//  KORUMA 1: YAZMA KORUMA PENCERESİ
+//  Sorun 2'nin çözümü: Kendi yazmandan sonra 3 saniye boyunca
+//  o koleksiyona gelen onSnapshot güncellemeleri yoksayılır.
+//  Bu sayede "kendi yazmam geri alındı" yanılgısı olmaz.
+// ═══════════════════════════════════════════════════════════════
+const _writeGuard = new Map(); // koleksiyon yolu → timestamp
+
+function setWriteGuard(path) {
+  _writeGuard.set(path, Date.now());
+}
+
+function isWriteGuarded(path) {
+  const t = _writeGuard.get(path);
+  if (!t) return false;
+  if (Date.now() - t < 3000) return true; // 3 saniye koruma
+  _writeGuard.delete(path);
+  return false;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  KORUMA 2: ÇİFT KATMAN YEDEK (localStorage)
+//  Her başarılı Firestore yazmasından sonra veri localStorage'a
+//  da kaydedilir. Çevrimdışında localStorage'dan okunur.
+// ═══════════════════════════════════════════════════════════════
+const LS = {
+  KEY: (binaId, col) => `bp_${binaId}_${col}`,
+
+  save(binaId, col, data) {
+    try {
+      localStorage.setItem(
+        this.KEY(binaId, col),
+        JSON.stringify({ data, ts: Date.now() })
+      );
+    } catch(e) {
+      // localStorage dolu olabilir — sessizce geç
+      console.warn('localStorage yazma hatası:', e.message);
+    }
+  },
+
+  load(binaId, col) {
+    try {
+      const raw = localStorage.getItem(this.KEY(binaId, col));
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      // 7 günden eski localStorage verisini kullanma
+      if (Date.now() - parsed.ts > 7 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(this.KEY(binaId, col));
+        return null;
+      }
+      return parsed.data;
+    } catch(e) {
+      return null;
+    }
+  },
+
+  // Tüm yedek anahtarlarını listele
+  listKeys(binaId) {
+    const prefix = `bp_${binaId}_`;
+    return Object.keys(localStorage)
+      .filter(k => k.startsWith(prefix))
+      .map(k => k.replace(prefix, ''));
+  },
+
+  // Manuel yedek: tüm localStorage verisini JSON olarak indir
+  exportJSON(binaId) {
+    const result = {};
+    this.listKeys(binaId).forEach(col => {
+      result[col] = this.load(binaId, col);
+    });
+    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `binaplus_yedek_${binaId}_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  },
+
+  // Yedekten geri yükle
+  async importJSON(binaId, jsonStr) {
+    const data = JSON.parse(jsonStr);
+    const results = [];
+    for (const [col, arr] of Object.entries(data)) {
+      if (!Array.isArray(arr)) continue;
+      this.save(binaId, col, arr);
+      results.push(col);
+    }
+    return results;
+  }
+};
+
+// LS
+
+// Snapshot'ı hem döndür hem localStorage'a kaydet
+function snapAndCache(binaId, col, snap, cb) {
+  const guardPath = `${binaId}/${col}`;
+  if (isWriteGuarded(guardPath)) return; // ← Koruma penceresi aktif, yoksay
+  const arr = snapToArr(snap);
+  LS.save(binaId, col, arr);
+  cb(arr);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  BİNA META
+// ═══════════════════════════════════════════════════════════════
+const BinaCRUD = {
+  async getAll() {
+    await waitFirebase();
+    const snap = await getDocs(collection(db, 'binalar'));
+    return snapToArr(snap);
+  },
+  async get(binaId) {
+    await waitFirebase();
+    const snap = await getDoc(COL.binalar(binaId));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    await setDoc(COL.binalar(binaId), { ...data, ...tsCreate() });
+  },
+  async update(binaId, data) {
+    await waitFirebase();
+    await updateDoc(COL.binalar(binaId), { ...data, ...ts() });
+  },
+  async delete(binaId) {
+    await waitFirebase();
+    await deleteDoc(COL.binalar(binaId));
+  },
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  SETTINGS (tek döküman)
+// ═══════════════════════════════════════════════════════════════
+const SettingsCRUD = {
+  async get(binaId) {
+    await waitFirebase();
+    const snap = await getDoc(COL.settings(binaId));
+    if (snap.exists()) {
+      LS.save(binaId, 'settings', snap.data());
+      return snap.data();
+    }
+    // Çevrimdışı fallback
+    return LS.load(binaId, 'settings') || {};
+  },
+  async set(binaId, data) {
+    await waitFirebase();
+    await setDoc(COL.settings(binaId), { ...data, ...ts() }, { merge: true });
+    LS.save(binaId, 'settings', data);
+  },
+  onSnapshot(binaId, cb) {
+    return onSnapshot(COL.settings(binaId), snap => {
+      if (isWriteGuarded(`${binaId}/settings`)) return;
+      const d = snap.exists() ? snap.data() : (LS.load(binaId, 'settings') || {});
+      LS.save(binaId, 'settings', d);
+      cb(d);
+    });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  DAİRELER
+// ═══════════════════════════════════════════════════════════════
+const DaireCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(COL.daireler(binaId));
+      const arr = snapToArr(snap);
+      LS.save(binaId, 'daireler', arr);
+      return arr;
+    } catch(e) {
+      // Çevrimdışı fallback
+      return LS.load(binaId, 'daireler') || [];
+    }
+  },
+  async get(binaId, daireId) {
+    await waitFirebase();
+    const snap = await getDoc(COL.daire(binaId, daireId));
+    return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/daireler`);
+    const ref = await addDoc(COL.daireler(binaId), { ...data, odemeler: {}, ...tsCreate() });
+    return ref;
+  },
+  async update(binaId, daireId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/daireler`);
+    await updateDoc(COL.daire(binaId, daireId), { ...data, ...ts() });
+  },
+  async delete(binaId, daireId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/daireler`);
+    await deleteDoc(COL.daire(binaId, daireId));
+  },
+
+  // ── Ödeme işaretle/kaldır (Transaction ile yarış koruması) ──
+  // Sorun 2'nin tam çözümü: runTransaction ile atomik işlem.
+  // İki cihaz aynı anda yazarsa Firestore çakışmayı kendisi çözer.
+  async toggleOdeme(binaId, daireId, ayStr, tutar) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/daireler`);
+    let eklendi = false;
+    await runTransaction(db, async (transaction) => {
+      const ref  = COL.daire(binaId, daireId);
+      const snap = await transaction.get(ref);
+      if (!snap.exists()) throw new Error('Daire bulunamadı');
+      const odemeler = { ...(snap.data().odemeler || {}) };
+      if (odemeler[ayStr]) {
+        delete odemeler[ayStr];
+        eklendi = false;
+      } else {
+        odemeler[ayStr] = {
+          tarih:    new Date().toISOString(),
+          tutar,
+          makbuzNo: `MKB-${Date.now()}`
+        };
+        eklendi = true;
+      }
+      transaction.update(ref, { odemeler, ...ts() });
+    });
+    return eklendi;
+  },
+
+  onSnapshot(binaId, cb) {
+    // Çevrimdışı başlangıç: localStorage'dan hemen göster
+    const cached = LS.load(binaId, 'daireler');
+    if (cached) cb(cached);
+    return onSnapshot(COL.daireler(binaId), snap => {
+      snapAndCache(binaId, 'daireler', snap, cb);
+    });
+  },
+
+  // ── SAKİN GİRİŞİ ─────────────────────────────────────────
+  // Koruması:
+  //   1. waitFirebase() — Firebase hazır olmadan kontrol yok
+  //   2. RateLimit      — 5 hatalı denemede 15 dk kilit
+  //   3. Salt'lı hash   — rainbow table koruması
+  async loginSakin(binaId, daireNo, sifre) {
+    await waitFirebase();
+
+    // Rate limit kontrolü
+    const rlKey = `login:${binaId}:${daireNo}`;
+    RateLimit.restore(rlKey);
+    const rl = RateLimit.check(rlKey);
+
+    if (!rl.ok) {
+      if (rl.locked) {
+        throw new Error(`Çok fazla hatalı deneme. ${rl.minutesLeft} dakika sonra tekrar deneyin.`);
+      }
+      throw new Error('Giriş engellendi.');
+    }
+
+    const q    = query(COL.daireler(binaId), where('daireNo', '==', daireNo));
+    const snap = await getDocs(q);
+    if (snap.empty) {
+      // Daire bulunamasa da rate limit say — kullanıcı adı tespitini engelle
+      RateLimit.fail(rlKey);
+      RateLimit.persist(rlKey);
+      throw new Error('Daire no veya şifre yanlış');
+    }
+    const daire = { id: snap.docs[0].id, ...snap.docs[0].data() };
+
+    if (!daire.sifreHash) throw new Error('Bu daire için şifre tanımlanmamış. Yöneticinize başvurun.');
+
+    // Salt'lı hash dene (yeni format)
+    const saltedHash = await hashSakinSifre(sifre, binaId, daireNo);
+
+    // Geriye dönük uyumluluk: eski salt'sız hash de kabul et
+    const legacyHash = await hashSakinSifreLegacy(sifre);
+
+    const hashMatch = daire.sifreHash === saltedHash || daire.sifreHash === legacyHash;
+
+    if (!hashMatch) {
+      const result = RateLimit.fail(rlKey);
+      RateLimit.persist(rlKey);
+      const kalan = result.remaining ?? 0;
+      if (result.locked) {
+        throw new Error(`Şifre yanlış. Çok fazla hatalı deneme — 15 dakika beklemeniz gerekiyor.`);
+      }
+      throw new Error(`Şifre yanlış. ${kalan > 0 ? `${kalan} deneme hakkınız kaldı.` : ''}`);
+    }
+
+    // Başarılı giriş — rate limit sıfırla
+    RateLimit.reset(rlKey);
+    localStorage.removeItem(`bp_rl_${rlKey}`);
+
+    // Eski salt'sız hash varsa, salt'lı ile güncelle (sessiz migration)
+    if (daire.sifreHash === legacyHash && daire.sifreHash !== saltedHash) {
+      try {
+        await updateDoc(COL.daire(binaId, daire.id), { sifreHash: saltedHash });
+      } catch(e) { /* Sessiz — kritik değil */ }
+    }
+
+    return daire;
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  KASA
+// ═══════════════════════════════════════════════════════════════
+const KasaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(query(COL.kasa(binaId), orderBy('tarih', 'desc')));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'kasa', arr);
+      return arr;
+    } catch(e) {
+      return LS.load(binaId, 'kasa') || [];
+    }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kasa`);
+    return await addDoc(COL.kasa(binaId), { ...data, ...tsCreate() });
+  },
+  async update(binaId, kasaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kasa`);
+    await updateDoc(COL.kasaDoc(binaId, kasaId), { ...data, ...ts() });
+  },
+  async delete(binaId, kasaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kasa`);
+    await deleteDoc(COL.kasaDoc(binaId, kasaId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'kasa');
+    if (cached) cb(cached);
+    return onSnapshot(
+      query(COL.kasa(binaId), orderBy('tarih', 'desc')),
+      snap => snapAndCache(binaId, 'kasa', snap, cb)
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  KAMPANYALAR
+// ═══════════════════════════════════════════════════════════════
+const KampanyaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(COL.kampanyalar(binaId));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'kampanyalar', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'kampanyalar') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kampanyalar`);
+    return await addDoc(COL.kampanyalar(binaId), { ...data, toplunanTutar: 0, ...tsCreate() });
+  },
+  async update(binaId, kampId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kampanyalar`);
+    await updateDoc(COL.kampanya(binaId, kampId), { ...data, ...ts() });
+  },
+  async delete(binaId, kampId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kampanyalar`);
+    await deleteDoc(COL.kampanya(binaId, kampId));
+  },
+  async setDurum(binaId, kampId, durum) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/kampanyalar`);
+    await updateDoc(COL.kampanya(binaId, kampId), { durum, ...ts() });
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'kampanyalar');
+    if (cached) cb(cached);
+    return onSnapshot(COL.kampanyalar(binaId), snap => snapAndCache(binaId, 'kampanyalar', snap, cb));
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  ARIZALAR
+// ═══════════════════════════════════════════════════════════════
+const ArizaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(query(COL.arizalar(binaId), orderBy('bildirimTarihi', 'desc')));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'arizalar', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'arizalar') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    return await addDoc(COL.arizalar(binaId), {
+      ...data, durum: 'bekliyor', fotograflar: [], yorumlar: [],
+      bildirimTarihi: serverTimestamp(), ...tsCreate()
+    });
+  },
+  async update(binaId, arizaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    await updateDoc(COL.ariza(binaId, arizaId), { ...data, ...ts() });
+  },
+  async setDurum(binaId, arizaId, durum) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    const extra = durum === 'tamamlandi' ? { tamamlanmaTarihi: serverTimestamp() } : {};
+    await updateDoc(COL.ariza(binaId, arizaId), { durum, ...extra, ...ts() });
+  },
+  async yorumEkle(binaId, arizaId, yorum) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    await runTransaction(db, async (t) => {
+      const ref  = COL.ariza(binaId, arizaId);
+      const snap = await t.get(ref);
+      const yorumlar = [...(snap.data()?.yorumlar || []), { ...yorum, tarih: new Date().toISOString() }];
+      t.update(ref, { yorumlar, ...ts() });
+    });
+  },
+  async delete(binaId, arizaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/arizalar`);
+    await deleteDoc(COL.ariza(binaId, arizaId));
+  },
+  async fotografYukle(binaId, arizaId, file) {
+    await waitFirebase();
+    const path = `arizalar/${binaId}/${arizaId}/${Date.now()}_${file.name}`;
+    const r    = storageRef(storage, path);
+    await uploadBytes(r, file);
+    const url  = await getDownloadURL(r);
+    setWriteGuard(`${binaId}/arizalar`);
+    await runTransaction(db, async (t) => {
+      const ref  = COL.ariza(binaId, arizaId);
+      const snap = await t.get(ref);
+      const fotograflar = [...(snap.data()?.fotograflar || []), url];
+      t.update(ref, { fotograflar, ...ts() });
+    });
+    return url;
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'arizalar');
+    if (cached) cb(cached);
+    return onSnapshot(
+      query(COL.arizalar(binaId), orderBy('bildirimTarihi', 'desc')),
+      snap => snapAndCache(binaId, 'arizalar', snap, cb)
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  DUYURULAR
+// ═══════════════════════════════════════════════════════════════
+const DuyuruCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(query(COL.duyurular(binaId), orderBy('olusturmaTarihi', 'desc')));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'duyurular', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'duyurular') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/duyurular`);
+    return await addDoc(COL.duyurular(binaId), {
+      ...data, tarih: new Date().toLocaleDateString('tr-TR'), ...tsCreate()
+    });
+  },
+  async delete(binaId, duyuruId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/duyurular`);
+    await deleteDoc(COL.duyuru(binaId, duyuruId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'duyurular');
+    if (cached) cb(cached);
+    return onSnapshot(
+      query(COL.duyurular(binaId), orderBy('olusturmaTarihi', 'desc')),
+      snap => snapAndCache(binaId, 'duyurular', snap, cb)
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  FATURALAR
+// ═══════════════════════════════════════════════════════════════
+const FaturaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(query(COL.faturalar(binaId), orderBy('olusturmaTarihi', 'desc')));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'faturalar', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'faturalar') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/faturalar`);
+    return await addDoc(COL.faturalar(binaId), { ...data, odendi: false, ...tsCreate() });
+  },
+  async toggleOdendi(binaId, faturaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/faturalar`);
+    let odendi = false;
+    await runTransaction(db, async (t) => {
+      const ref  = COL.fatura(binaId, faturaId);
+      const snap = await t.get(ref);
+      odendi = !snap.data()?.odendi;
+      t.update(ref, { odendi, odemeTarihi: odendi ? serverTimestamp() : null, ...ts() });
+    });
+    return odendi;
+  },
+  async delete(binaId, faturaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/faturalar`);
+    await deleteDoc(COL.fatura(binaId, faturaId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'faturalar');
+    if (cached) cb(cached);
+    return onSnapshot(
+      query(COL.faturalar(binaId), orderBy('olusturmaTarihi', 'desc')),
+      snap => snapAndCache(binaId, 'faturalar', snap, cb)
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  BAKIM TAKVİMİ
+// ═══════════════════════════════════════════════════════════════
+const BakimCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(COL.bakim(binaId));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'bakim', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'bakim') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/bakim`);
+    return await addDoc(COL.bakim(binaId), { ...data, ...tsCreate() });
+  },
+  async tamamlandi(binaId, bakimId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/bakim`);
+    await updateDoc(COL.bakimDoc(binaId, bakimId), {
+      sonBakimTarihi: new Date().toISOString().split('T')[0], ...ts()
+    });
+  },
+  async delete(binaId, bakimId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/bakim`);
+    await deleteDoc(COL.bakimDoc(binaId, bakimId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'bakim');
+    if (cached) cb(cached);
+    return onSnapshot(COL.bakim(binaId), snap => snapAndCache(binaId, 'bakim', snap, cb));
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  FİRMA REHBERİ
+// ═══════════════════════════════════════════════════════════════
+const FirmaCRUD = {
+  async getAll(binaId) {
+    await waitFirebase();
+    try {
+      const snap = await getDocs(COL.firmalar(binaId));
+      const arr  = snapToArr(snap);
+      LS.save(binaId, 'firmalar', arr);
+      return arr;
+    } catch(e) { return LS.load(binaId, 'firmalar') || []; }
+  },
+  async create(binaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/firmalar`);
+    return await addDoc(COL.firmalar(binaId), { ...data, ...tsCreate() });
+  },
+  async update(binaId, firmaId, data) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/firmalar`);
+    await updateDoc(COL.firma(binaId, firmaId), { ...data, ...ts() });
+  },
+  async delete(binaId, firmaId) {
+    await waitFirebase();
+    setWriteGuard(`${binaId}/firmalar`);
+    await deleteDoc(COL.firma(binaId, firmaId));
+  },
+  onSnapshot(binaId, cb) {
+    const cached = LS.load(binaId, 'firmalar');
+    if (cached) cb(cached);
+    return onSnapshot(COL.firmalar(binaId), snap => snapAndCache(binaId, 'firmalar', snap, cb));
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════════════════════════════
+const AdminCRUD = {
+  async getConfig() {
+    await waitFirebase();
+    const snap = await getDoc(COL.adminConfig());
+    return snap.exists() ? snap.data() : null;
+  },
+  async setConfig(data) {
+    await waitFirebase();
+    await setDoc(COL.adminConfig(), { ...data, guncellemeTarihi: serverTimestamp() }, { merge: true });
+  },
+  async log(entry) {
+    try {
+      await addDoc(COL.adminLogs(), { ...entry, tarih: serverTimestamp() });
+    } catch(e) {
+      // Log yazma başarısız olursa sessizce geç — ana işlemi engelleme
+      console.warn('Log yazma hatası:', e.message);
+    }
+  },
+  async getLogs(limitSayi = 100) {
+    await waitFirebase();
+    const snap = await getDocs(query(COL.adminLogs(), orderBy('tarih', 'desc'), limit(limitSayi)));
+    return snapToArr(snap);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════════
+const AuthService = {
+  async loginYonetici(email, password) {
+    await waitFirebase();
+
+    // Rate limit kontrolü — e-posta bazlı
+    const rlKey = `login:yonetici:${email.toLowerCase()}`;
+    RateLimit.restore(rlKey);
+    const rl = RateLimit.check(rlKey);
+    if (!rl.ok && rl.locked) {
+      throw new Error(`Çok fazla hatalı deneme. ${rl.minutesLeft} dakika sonra tekrar deneyin.`);
+    }
+
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      RateLimit.reset(rlKey);
+      localStorage.removeItem(`bp_rl_${rlKey}`);
+      return cred;
+    } catch(e) {
+      const result = RateLimit.fail(rlKey);
+      RateLimit.persist(rlKey);
+      if (result.locked) {
+        throw new Error('Çok fazla hatalı deneme. 15 dakika sonra tekrar deneyin.');
+      }
+      const kalan = result.remaining ?? 0;
+      // Firebase hata mesajlarını Türkçeleştir
+      if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential') {
+        throw new Error(`E-posta veya şifre yanlış.${kalan > 0 ? ` ${kalan} deneme hakkınız kaldı.` : ''}`);
+      }
+      if (e.code === 'auth/user-not-found') {
+        throw new Error('Bu e-posta ile kayıtlı hesap bulunamadı.');
+      }
+      if (e.code === 'auth/too-many-requests') {
+        throw new Error('Firebase: Çok fazla istek. Lütfen bekleyin.');
+      }
+      throw new Error(e.message || 'Giriş başarısız');
+    }
+  },
+  async logout() {
+    await signOut(auth);
+  },
+  async updatePassword(newPassword) {
+    if (!auth.currentUser) throw new Error('Giriş yapılmamış');
+    await updatePassword(auth.currentUser, newPassword);
+  },
+  onStateChange(cb) {
+    return onAuthStateChanged(auth, cb);
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  TOPLU SUBSCRIPTION
+//  Yazma koruma penceresi snapAndCache üzerinden otomatik çalışır.
+//  Çevrimdışıyken cached veriden başlar, bağlantı gelince güncellenir.
+// ═══════════════════════════════════════════════════════════════
+function subscribeBina(binaId, callbacks) {
+  const unsubs = [];
+  const {
+    onSettings, onDaireler, onKasa, onKampanyalar,
+    onArizalar, onDuyurular, onFaturalar, onBakim, onFirmalar
+  } = callbacks;
+
+  if (onSettings)    unsubs.push(SettingsCRUD.onSnapshot(binaId, onSettings));
+  if (onDaireler)    unsubs.push(DaireCRUD.onSnapshot(binaId, onDaireler));
+  if (onKasa)        unsubs.push(KasaCRUD.onSnapshot(binaId, onKasa));
+  if (onKampanyalar) unsubs.push(KampanyaCRUD.onSnapshot(binaId, onKampanyalar));
+  if (onArizalar)    unsubs.push(ArizaCRUD.onSnapshot(binaId, onArizalar));
+  if (onDuyurular)   unsubs.push(DuyuruCRUD.onSnapshot(binaId, onDuyurular));
+  if (onFaturalar)   unsubs.push(FaturaCRUD.onSnapshot(binaId, onFaturalar));
+  if (onBakim)       unsubs.push(BakimCRUD.onSnapshot(binaId, onBakim));
+  if (onFirmalar)    unsubs.push(FirmaCRUD.onSnapshot(binaId, onFirmalar));
+
+  return () => unsubs.forEach(u => u());
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  MANUEL YEDEK API (index.html'den çağrılır)
+// ═══════════════════════════════════════════════════════════════
+const YedekService = {
+  // localStorage'daki tüm veriyi JSON olarak indir
+  exportLocal(binaId) {
+    LS.exportJSON(binaId);
+  },
+
+  // Firestore'dan taze veri çek, hem LS'e hem JSON'a yaz
+  async exportFirestore(binaId) {
+    await waitFirebase();
+    const [daireler, kasa, kampanyalar, arizalar, duyurular, faturalar, bakim, firmalar, settings] =
+      await Promise.all([
+        DaireCRUD.getAll(binaId),
+        KasaCRUD.getAll(binaId),
+        KampanyaCRUD.getAll(binaId),
+        ArizaCRUD.getAll(binaId),
+        DuyuruCRUD.getAll(binaId),
+        FaturaCRUD.getAll(binaId),
+        BakimCRUD.getAll(binaId),
+        FirmaCRUD.getAll(binaId),
+        SettingsCRUD.get(binaId),
+      ]);
+    const data = { binaId, tarih: new Date().toISOString(), daireler, kasa, kampanyalar, arizalar, duyurular, faturalar, bakim, firmalar, settings };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `binaplus_tam_yedek_${binaId}_${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return data;
+  },
+
+  // JSON dosyasından Firestore'a geri yükle (batch write)
+  async importFirestore(binaId, jsonStr) {
+    await waitFirebase();
+    const data   = JSON.parse(jsonStr);
+    const batch  = writeBatch(db);
+    let   count  = 0;
+
+    const colMap = {
+      daireler:    (d) => doc(COL.daireler(binaId), d.id),
+      kasa:        (d) => doc(COL.kasa(binaId), d.id),
+      kampanyalar: (d) => doc(COL.kampanyalar(binaId), d.id),
+      arizalar:    (d) => doc(COL.arizalar(binaId), d.id),
+      duyurular:   (d) => doc(COL.duyurular(binaId), d.id),
+      faturalar:   (d) => doc(COL.faturalar(binaId), d.id),
+      bakim:       (d) => doc(COL.bakim(binaId), d.id),
+      firmalar:    (d) => doc(COL.firmalar(binaId), d.id),
+    };
+
+    for (const [col, arr] of Object.entries(colMap)) {
+      if (!Array.isArray(data[col])) continue;
+      data[col].forEach(item => {
+        const { id, ...rest } = item;
+        batch.set(colMap[col]({ id }), rest, { merge: true });
+        count++;
+      });
+    }
+
+    if (data.settings) {
+      batch.set(COL.settings(binaId), data.settings, { merge: true });
+      count++;
+    }
+
+    await batch.commit();
+    return count;
+  }
+};
+
+// ── YENİ MODÜL ŞABLONU ────────────────────────────────────────
+// Kopyala, adını ve col adını değiştir:
+//
+// const YeniModulCRUD = {
+//   async getAll(binaId) {
+//     await waitFirebase();
+//     try {
+//       const snap = await getDocs(COL.yeniModul(binaId));
+//       const arr  = snapToArr(snap);
+//       LS.save(binaId, 'yeniModul', arr);
+//       return arr;
+//     } catch(e) { return LS.load(binaId, 'yeniModul') || []; }
+//   },
+//   async create(binaId, data) {
+//     await waitFirebase();
+//     setWriteGuard(`${binaId}/yeniModul`);
+//     return await addDoc(COL.yeniModul(binaId), { ...data, ...tsCreate() });
+//   },
+//   async update(binaId, docId, data) {
+//     await waitFirebase();
+//     setWriteGuard(`${binaId}/yeniModul`);
+//     await updateDoc(doc(db,'binalar',binaId,'yeniModul',docId), { ...data, ...ts() });
+//   },
+//   async delete(binaId, docId) {
+//     await waitFirebase();
+//     setWriteGuard(`${binaId}/yeniModul`);
+//     await deleteDoc(doc(db,'binalar',binaId,'yeniModul',docId));
+//   },
+//   onSnapshot(binaId, cb) {
+//     const cached = LS.load(binaId, 'yeniModul');
+//     if (cached) cb(cached);
+//     return onSnapshot(COL.yeniModul(binaId), snap => snapAndCache(binaId, 'yeniModul', snap, cb));
+//   }
+// };
+
+
+// ── Ek Firebase importları (db.js'de zaten var, alias için) ──
+const createUserWithEmailAndPassword = (await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js')).createUserWithEmailAndPassword;
+
+// ─── STATE ───────────────────────────────────────────
+let SESSION = { loggedIn: false, masterSifre: null };
+let ALL_BINALAR = [];
+let SYSTEM_CFG  = {};
+let LOGS        = [];
+
+// ─── UTILS ───────────────────────────────────────────
+function toast(msg, type='i') {
+  const icons = { s:'✅', e:'❌', i:'ℹ️' };
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.innerHTML = `<span style="font-size:18px">${icons[type]||'ℹ️'}</span><span style="color:var(--text)">${msg}</span>`;
+  document.getElementById('toastCont').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+window.toast = toast;
+
+function daysLeft(dateStr) {
+  if (!dateStr) return null;
+  return Math.ceil((new Date(dateStr) - Date.now()) / (1000*60*60*24));
+}
+function fmtPara(v) {
+  return '₺' + (parseFloat(v)||0).toLocaleString('tr-TR', {minimumFractionDigits:2});
+}
+
+async function addLog(binaId, islem, detay) {
+  const entry = {
+    binaId, islem, detay,
+    kullanici: 'Süper Admin',
+    tarih: new Date().toLocaleString('tr-TR')
+  };
+  LOGS.unshift(entry);
+  try { await AdminCRUD.log(entry); } catch(e) {}
+  renderLogs();
+  renderDashboard();
+}
+
+const GRACE_DAYS = () => parseInt(SYSTEM_CFG?.abonelik?.gracePeriodGun || 10);
+
+// ─── LOGIN ───────────────────────────────────────────
+window.toggleEye = function() {
+  const inp = document.getElementById('inpMaster');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+};
+
+window.doAdminLogin = async function() {
+  const btn   = document.getElementById('btnLogin');
+  const errEl = document.getElementById('loginErr');
+  errEl.classList.remove('show');
+
+  const pass = document.getElementById('inpMaster').value;
+  if (!pass) { errEl.textContent = 'Şifre gerekli'; errEl.classList.add('show'); return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Firebase bağlanıyor...';
+
+  try {
+    // Firebase config eksik kontrolü
+    if (FIREBASE_CONFIG.messagingSenderId === 'YOUR_SENDER_ID') {
+      console.warn('Firebase messagingSenderId ayarlanmamış — devam ediliyor');
+    }
+
+    // Adım 1: Firebase hazır ol
+    btn.textContent = 'Bağlantı kuruluyor...';
+    await waitFirebase();
+
+    // Adım 2: Admin config oku
+    btn.textContent = 'Doğrulanıyor...';
+    let cfg = null;
+    try {
+      cfg = await AdminCRUD.getConfig();
+    } catch(e) {
+      // Config okuma hatası — Firestore Rules sorunu olabilir
+      console.error('Config okuma hatası:', e);
+      throw new Error(`Firestore bağlantı hatası: ${e.message}. Firebase Console'da Rules ve Auth ayarlarını kontrol edin.`);
+    }
+
+    if (!cfg || !cfg.masterSifre) {
+      // İlk kurulum — şifreyi kaydet
+      btn.textContent = 'İlk kurulum yapılıyor...';
+      const newHash = await sha256(pass);
+      await AdminCRUD.setConfig({
+        masterSifre:  newHash,
+        adminUids:   [],
+        abonelik:    { gracePeriodGun: 10, kilitAktif: true, hatirlatmaGunOnce: 7 },
+        sistem:      { oturumSuresiDakika: 60 },
+        yedek:       { otomatik: false, saat: '02:00', siklik: 'daily', gecmis: [] },
+        bildirim:    { emailjsServiceId: '', emailjsTemplateId: '', emailjsPublicKey: '' },
+      });
+      cfg = await AdminCRUD.getConfig();
+      toast('✅ İlk kurulum tamamlandı! Master şifre belirlendi.', 's');
+    }
+
+    // Adım 3: Şifre doğrula
+    const inputHash = await sha256(pass);
+    if (inputHash !== cfg.masterSifre) {
+      throw new Error('Şifre yanlış');
+    }
+
+    // Adım 4: Giriş başarılı
+    SESSION.loggedIn   = true;
+    SESSION.masterSifre = cfg.masterSifre;
+    SYSTEM_CFG         = cfg;
+
+    document.getElementById('loginScreen').classList.remove('active');
+    document.getElementById('appScreen').classList.add('active');
+
+    await loadAll();
+    await addLog('—', 'login', 'Süper Admin girişi yapıldı');
+    toast('Hoş geldiniz, Süper Admin 🛡️', 's');
+
+  } catch(e) {
+    console.error('Login hatası:', e);
+    errEl.textContent = e.message || 'Giriş başarısız — Console\'u kontrol edin (F12)';
+    errEl.classList.add('show');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🛡️ Giriş Yap';
+};
+
+// ─── LOAD ALL ────────────────────────────────────────
+async function loadAll() {
+  ALL_BINALAR = await BinaCRUD.getAll();
+  populateSelects();
+  renderDashboard();
+  renderBinalar();
+  renderAbonelik();
+  renderUsers();
+  renderBackupSettings();
+  await renderMonitor();
+  await initSifreSifirla();
+  const logs = await AdminCRUD.getLogs(200);
+  LOGS = logs.map(l => ({ ...l, tarih: l.tarih?.toDate?.()?.toLocaleString('tr-TR') || l.tarih }));
+  renderLogs();
+  loadSettingsForm();
+}
+window.refreshAll = loadAll;
+
+function populateSelects() {
+  const opts = ALL_BINALAR.map(b => `<option value="${b.id}">${b.binaAdi||b.id}</option>`).join('');
+  ['logBinaFilter','ynBina','backupBinaId'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const prefix = id === 'logBinaFilter' ? '<option value="">Tüm Binalar</option>' : '<option value="">Bina seçin...</option>';
+    el.innerHTML = prefix + opts;
+  });
+}
+
+// ─── DASHBOARD ───────────────────────────────────────
+function renderDashboard() {
+  const bins = ALL_BINALAR;
+  const grace = GRACE_DAYS();
+  const aktif = bins.filter(b => {
+    if (b.abonelik?.plan === 'omurboyu') return true;
+    const left = daysLeft(b.abonelik?.bitis);
+    return left === null || left > 0;
+  }).length;
+  const graceCount = bins.filter(b => {
+    const left = daysLeft(b.abonelik?.bitis);
+    return left !== null && left < 0 && left > -grace;
+  }).length;
+  const totalDaire = bins.reduce((s,b) => s + (b.daireSayisi||0), 0);
+
+  const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  set('dsTotalBina', bins.length);
+  set('dsTotalBinaSub', `${bins.length} bina kayıtlı`);
+  set('dsAktif', aktif);
+  set('dsAktifSub', `${bins.length - aktif} pasif`);
+  set('dsGrace', graceCount);
+  set('dsUsers', totalDaire + ' daire');
+
+  const badge = document.getElementById('badgeGrace');
+  if (badge) badge.style.display = graceCount > 0 ? '' : 'none';
+
+  // Bina özet
+  const sumEl = document.getElementById('dashBinaSummary');
+  if (sumEl) {
+    sumEl.innerHTML = bins.slice(0,6).map(b => {
+      const left = b.abonelik?.plan==='omurboyu' ? 9999 : daysLeft(b.abonelik?.bitis);
+      const cls = left===9999?'badge-purple':left===null?'badge-muted':left>30?'badge-success':left>0?'badge-gold':'badge-warn';
+      const txt = left===9999?'Ömür Boyu':left===null?'—':left>0?`${left} gün`:`${Math.abs(left)}g gecikti`;
+      return `<div class="monitor-item">
+        <span>🏢</span>
+        <div style="flex:1"><div style="font-size:13px;font-weight:700">${b.binaAdi||b.id}</div>
+        <div style="font-size:11px;color:var(--text2)">${b.daireSayisi||0} daire</div></div>
+        <span class="badge ${cls}">${txt}</span>
+      </div>`;
+    }).join('') || '<div class="empty"><div class="empty-text">Bina yok</div></div>';
+  }
+
+  // Log özet
+  const logEl = document.getElementById('dashLog');
+  if (logEl) {
+    logEl.innerHTML = LOGS.slice(0,8).map(l => `
+      <div class="monitor-item">
+        <span>📋</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600">${l.islem} — ${l.binaId||'—'}</div>
+          <div style="font-size:11px;color:var(--text2)">${l.tarih||'—'}</div>
+        </div>
+      </div>`).join('') || '<div class="empty"><div class="empty-text">İşlem yok</div></div>';
+  }
+}
+
+// ─── BİNALAR ─────────────────────────────────────────
+function renderBinalar(filter='') {
+  const el = document.getElementById('binaListEl');
+  if (!el) return;
+  const grace = GRACE_DAYS();
+  const list = filter
+    ? ALL_BINALAR.filter(b => (b.binaAdi||b.id).toLowerCase().includes(filter.toLowerCase()))
+    : ALL_BINALAR;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏢</div><div class="empty-text">Bina bulunamadı</div></div>';
+    return;
+  }
+  el.innerHTML = list.map(b => {
+    const left = b.abonelik?.plan==='omurboyu' ? 9999 : daysLeft(b.abonelik?.bitis);
+    const isGrace = left !== null && left < 0 && left > -grace;
+    const isExp   = left !== null && left <= -grace;
+    const cls = left===9999?'badge-purple':isExp?'badge-warn':isGrace?'badge-gold':left!==null&&left<=30?'badge-gold':'badge-success';
+    const txt = left===9999?'Ömür Boyu':isExp?`${Math.abs(left)}g gecikti`:isGrace?`Grace: ${grace+left}g`:`${left??'—'} gün`;
+    return `<div class="bina-list-card">
+      <div class="bina-header">
+        <div>
+          <div class="bina-name">🏢 ${b.binaAdi||'—'}</div>
+          <div class="bina-id">${b.id}</div>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+          <span class="badge ${cls}">${txt}</span>
+          <span class="badge badge-muted">${b.abonelik?.plan||'Temel'}</span>
+        </div>
+      </div>
+      <div class="bina-stats">
+        <span class="bina-stat">🏠 ${b.daireSayisi||0} Daire</span>
+        <span class="bina-stat">📍 ${b.adres||'—'}</span>
+        <span class="bina-stat">📅 ${b.abonelik?.bitis||'—'}</span>
+        <span class="bina-stat">👤 ${b.yoneticiEmail||'—'}</span>
+      </div>
+      <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="editBina('${b.id}')">✏️ Düzenle</button>
+        <button class="btn btn-success btn-sm" onclick="openSubUzat('${b.id}')">💳 Abonelik Uzat</button>
+        <button class="btn btn-accent btn-sm" onclick="showBinaURL('${b.id}','${(b.binaAdi||b.id).replace(/'/g,"\\'")}')">🔗 Link & QR</button>
+        <button class="btn btn-purple btn-sm" onclick="adminBinayaGir('${b.id}')">🚀 Panele Gir</button>
+        <button class="btn btn-ghost btn-sm" onclick="manualBackupBina('${b.id}')">💾 Yedekle</button>
+        <button class="btn btn-warn btn-sm" onclick="deleteBina('${b.id}')">🗑️ Sil</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+window.filterBinalar = () => renderBinalar(document.getElementById('binaSearch').value);
+
+window.binaEkle = async function() {
+  const binaId = document.getElementById('binaIdInp').value.trim().toLowerCase().replace(/\s+/g,'-');
+  const binaAdi = document.getElementById('binaAdi').value.trim();
+  if (!binaId || !binaAdi) { toast('Bina adı ve ID gerekli','e'); return; }
+  try {
+    const email = document.getElementById('binaYoneticiEmail').value.trim();
+    const sifre = document.getElementById('binaYoneticiSifre').value;
+    let yoneticiUid = '';
+    if (email && sifre) {
+      const cred = await createUserWithEmailAndPassword(auth, email, sifre);
+      yoneticiUid = cred.user.uid;
+    }
+    await BinaCRUD.create(binaId, {
+      binaAdi, adres: document.getElementById('binaAdres').value.trim(),
+      daireSayisi: parseInt(document.getElementById('binaDaireSayi').value)||0,
+      not: document.getElementById('binaNot').value.trim(),
+      yoneticiUid, yoneticiEmail: email,
+      abonelik: {
+        plan:  document.getElementById('binaAbonelik').value,
+        bitis: document.getElementById('binaSubBitis').value,
+        durum: 'aktif',
+      },
+    });
+    // settings/config alt-koleksiyonu başlat
+    await SettingsCRUD.set(binaId, {
+      aidat: { tutar: 500, baslangicAy: new Date().toISOString().slice(0,7) },
+      finansal: { gecikmeFaizOrani: 1.5, yillikButce: 0, paraBirimi: 'TRY' },
+      bildirim: { aylikHatirlatmaGunu: 5, pushAktif: false, emailAktif: false, smsAktif: false },
+      guvenlik: { twofaAktif: false },
+      gorunum:  { karanlikMod: true, dil: 'tr' },
+    });
+    toast('Bina oluşturuldu ✅','s');
+    await addLog(binaId, 'bina_ekle', `${binaAdi} oluşturuldu`);
+    closeModal('modalBinaEkle');
+    ALL_BINALAR = await BinaCRUD.getAll();
+    populateSelects(); renderBinalar(); renderDashboard();
+  } catch(e) { toast('Hata: '+e.message,'e'); }
+};
+
+window.editBina = function(id) {
+  const b = ALL_BINALAR.find(x=>x.id===id);
+  if (!b) return;
+  document.getElementById('editBinaId').value = id;
+  document.getElementById('editBinaAdi').value = b.binaAdi||'';
+  document.getElementById('editBinaAdres').value = b.adres||'';
+  document.getElementById('editBinaAbonelik').value = b.abonelik?.plan||'temel';
+  document.getElementById('editBinaSubBitis').value = b.abonelik?.bitis||'';
+  document.getElementById('editBinaDurum').value = b.abonelik?.durum||'aktif';
+  document.getElementById('editBinaNot').value = b.not||'';
+  openModal('modalBinaDuzenle');
+};
+
+window.binaGuncelle = async function() {
+  const id = document.getElementById('editBinaId').value;
+  try {
+    await BinaCRUD.update(id, {
+      binaAdi: document.getElementById('editBinaAdi').value.trim(),
+      adres:   document.getElementById('editBinaAdres').value.trim(),
+      not:     document.getElementById('editBinaNot').value.trim(),
+      'abonelik.plan':  document.getElementById('editBinaAbonelik').value,
+      'abonelik.bitis': document.getElementById('editBinaSubBitis').value,
+      'abonelik.durum': document.getElementById('editBinaDurum').value,
+    });
+    toast('Bina güncellendi','s');
+    await addLog(id,'bina_guncelle','Güncellendi');
+    closeModal('modalBinaDuzenle');
+    ALL_BINALAR = await BinaCRUD.getAll();
+    renderBinalar(); renderDashboard(); renderAbonelik();
+  } catch(e) { toast('Hata: '+e.message,'e'); }
+};
+
+window.deleteBina = async function(id) {
+  const b = ALL_BINALAR.find(x=>x.id===id);
+  if (!confirm(`"${b?.binaAdi||id}" silinsin mi? Bu işlem GERİ ALINAMAZ!`)) return;
+  if (!confirm('Son onay: Tüm veriler kalıcı olarak silinecek!')) return;
+  try {
+    await BinaCRUD.delete(id);
+    toast('Bina silindi','s');
+    await addLog(id,'bina_sil','Silindi');
+    ALL_BINALAR = await BinaCRUD.getAll();
+    populateSelects(); renderBinalar(); renderDashboard();
+  } catch(e) { toast('Hata: '+e.message,'e'); }
+};
+
+// ─── ABONELİK ────────────────────────────────────────
+function renderAbonelik(filter='tum') {
+  const el = document.getElementById('subList');
+  if (!el) return;
+  const grace = GRACE_DAYS();
+  const filtered = ALL_BINALAR.filter(b => {
+    const left = b.abonelik?.plan==='omurboyu' ? 9999 : daysLeft(b.abonelik?.bitis);
+    const isGrace = left !== null && left < 0 && left > -grace;
+    const isExp   = left !== null && left <= -grace;
+    if (filter==='aktif')  return left===9999||left===null||left>0;
+    if (filter==='grace')  return isGrace;
+    if (filter==='sureli') return isExp;
+    return true;
+  });
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><div class="empty-text">Bu kategoride bina yok</div></div>';
+    return;
+  }
+  el.innerHTML = filtered.map(b => {
+    const left = b.abonelik?.plan==='omurboyu' ? 9999 : daysLeft(b.abonelik?.bitis);
+    const isGrace = left !== null && left < 0 && left > -grace;
+    const isExp   = left !== null && left <= -grace;
+    const cls = left===9999?'badge-purple':isExp?'badge-warn':isGrace?'badge-gold':left!==null&&left<=30?'badge-gold':'badge-success';
+    const txt = left===9999?'Ömür Boyu':isExp?`${Math.abs(left)}g gecikti`:isGrace?`Grace: ${grace+left}g kaldı`:left!==null?`${left}g kaldı`:'—';
+    return `<div class="sub-card">
+      <div style="font-size:24px">🏢</div>
+      <div class="sub-info">
+        <div class="sub-name">${b.binaAdi||b.id}</div>
+        <div class="sub-meta">Plan: <strong>${b.abonelik?.plan||'Temel'}</strong> · Bitiş: <strong>${b.abonelik?.bitis||'—'}</strong></div>
+        ${isGrace ? `<div class="progress-track" style="margin-top:8px;width:200px">
+          <div class="progress-fill" style="width:${Math.max(0,(grace+left)/grace*100)}%;background:var(--gold)"></div>
+        </div>` : isExp ? `<div style="margin-top:4px;font-size:11px;color:var(--warn);font-weight:700">⚠️ Erişim kilitlendi</div>` : ''}
+      </div>
+      <div class="sub-actions">
+        <span class="badge ${cls}">${txt}</span>
+        <button class="btn btn-success btn-sm" onclick="openSubUzat('${b.id}')">💳 Uzat</button>
+        ${isExp ? `<button class="btn btn-ghost btn-sm" onclick="subGraceVer('${b.id}')">⏳ Grace Ver</button>` : ''}
+        ${!isExp&&!isGrace&&left!==9999 ? `<button class="btn btn-warn btn-sm" onclick="subAskiya('${b.id}')">⏸️ Askıya Al</button>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+window.filterSub = (f) => renderAbonelik(f);
+
+window.openSubUzat = function(id) {
+  const b = ALL_BINALAR.find(x=>x.id===id);
+  document.getElementById('subUzatBinaId').value = id;
+  document.getElementById('subUzatBinaAdi').value = b?.binaAdi||id;
+  const d = new Date(); d.setMonth(d.getMonth()+1);
+  document.getElementById('subUzatBitis').value = d.toISOString().split('T')[0];
+  openModal('modalSubUzat');
+};
+
+window.subUzat = async function() {
+  const id   = document.getElementById('subUzatBinaId').value;
+  const sure = document.getElementById('subUzatSure').value;
+  const b    = ALL_BINALAR.find(x=>x.id===id);
+  let bitis;
+  if (sure==='lifetime') { bitis='2099-12-31'; }
+  else {
+    const base = new Date(b?.abonelik?.bitis||Date.now());
+    if (base < new Date()) base.setTime(Date.now());
+    base.setMonth(base.getMonth()+parseInt(sure));
+    bitis = base.toISOString().split('T')[0];
+  }
+  try {
+    await BinaCRUD.update(id, {
+      'abonelik.bitis': bitis,
+      'abonelik.durum': 'aktif',
+      'abonelik.plan':  sure==='lifetime' ? 'omurboyu' : (b?.abonelik?.plan||'temel'),
+    });
+    toast('Abonelik uzatıldı ✅','s');
+    await addLog(id, 'sub_uzat', `${sure} aylık → ${bitis}`);
+    closeModal('modalSubUzat');
+    ALL_BINALAR = await BinaCRUD.getAll();
+    renderDashboard(); renderBinalar(); renderAbonelik();
+  } catch(e) { toast('Hata: '+e.message,'e'); }
+};
+
+window.subGraceVer = async function(id) {
+  const d = new Date(); d.setDate(d.getDate()+GRACE_DAYS());
+  await BinaCRUD.update(id, { 'abonelik.bitis': d.toISOString().split('T')[0], 'abonelik.durum': 'grace' });
+  toast(`${GRACE_DAYS()} günlük grace period verildi`,'s');
+  await addLog(id,'grace_ver',`Bitiş: ${d.toLocaleDateString('tr-TR')}`);
+  ALL_BINALAR = await BinaCRUD.getAll();
+  renderDashboard(); renderAbonelik();
+};
+
+window.subAskiya = async function(id) {
+  if (!confirm('Binayı askıya almak istiyor musunuz?')) return;
+  await BinaCRUD.update(id, { 'abonelik.durum': 'askida' });
+  toast('Bina askıya alındı','i');
+  await addLog(id,'sub_askiya','Askıya alındı');
+  ALL_BINALAR = await BinaCRUD.getAll();
+  renderAbonelik();
+};
+
+// ─── KULLANICILAR ────────────────────────────────────
+async function renderUsers(filter='') {
+  const rows = [];
+  for (const b of ALL_BINALAR) {
+    try {
+      const daireler = await DaireCRUD.getAll(b.id);
+      daireler.forEach(d => rows.push({
+        bina: b.binaAdi||b.id, binaId: b.id,
+        ad: d.sakin||'—', email: d.email||'—',
+        rol: 'Sakin', daireNo: d.daireNo,
+      }));
+    } catch(e) {}
+    if (b.yoneticiEmail) rows.push({
+      bina: b.binaAdi||b.id, binaId: b.id,
+      ad: 'Yönetici', email: b.yoneticiEmail, rol: 'Yönetici',
+    });
+  }
+  window._allUsers = rows;
+  renderUserTable(rows, filter);
+
+  // ynBina select
+  const sel = document.getElementById('ynBina');
+  if (sel) sel.innerHTML = '<option value="">Bina seçin...</option>' +
+    ALL_BINALAR.map(b=>`<option value="${b.id}">${b.binaAdi||b.id}</option>`).join('');
+}
+function renderUserTable(rows, filter='') {
+  const q = filter.toLowerCase();
+  const list = q ? rows.filter(r => (r.ad+r.email+r.bina).toLowerCase().includes(q)) : rows;
+  const body = document.getElementById('userBody');
+  if (!body) return;
+  body.innerHTML = list.length ? list.map(r=>`
+    <tr>
+      <td><div style="font-weight:700">${r.ad}</div><div style="font-size:11px;color:var(--text2)">${r.email}</div></td>
+      <td>${r.bina}</td>
+      <td><span class="badge ${r.rol==='Yönetici'?'badge-purple':'badge-muted'}">${r.rol}</span></td>
+      <td style="color:var(--text3)">—</td>
+      <td><span class="badge badge-success">Aktif</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="toast('Kullanıcı detayı','i')">⚙️</button></td>
+    </tr>`).join('')
+  : '<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--text3)">Kullanıcı yok</td></tr>';
+}
+window.filterUsers = () => renderUserTable(window._allUsers||[], document.getElementById('userSearch').value);
+
+window.yoneticiEkle = async function() {
+  const email  = document.getElementById('ynEmail').value.trim();
+  const sifre  = document.getElementById('ynSifre').value;
+  const binaId = document.getElementById('ynBina').value;
+  if (!email||!sifre) { toast('E-posta ve şifre gerekli','e'); return; }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, sifre);
+    if (binaId) await BinaCRUD.update(binaId, { yoneticiUid: cred.user.uid, yoneticiEmail: email });
+    toast('Yönetici oluşturuldu ✅','s');
+    await addLog(binaId,'yonetici_ekle',`${email}`);
+    closeModal('modalYoneticiEkle');
+    ALL_BINALAR = await BinaCRUD.getAll();
+    await renderUsers();
+  } catch(e) { toast('Hata: '+e.message,'e'); }
+};
+
+// ─── YEDEKLEME ───────────────────────────────────────
+function renderBackupSettings() {
+  const cfg = SYSTEM_CFG?.yedek||{};
+  const tog = document.getElementById('toggleAutoBackup');
+  if (tog && cfg.otomatik) tog.classList.add('on');
+  if (cfg.saat) { const e=document.getElementById('backupTime'); if(e) e.value=cfg.saat; }
+  if (cfg.siklik) { const e=document.getElementById('backupFreq'); if(e) e.value=cfg.siklik; }
+  if (cfg.driveFolderKimlik) { const e=document.getElementById('driveFolderId'); if(e) e.value=cfg.driveFolderKimlik; }
+
+  const history = cfg.gecmis||[];
+  const set = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+  set('totalBackups', history.length);
+  set('autoBackupStatus', cfg.otomatik?'Açık':'Kapalı');
+  if (history[0]) {
+    set('lastBackupTime', history[0].tarih||'—');
+    set('lastBackupSize', 'Boyut: '+(history[0].size||'—'));
+  }
+  renderBackupHistory(history);
+}
+function renderBackupHistory(history) {
+  const body = document.getElementById('backupHistory');
+  if (!body) return;
+  body.innerHTML = history.slice(0,20).map(h=>`
+    <tr>
+      <td>${h.tarih||'—'}</td><td>${h.bina||'Tümü'}</td>
+      <td><span class="badge badge-muted">${h.format||'JSON'}</span></td>
+      <td>${h.size||'—'}</td>
+      <td><span class="badge badge-success">✅</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="toast('İndirme','i')">📥</button></td>
+    </tr>`).join('') ||
+  '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text3)">Yedek yok</td></tr>';
+}
+
+window.manualBackup = async function() {
+  const scope  = document.getElementById('backupScope').value;
+  const format = document.getElementById('backupFormat').value;
+  toast('Yedek oluşturuluyor...','i');
+  const data = {};
+  if (scope==='single') {
+    const id = document.getElementById('backupBinaId').value;
+    const settings = await SettingsCRUD.get(id);
+    const daireler = await DaireCRUD.getAll(id);
+    data[id] = { settings, daireler };
+  } else {
+    for (const b of ALL_BINALAR) {
+      try {
+        const settings = await SettingsCRUD.get(b.id);
+        const daireler = await DaireCRUD.getAll(b.id);
+        data[b.id] = { meta: b, settings, daireler };
+      } catch(e) {}
+    }
+  }
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `binaplus_yedek_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  const entry = { tarih:new Date().toLocaleString('tr-TR'), bina:scope==='all'?'Tümü':document.getElementById('backupBinaId').value, format:'JSON', size:Math.round(blob.size/1024)+'KB' };
+  const gecmis = [entry, ...(SYSTEM_CFG?.yedek?.gecmis||[])].slice(0,50);
+  SYSTEM_CFG.yedek = { ...SYSTEM_CFG.yedek, gecmis, sonYedekZamani: Date.now(), sonBoyut: entry.size };
+  await AdminCRUD.setConfig({ yedek: SYSTEM_CFG.yedek });
+  renderBackupSettings();
+  await addLog('—','backup',`Manuel yedek: ${entry.size}`);
+  toast('Yedek indirildi ✅','s');
+};
+window.manualBackupBina = (id) => {
+  const el = document.getElementById('backupBinaId');
+  const sc = document.getElementById('backupScope');
+  const bf = document.getElementById('backupBinaField');
+  if (el) el.value=id;
+  if (sc) sc.value='single';
+  if (bf) bf.style.display='block';
+  goTo('yedek');
+  setTimeout(manualBackup, 300);
+};
+window.driveBackup = () => toast('Google Drive: OAuth2 kurulumu gerekli','i');
+window.saveAutoBackupSetting = async function() {
+  const cfg = {
+    otomatik:          document.getElementById('toggleAutoBackup')?.classList.contains('on')||false,
+    saat:              document.getElementById('backupTime')?.value||'02:00',
+    siklik:            document.getElementById('backupFreq')?.value||'daily',
+    driveFolderKimlik: document.getElementById('driveFolderId')?.value.trim()||'',
+    gecmis:            SYSTEM_CFG?.yedek?.gecmis||[],
+  };
+  SYSTEM_CFG.yedek = cfg;
+  await AdminCRUD.setConfig({ yedek: cfg });
+  const el = document.getElementById('autoBackupStatus');
+  if (el) el.textContent = cfg.otomatik?'Açık':'Kapalı';
+  toast('Yedek ayarları kaydedildi','s');
+};
+document.getElementById('backupScope')?.addEventListener('change', function() {
+  const bf = document.getElementById('backupBinaField');
+  if (bf) bf.style.display = this.value==='single'?'block':'none';
+});
+
+// ─── MONİTÖR ─────────────────────────────────────────
+async function renderMonitor() {
+  const el = document.getElementById('monitorContent');
+  const el2 = document.getElementById('firestoreUsage');
+  if (!el) return;
+  el.innerHTML = '<div class="empty"><span class="spin"></span><br><br>Analiz ediliyor...</div>';
+  try {
+    let total = 0;
+    const items = [];
+    for (const b of ALL_BINALAR) {
+      try {
+        const [daireler, settings] = await Promise.all([
+          DaireCRUD.getAll(b.id),
+          SettingsCRUD.get(b.id),
+        ]);
+        const json = JSON.stringify({ meta:b, daireler, settings });
+        const size = new TextEncoder().encode(json).length;
+        total += size;
+        items.push({ id:b.id, name:b.binaAdi||b.id, size, daire:daireler.length });
+      } catch(e) {
+        items.push({ id:b.id, name:b.binaAdi||b.id, size:0, daire:0 });
+      }
+    }
+    const maxSize = Math.max(...items.map(i=>i.size),1);
+    el.innerHTML = `<div style="margin-bottom:16px;font-size:13px;color:var(--text2)">
+      Toplam: <strong style="color:var(--text)">${(total/1024).toFixed(1)} KB</strong> — ${items.length} bina
+    </div>` + items.sort((a,b)=>b.size-a.size).map(i=>{
+      const pct = i.size/maxSize*100;
+      const c = pct>80?'var(--warn)':pct>50?'var(--gold)':'var(--success)';
+      return `<div class="monitor-item">
+        <span>🏢</span>
+        <div class="monitor-label">${i.name}<div style="font-size:11px;color:var(--text3)">${i.daire} daire</div></div>
+        <div style="flex:1;margin:0 16px"><div class="progress-track"><div class="progress-fill" style="width:${pct}%;background:${c}"></div></div></div>
+        <div class="monitor-val" style="color:${c}">${(i.size/1024).toFixed(1)} KB</div>
+      </div>`;
+    }).join('');
+    if (el2) el2.innerHTML = `
+      <div class="monitor-item"><span>📦</span><div class="monitor-label">Toplam Veri</div><div class="monitor-val">${(total/1024).toFixed(1)} KB</div></div>
+      <div class="monitor-item"><span>🏢</span><div class="monitor-label">Bina Sayısı</div><div class="monitor-val">${items.length}</div></div>
+      <div class="monitor-item"><span>🏠</span><div class="monitor-label">Toplam Daire</div><div class="monitor-val">${items.reduce((s,i)=>s+i.daire,0)}</div></div>
+      <div class="monitor-item"><span>📊</span><div class="monitor-label">Ortalama Bina</div><div class="monitor-val">${items.length?(total/items.length/1024).toFixed(1)+' KB':'—'}</div></div>`;
+  } catch(e) {
+    el.innerHTML = `<div class="empty" style="color:var(--warn)">Hata: ${e.message}</div>`;
+  }
+}
+window.refreshMonitor = renderMonitor;
+
+// ─── LOGLAR ──────────────────────────────────────────
+function renderLogs() {
+  const binaF = document.getElementById('logBinaFilter')?.value||'';
+  const typeF = document.getElementById('logTypeFilter')?.value||'';
+  const list  = LOGS.filter(l =>
+    (!binaF || l.binaId===binaF) && (!typeF || l.islem?.includes(typeF))
+  );
+  const body = document.getElementById('logBody');
+  if (!body) return;
+  body.innerHTML = list.length ? list.map(l=>`
+    <tr>
+      <td style="white-space:nowrap;color:var(--text2)">${l.tarih||'—'}</td>
+      <td>${l.binaId||'—'}</td>
+      <td><span class="badge badge-muted">${l.kullanici||'Admin'}</span></td>
+      <td><span class="badge badge-purple">${l.islem||'—'}</span></td>
+      <td style="color:var(--text2);font-size:12px">${l.detay||'—'}</td>
+    </tr>`).join('')
+  : '<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text3)">Log yok</td></tr>';
+}
+window.filterLogs = renderLogs;
+window.exportLogs = function() {
+  const a = document.createElement('a');
+  a.href = 'data:application/json,'+encodeURIComponent(JSON.stringify(LOGS,null,2));
+  a.download = 'binaplus_logs.json';
+  a.click();
+  toast('Loglar indirildi','s');
+};
+
+// ─── AYARLAR ─────────────────────────────────────────
+function loadSettingsForm() {
+  const s = SYSTEM_CFG;
+  const set = (id,v) => { const e=document.getElementById(id); if(e&&v!==undefined) e.value=v; };
+  set('gracePeriod', s?.abonelik?.gracePeriodGun||10);
+  set('subReminderDays', s?.abonelik?.hatirlatmaGunOnce||7);
+  set('sessionTimeout', s?.sistem?.oturumSuresiDakika||60);
+  set('emailjsService', s?.bildirim?.emailjsServiceId||'');
+  set('emailjsTemplate', s?.bildirim?.emailjsTemplateId||'');
+  set('netgsmKey', s?.bildirim?.netgsmKullanici||'');
+  set('netgsmUser', s?.bildirim?.netgsmSifre||'');
+  if (s?.abonelik?.kilitAktif) document.getElementById('toggleSubLock')?.classList.add('on');
+}
+window.saveSystemSettings = async function() {
+  const data = {
+    abonelik: {
+      gracePeriodGun:    parseInt(document.getElementById('gracePeriod').value)||10,
+      hatirlatmaGunOnce: parseInt(document.getElementById('subReminderDays').value)||7,
+      kilitAktif:        document.getElementById('toggleSubLock')?.classList.contains('on')||false,
+    },
+    sistem: {
+      oturumSuresiDakika: parseInt(document.getElementById('sessionTimeout').value)||60,
+      ipKisitlama: document.getElementById('toggleIP')?.classList.contains('on')||false,
+    },
+    bildirim: {
+      emailjsServiceId:  document.getElementById('emailjsService')?.value.trim()||'',
+      emailjsTemplateId: document.getElementById('emailjsTemplate')?.value.trim()||'',
+      netgsmKullanici:   document.getElementById('netgsmKey')?.value.trim()||'',
+      netgsmSifre:       document.getElementById('netgsmUser')?.value.trim()||'',
+    },
+  };
+  Object.assign(SYSTEM_CFG, data);
+  await AdminCRUD.setConfig(data);
+  toast('Sistem ayarları kaydedildi ✅','s');
+  await addLog('—','sistem_ayar','Sistem ayarları güncellendi');
+};
+
+window.masterSifreGuncelle = async function() {
+  const eski  = document.getElementById('masterEski').value;
+  const yeni1 = document.getElementById('masterYeni1').value;
+  const yeni2 = document.getElementById('masterYeni2').value;
+  if (yeni1 !== yeni2) { toast('Şifreler eşleşmiyor','e'); return; }
+  if (yeni1.length < 8) { toast('En az 8 karakter gerekli','e'); return; }
+  const eskiHash = await sha256(eski);
+  if (eskiHash !== SESSION.masterSifre) { toast('Mevcut şifre yanlış','e'); return; }
+  const yeniHash = await sha256(yeni1);
+  await AdminCRUD.setConfig({ masterSifre: yeniHash });
+  SESSION.masterSifre = yeniHash;
+  SYSTEM_CFG.masterSifre = yeniHash;
+  toast('Master şifre güncellendi ✅','s');
+  await addLog('—','master_sifre','Master şifre değiştirildi');
+  closeModal('modalMasterSifre');
+};
+
+// ─── SÜPER ADMİN → BİNA PANELİNE GİRİŞ ─────────────
+// Token URL'de taşınmaz — postMessage ile memory'den memory'e iletilir.
+// F12 ile görülemez, kopyalanamaz.
+
+window.adminBinayaGir = async function(binaId) {
+  const b = ALL_BINALAR.find(x => x.id === binaId);
+
+  // Token oluştur (db.js AdminToken — memory only)
+  // AdminToken zaten gömülü — direkt kullan
+  const { token, timestamp } = await AdminToken.create(SESSION.masterSifre, binaId);
+
+  // Hedef URL — token YOK
+  const base   = window.location.href.replace('admin.html', 'index.html');
+  const target = `${base}?bina=${encodeURIComponent(binaId)}&adminOpen=1`;
+
+  // Yeni sekmeyi aç
+  const newTab = window.open(target, '_blank');
+  if (!newTab) {
+    toast('Sekme açılamadı — lütfen pop-up engelini kaldırın', 'e');
+    return;
+  }
+
+  // Yeni sekme yüklenince postMessage ile token gönder
+  // (origin kontrolü yapılır — güvenli)
+  const targetOrigin = window.location.origin;
+  let attempts = 0;
+
+  const sendToken = () => {
+    attempts++;
+    try {
+      newTab.postMessage({
+        type:      'BP_ADMIN_TOKEN',
+        token,
+        binaId,
+        timestamp,
+        from:      'admin'
+      }, targetOrigin);
+    } catch(e) {
+      // Sekme henüz hazır değil
+    }
+    if (attempts < 20 && !newTab.closed) {
+      setTimeout(sendToken, 300);
+    }
+  };
+
+  // 500ms sonra göndermeye başla (sekmenin yüklenmesi için bekle)
+  setTimeout(sendToken, 500);
+
+  toast(`${b?.binaAdi || binaId} paneli açılıyor... 🚀`, 's');
+  await addLog(binaId, 'admin_giris', 'Süper admin postMessage bypass ile bina paneline girdi');
+};
+let _currentQRBinaId   = null;
+let _currentQRBinaAdi  = null;
+let _currentQRURL      = null;
+
+function getBinaURL(binaId) {
+  // GitHub Pages base URL — production'da domain buradan okunur
+  const base = window.location.origin + window.location.pathname.replace(/\/[^/]*$/, '/');
+  return `${base}?bina=${encodeURIComponent(binaId)}`;
+}
+
+window.showBinaURL = async function(binaId, binaAdi) {
+  _currentQRBinaId  = binaId;
+  _currentQRBinaAdi = binaAdi;
+  _currentQRURL     = getBinaURL(binaId);
+
+  document.getElementById('qrBinaAdi').textContent = `🏢 ${binaAdi}`;
+  document.getElementById('qrURL').textContent     = _currentQRURL;
+  document.getElementById('copyBtn').textContent   = '📋 Kopyala';
+
+  openModal('modalBinaURL');
+  await drawQR(_currentQRURL);
+};
+
+// QR kodu canvas'a çiz (harici kütüphane gerektirmez — saf JS)
+async function drawQR(url) {
+  // qrcode-generator kütüphanesini dinamik yükle
+  if (!window.qrcode) {
+    await new Promise((res, rej) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      s.onload = res; s.onerror = rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const canvas = document.getElementById('qrCodeCanvas');
+  const ctx    = canvas.getContext('2d');
+  ctx.clearRect(0, 0, 180, 180);
+
+  // QRCode kütüphanesi div içine img/canvas oluşturur
+  // Geçici div kullan, sonra canvas'a kopyala
+  const tmp = document.createElement('div');
+  tmp.style.display = 'none';
+  document.body.appendChild(tmp);
+
+  try {
+    new window.QRCode(tmp, {
+      text:          url,
+      width:         180,
+      height:        180,
+      colorDark:     '#1B2A4A',
+      colorLight:    '#ffffff',
+      correctLevel:  window.QRCode.CorrectLevel.M,
+    });
+
+    // QRCode img oluşturuyor — canvas'a kopyala
+    await new Promise(res => setTimeout(res, 200));
+    const img = tmp.querySelector('img') || tmp.querySelector('canvas');
+    if (img) {
+      if (img.tagName === 'CANVAS') {
+        ctx.drawImage(img, 0, 0, 180, 180);
+      } else {
+        const i = new Image();
+        i.onload = () => ctx.drawImage(i, 0, 0, 180, 180);
+        i.src = img.src;
+      }
+    }
+  } finally {
+    document.body.removeChild(tmp);
+  }
+}
+
+window.copyBinaURL = function() {
+  if (!_currentQRURL) return;
+  navigator.clipboard.writeText(_currentQRURL).then(() => {
+    document.getElementById('copyBtn').textContent = '✅ Kopyalandı!';
+    setTimeout(() => {
+      document.getElementById('copyBtn').textContent = '📋 Kopyala';
+    }, 2000);
+    toast('Link kopyalandı','s');
+  }).catch(() => {
+    // Fallback: prompt ile göster
+    prompt('Linki kopyalayın:', _currentQRURL);
+  });
+};
+
+window.downloadQR = function() {
+  const canvas = document.getElementById('qrCodeCanvas');
+  const a = document.createElement('a');
+  a.download = `binaplus_qr_${_currentQRBinaId}.png`;
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+  toast('QR kodu indirildi','s');
+};
+
+window.whatsappShare = function() {
+  if (!_currentQRURL) return;
+  const msg = encodeURIComponent(
+    `🏢 ${_currentQRBinaAdi} — BinaPlus Giriş Linki\n\n` +
+    `Aşağıdaki linkten bina panelinize giriş yapabilirsiniz:\n${_currentQRURL}`
+  );
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
+};
+
+// ─── ŞİFRE SIFIRLAMA ─────────────────────────────────
+
+// Modül yüklenince bina listelerini doldur
+async function initSifreSifirla() {
+  const opts = ALL_BINALAR.map(b => `<option value="${b.id}">${b.binaAdi||b.id}</option>`).join('');
+  ['srBina','sakinSifreBina'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '<option value="">Bina seçin...</option>' + opts;
+  });
+
+  // Yönetici listesi
+  const body = document.getElementById('yoneticiListeBody');
+  if (body) {
+    body.innerHTML = ALL_BINALAR.map(b => `
+      <tr>
+        <td><strong>${b.binaAdi||b.id}</strong></td>
+        <td style="color:var(--text2)">${b.yoneticiEmail||'—'}</td>
+        <td>
+          ${b.yoneticiEmail
+            ? `<button class="btn btn-accent btn-sm" onclick="adminYoneticiSifreSifirlaEmail('${b.yoneticiEmail}','${b.binaAdi||b.id}')">📧 Sıfırlama Gönder</button>`
+            : '<span style="color:var(--text3);font-size:12px">E-posta tanımlı değil</span>'}
+        </td>
+      </tr>`).join('') || '<tr><td colspan="3" style="text-align:center;padding:24px;color:var(--text3)">Bina yok</td></tr>';
+  }
+}
+
+// Bina seçilince daireleri yükle (inline modül)
+window.srLoadDaireler = async function() {
+  const binaId = document.getElementById('srBina').value;
+  const sel    = document.getElementById('srDaire');
+  if (!binaId) { sel.innerHTML = '<option>Önce bina seçin...</option>'; return; }
+  sel.innerHTML = '<option>Yükleniyor...</option>';
+  try {
+    const daireler = await DaireCRUD.getAll(binaId);
+    sel.innerHTML = '<option value="">Daire seçin...</option>' +
+      daireler.map(d => `<option value="${d.id}">${d.daireNo} — ${d.sakin||'Boş'}</option>`).join('');
+  } catch(e) {
+    sel.innerHTML = '<option>Hata: '+e.message+'</option>';
+  }
+};
+
+// Modal için daire yükle
+window.loadDairelerForReset = async function() {
+  const binaId = document.getElementById('sakinSifreBina').value;
+  const sel    = document.getElementById('sakinSifreDaire');
+  if (!binaId) { sel.innerHTML = '<option>Önce bina seçin...</option>'; return; }
+  sel.innerHTML = '<option>Yükleniyor...</option>';
+  try {
+    const daireler = await DaireCRUD.getAll(binaId);
+    sel.innerHTML = '<option value="">Daire seçin...</option>' +
+      daireler.map(d => `<option value="${d.id}">${d.daireNo} — ${d.sakin||'Boş'}</option>`).join('');
+  } catch(e) {
+    sel.innerHTML = '<option>Hata: '+e.message+'</option>';
+  }
+};
+
+window.initSakinSifreModal = function() {
+  const opts = ALL_BINALAR.map(b => `<option value="${b.id}">${b.binaAdi||b.id}</option>`).join('');
+  const el = document.getElementById('sakinSifreBina');
+  if (el) el.innerHTML = '<option value="">Bina seçin...</option>' + opts;
+  document.getElementById('sakinSifreDaire').innerHTML = '<option value="">Önce bina seçin...</option>';
+};
+
+// Inline modülden şifre güncelle
+window.adminSakinSifreGuncelle2 = async function() {
+  const errEl = document.getElementById('srErr');
+  const okEl  = document.getElementById('srOk');
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+
+  const binaId  = document.getElementById('srBina').value;
+  const daireId = document.getElementById('srDaire').value;
+  const sifre1  = document.getElementById('srYeniSifre').value;
+  const sifre2  = document.getElementById('srYeniSifre2').value;
+
+  if (!binaId)  { errEl.textContent='Bina seçin';    errEl.style.display='block'; return; }
+  if (!daireId) { errEl.textContent='Daire seçin';   errEl.style.display='block'; return; }
+  if (sifre1.length < 6) { errEl.textContent='Şifre en az 6 karakter olmalı'; errEl.style.display='block'; return; }
+  if (sifre1 !== sifre2) { errEl.textContent='Şifreler eşleşmiyor'; errEl.style.display='block'; return; }
+
+  try {
+    const hash = await sha256(sifre1);
+    await DaireCRUD.update(binaId, daireId, { sifreHash: hash });
+    okEl.style.display = 'block';
+    document.getElementById('srYeniSifre').value  = '';
+    document.getElementById('srYeniSifre2').value = '';
+    await addLog(binaId, 'sifre_sifirla', `Daire ${daireId} şifresi sıfırlandı`);
+    toast('Sakin şifresi güncellendi ✅','s');
+  } catch(e) {
+    errEl.textContent = 'Hata: '+e.message;
+    errEl.style.display = 'block';
+  }
+};
+
+// Modal'dan şifre güncelle
+window.adminSakinSifreGuncelle = async function() {
+  const errEl  = document.getElementById('sakinSifreErr');
+  errEl.style.display = 'none';
+  const binaId  = document.getElementById('sakinSifreBina').value;
+  const daireId = document.getElementById('sakinSifreDaire').value;
+  const sifre1  = document.getElementById('sakinYeniSifreAdmin').value;
+  const sifre2  = document.getElementById('sakinYeniSifreAdmin2').value;
+
+  if (!binaId||!daireId) { errEl.textContent='Bina ve daire seçin'; errEl.style.display='block'; return; }
+  if (sifre1.length < 6) { errEl.textContent='Şifre en az 6 karakter'; errEl.style.display='block'; return; }
+  if (sifre1 !== sifre2) { errEl.textContent='Şifreler eşleşmiyor';   errEl.style.display='block'; return; }
+
+  try {
+    const hash = await sha256(sifre1);
+    await DaireCRUD.update(binaId, daireId, { sifreHash: hash });
+    toast('Sakin şifresi güncellendi ✅','s');
+    await addLog(binaId,'sifre_sifirla','Modal üzerinden şifre sıfırlandı');
+    closeModal('modalSakinSifre');
+  } catch(e) {
+    errEl.textContent = 'Hata: '+e.message;
+    errEl.style.display = 'block';
+  }
+};
+
+window.toggleAdminPwd = function() {
+  const el = document.getElementById('sakinYeniSifreAdmin');
+  const eye = document.getElementById('sakinSifreEye');
+  el.type = el.type==='password'?'text':'password';
+  eye.textContent = el.type==='password'?'👁️':'🙈';
+};
+
+// Firebase Auth şifre sıfırlama e-postası (modal)
+window.adminYoneticiSifreSifirla = async function() {
+  const errEl = document.getElementById('yoneticiSifreErr');
+  const okEl  = document.getElementById('yoneticiSifreOk');
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+  const email = document.getElementById('yoneticiSifreEmail').value.trim();
+  if (!email) { errEl.textContent='E-posta gerekli'; errEl.style.display='block'; return; }
+  await adminYoneticiSifreSifirlaEmail(email);
+};
+
+// Tablo satırından direkt çağrılır
+window.adminYoneticiSifreSifirlaEmail = async function(email, binaAdi='') {
+  try {
+    const { sendPasswordResetEmail } = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+    await sendPasswordResetEmail(auth, email);
+    toast(`${binaAdi||email} — sıfırlama e-postası gönderildi 📧`,'s');
+    await addLog('—','yon_sifre_sifirla',`${email} için reset e-postası gönderildi`);
+    // Modal açıksa ok göster
+    const okEl = document.getElementById('yoneticiSifreOk');
+    if (okEl) okEl.style.display = 'block';
+  } catch(e) {
+    toast('Hata: '+e.message,'e');
+    const errEl = document.getElementById('yoneticiSifreErr');
+    if (errEl) { errEl.textContent='Hata: '+e.message; errEl.style.display='block'; }
+  }
+};
+
+// ─── ROUTING ─────────────────────────────────────────
+const PAGE_TITLES = {
+  dashboard:'📊 Dashboard', binalar:'🏢 Tüm Binalar', abonelik:'💳 Abonelik',
+  kullanicilar:'👥 Kullanıcılar', yedek:'💾 Yedekleme',
+  monitor:'📡 Veri Monitörü', log:'📋 Loglar', ayarlar:'⚙️ Sistem Ayarları',
+  sifresifirla:'🔑 Şifre Sıfırla',
+};
+window.goTo = function(name) {
+  document.querySelectorAll('.module').forEach(m=>m.classList.remove('active'));
+  document.getElementById('mod-'+name)?.classList.add('active');
+  document.querySelectorAll('.s-item').forEach(i=>i.classList.toggle('active',i.dataset.m===name));
+  document.getElementById('pageTitle').textContent = PAGE_TITLES[name]||name;
+  if (window.innerWidth<=900) toggleSidebar(false);
+};
+
+// ─── SIDEBAR ─────────────────────────────────────────
+let _sbOpen=false;
+window.toggleSidebar=function(f){
+  const sb=document.getElementById('sidebar');
+  const ov=document.getElementById('sOverlay');
+  _sbOpen=typeof f==='boolean'?f:!_sbOpen;
+  sb?.classList.toggle('open',_sbOpen);
+  ov?.classList.toggle('show',_sbOpen);
+};
+
+// ─── MODAL ───────────────────────────────────────────
+window.openModal=(id)=>document.getElementById(id)?.classList.add('open');
+window.closeModal=(id)=>document.getElementById(id)?.classList.remove('open');
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open')}));
+
+// ─── THEME ───────────────────────────────────────────
+window.toggleTheme=function(){
+  const h=document.documentElement;
+  const d=h.getAttribute('data-theme')==='dark';
+  h.setAttribute('data-theme',d?'light':'dark');
+  document.getElementById('themeBtn').textContent=d?'☀️':'🌙';
+  const t=document.getElementById('toggleThemeBtn');
+  if(t)t.classList.toggle('on',!d);
+  localStorage.setItem('bp_admin_theme',d?'light':'dark');
+};
+
+// ─── INIT ────────────────────────────────────────────
+(function init() {
+  const t=localStorage.getItem('bp_admin_theme');
+  if(t){document.documentElement.setAttribute('data-theme',t);document.getElementById('themeBtn').textContent=t==='dark'?'🌙':'☀️';}
+  const d=new Date(); d.setFullYear(d.getFullYear()+1);
+  const el=document.getElementById('binaSubBitis');
+  if(el) el.value=d.toISOString().split('T')[0];
+
+  // Login butonlarını bağla
+  document.getElementById('btnLogin')?.addEventListener('click', window.doAdminLogin);
+  document.getElementById('eyeBtn')?.addEventListener('click', window.toggleEye);
+  document.getElementById('inpMaster')?.addEventListener('keydown', e=>{
+    if(e.key==='Enter') window.doAdminLogin();
+  });
+
+  // Session timeout
+  let _t;
+  document.addEventListener('mousemove',()=>{
+    clearTimeout(_t);
+    const mins = SYSTEM_CFG?.sistem?.oturumSuresiDakika||60;
+    _t=setTimeout(()=>{ if(SESSION.loggedIn) toast('Uzun süre hareketsizlik. Lütfen tekrar giriş yapın.','i'); }, mins*60*1000);
+  });
+})();
+</script>
+</body>
+</html>
