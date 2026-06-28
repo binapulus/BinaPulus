@@ -1,0 +1,320 @@
+{
+  "_readme": {
+    "aciklama": "BinaPlus Firestore Başlangıç Verisi (Seed Data)",
+    "versiyon": "1.0",
+    "mimari": "Sub-collection tabanlı — her modül ayrı collection",
+    "kullanim": "Firebase Console > Import JSON veya firebase-admin SDK ile yükle",
+    "onemli": [
+      "masterHash alanı SHA-256 hash olmalı — düz metin GİRME",
+      "yoneticiUid Firebase Auth'tan alınmalı",
+      "adminUids dizisine süper admin Firebase UID'lerini ekle",
+      "timestamp alanları Firestore Timestamp tipinde saklanmalı"
+    ],
+    "guncelleme_kurali": "Yeni alan eklerken mevcut alanları silme. Her alan _schema bölümünde tanımlı."
+  },
+
+  "admin": {
+    "config": {
+      "_schema_version": "1.0",
+      "_aciklama": "Süper admin ayarları — sadece admin.html okur/yazar",
+
+      "masterHash": "BURAYA_SHA256_HASH_YAZILACAK",
+      "adminUids": ["FIREBASE_AUTH_UID_BURAYA"],
+
+      "abonelik": {
+        "gracePeriodGun": 10,
+        "kilitAktif": true,
+        "hatirlatmaGunOnce": 7
+      },
+
+      "bildirim": {
+        "emailjsServiceId": "",
+        "emailjsTemplateId": "",
+        "emailjsPublicKey": "",
+        "netgsmKullanici": "",
+        "netgsmSifre": "",
+        "netgsmBaslik": "BinaPlus"
+      },
+
+      "sistem": {
+        "oturumSuresiDakika": 60,
+        "ipKisitlama": false,
+        "izinliIPler": []
+      },
+
+      "yedek": {
+        "otomatik": false,
+        "saat": "02:00",
+        "siklik": "daily",
+        "driveFolderKimlik": "",
+        "sonYedekZamani": null,
+        "gecmis": []
+      },
+
+      "olusturmaTarihi": "2025-01-01T00:00:00Z",
+      "guncellemeTarihi": "2025-01-01T00:00:00Z"
+    }
+  },
+
+  "binalar": {
+    "{binaId}": {
+      "_schema_version": "1.0",
+      "_aciklama": "Bina meta dökümanı — sub-collection'lar ayrıdır",
+
+      "binaAdi": "Örnek Apartman",
+      "adres": "Mahalle Cad. No:1, İlçe, İl",
+      "daireSayisi": 20,
+      "yoneticiUid": "FIREBASE_AUTH_UID",
+      "yoneticiEmail": "yonetici@email.com",
+      "not": "",
+
+      "abonelik": {
+        "plan": "standart",
+        "durum": "aktif",
+        "baslangic": "2025-01-01",
+        "bitis": "2026-01-01",
+        "otomatikYenileme": false
+      },
+
+      "olusturmaTarihi": "2025-01-01T00:00:00Z",
+      "guncellemeTarihi": "2025-01-01T00:00:00Z",
+
+      "_sub_collections": {
+        "daireler": "binalar/{binaId}/daireler/{daireId}",
+        "kasa": "binalar/{binaId}/kasa/{kasaId}",
+        "kampanyalar": "binalar/{binaId}/kampanyalar/{kampId}",
+        "arizalar": "binalar/{binaId}/arizalar/{arizaId}",
+        "duyurular": "binalar/{binaId}/duyurular/{duyuruId}",
+        "faturalar": "binalar/{binaId}/faturalar/{faturaId}",
+        "bakim": "binalar/{binaId}/bakim/{bakimId}",
+        "firmalar": "binalar/{binaId}/firmalar/{firmaId}",
+        "settings": "binalar/{binaId}/settings/config"
+      },
+
+      "daireler": {
+        "{daireId}": {
+          "_schema_version": "1.0",
+          "_aciklama": "Tek daire kaydı",
+
+          "daireNo": "1",
+          "kat": 1,
+          "tip": "3+1",
+
+          "sakin": "Ad Soyad",
+          "telefon": "+90 5xx xxx xx xx",
+          "email": "sakin@email.com",
+          "durum": "dolu",
+
+          "sifreHash": "SHA256_HASH",
+          "hatirlaIzni": false,
+
+          "aidatTutar": null,
+          "devredenBorc": 0.00,
+
+          "odemeler": {
+            "_aciklama": "{ 'YYYY-MM': { tarih, tutar, makbuzNo } }",
+            "2025-01": {
+              "tarih": "2025-01-05T10:00:00Z",
+              "tutar": 500.00,
+              "makbuzNo": "MKB-2025-001"
+            }
+          },
+
+          "olusturmaTarihi": "2025-01-01T00:00:00Z",
+          "guncellemeTarihi": "2025-01-01T00:00:00Z"
+        }
+      },
+
+      "kasa": {
+        "{kasaId}": {
+          "_schema_version": "1.0",
+          "_aciklama": "Tek kasa hareketi",
+
+          "tur": "gelir",
+          "tutar": 500.00,
+          "aciklama": "Ocak 2025 aidatı — Daire 1",
+          "kategori": "Aidat",
+
+          "tarih": "2025-01-05",
+          "daireNo": "1",
+
+          "belgeFotoUrl": null,
+          "not": "",
+
+          "olusturanUid": "FIREBASE_AUTH_UID",
+          "olusturmaTarihi": "2025-01-05T10:00:00Z"
+        }
+      },
+
+      "kampanyalar": {
+        "{kampId}": {
+          "_schema_version": "1.0",
+
+          "baslik": "Çatı Onarımı Kampanyası",
+          "aciklama": "2025 yılı çatı yenileme çalışması için bağış kampanyası.",
+          "hedefTutar": 50000.00,
+          "toplunanTutar": 0.00,
+          "durum": "aktif",
+
+          "baslangicTarihi": "2025-03-01",
+          "bitisTarihi": "2025-06-01",
+
+          "daireBazliKatki": {
+            "_aciklama": "{ daireNo: tutar } — elle veya sistemden güncellenir"
+          },
+
+          "arsiv": false,
+          "olusturmaTarihi": "2025-03-01T09:00:00Z",
+          "guncellemeTarihi": "2025-03-01T09:00:00Z"
+        }
+      },
+
+      "arizalar": {
+        "{arizaId}": {
+          "_schema_version": "1.0",
+
+          "baslik": "Asansör arızası",
+          "aciklama": "Asansör 3. katta takılı kaldı.",
+          "kategori": "Asansör",
+          "oncelik": "yuksek",
+
+          "daireNo": "3",
+          "bildiren": "Ad Soyad",
+
+          "durum": "bekliyor",
+          "atananFirma": "",
+
+          "fotograflar": [],
+
+          "yorumlar": {
+            "_aciklama": "[ { uid, ad, yorum, tarih } ]"
+          },
+
+          "bildirimTarihi": "2025-02-10T14:30:00Z",
+          "guncellemeTarihi": "2025-02-10T14:30:00Z",
+          "tamamlanmaTarihi": null
+        }
+      },
+
+      "duyurular": {
+        "{duyuruId}": {
+          "_schema_version": "1.0",
+
+          "baslik": "Su kesintisi hakkında",
+          "icerik": "11 Şubat Salı günü saat 09:00-17:00 arası su kesintisi olacaktır.",
+          "tarih": "2025-02-09",
+
+          "kanallar": {
+            "push": true,
+            "email": false,
+            "sms": false,
+            "whatsapp": false
+          },
+
+          "gonderilenSayisi": 0,
+          "olusturanUid": "FIREBASE_AUTH_UID",
+          "olusturmaTarihi": "2025-02-09T18:00:00Z"
+        }
+      },
+
+      "faturalar": {
+        "{faturaId}": {
+          "_schema_version": "1.0",
+
+          "tur": "Elektrik",
+          "donem": "2025-01",
+          "tutar": 2340.50,
+          "vadeTarihi": "2025-01-25",
+
+          "odendi": false,
+          "odemeTarihi": null,
+          "kasadanDustu": true,
+
+          "fotografUrl": null,
+          "not": "",
+
+          "olusturmaTarihi": "2025-01-15T11:00:00Z",
+          "guncellemeTarihi": "2025-01-15T11:00:00Z"
+        }
+      },
+
+      "bakim": {
+        "{bakimId}": {
+          "_schema_version": "1.0",
+
+          "ad": "Asansör Periyodik Bakımı",
+          "aciklama": "Yıllık zorunlu bakım ve test",
+          "kategori": "Asansör",
+
+          "periodAy": 12,
+          "sonBakimTarihi": "2024-06-15",
+          "sorumluFirma": "Asansör A.Ş.",
+          "tahminiMaliyet": 3500.00,
+
+          "pushUyari": true,
+          "uyariGunOnce": 30,
+
+          "olusturmaTarihi": "2024-06-15T09:00:00Z",
+          "guncellemeTarihi": "2024-06-15T09:00:00Z"
+        }
+      },
+
+      "firmalar": {
+        "{firmaId}": {
+          "_schema_version": "1.0",
+
+          "ad": "Elektrik Usta",
+          "kategori": "Elektrik",
+          "telefon": "+90 532 xxx xx xx",
+          "whatsapp": "+90 532 xxx xx xx",
+          "email": "",
+          "adres": "",
+          "not": "7/24 acil servis mevcut",
+
+          "olusturmaTarihi": "2025-01-01T00:00:00Z"
+        }
+      },
+
+      "settings": {
+        "config": {
+          "_schema_version": "1.0",
+          "_aciklama": "Bina bazlı ayarlar — tek döküman",
+
+          "aidat": {
+            "tutar": 500.00,
+            "baslangicAy": "2025-01",
+            "guncellemeTarihi": "2025-01-01"
+          },
+
+          "finansal": {
+            "gecikmeFaizOrani": 1.5,
+            "yillikButce": 60000.00,
+            "paraBirimi": "TRY"
+          },
+
+          "bildirim": {
+            "aylikHatirlatmaGunu": 5,
+            "pushAktif": false,
+            "emailAktif": false,
+            "smsAktif": false,
+            "vapidAnahtar": ""
+          },
+
+          "guvenlik": {
+            "twofaAktif": false,
+            "twofaSecret": "",
+            "oturumSuresiDakika": 60
+          },
+
+          "gorunum": {
+            "karanlikMod": true,
+            "dil": "tr"
+          },
+
+          "guncellemeTarihi": "2025-01-01T00:00:00Z"
+        }
+      }
+
+    }
+  }
+}
