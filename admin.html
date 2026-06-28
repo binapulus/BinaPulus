@@ -1158,7 +1158,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 
 // ─── STATE ───────────────────────────────────────────
-let SESSION = { loggedIn: false, masterHash: null };
+let SESSION = { loggedIn: false, masterSifre: null };
 let ALL_BINALAR = [];
 let SYSTEM_CFG  = {};
 let LOGS        = [];
@@ -1203,36 +1203,63 @@ window.toggleEye = function() {
 };
 
 window.doAdminLogin = async function() {
-  const btn = document.getElementById('btnLogin');
+  const btn   = document.getElementById('btnLogin');
   const errEl = document.getElementById('loginErr');
   errEl.classList.remove('show');
+
   const pass = document.getElementById('inpMaster').value;
   if (!pass) { errEl.textContent = 'Şifre gerekli'; errEl.classList.add('show'); return; }
 
-  btn.disabled = true; btn.textContent = 'Doğrulanıyor...';
-  try {
-    let cfg = await AdminCRUD.getConfig();
+  btn.disabled = true;
+  btn.textContent = 'Firebase bağlanıyor...';
 
-    if (!cfg || !cfg.masterHash) {
-      // İlk kurulum: şifreyi kaydet
-      const newHash = await sha256(pass);
-      await AdminCRUD.setConfig({
-        masterHash: newHash,
-        adminUids: [],
-        abonelik: { gracePeriodGun: 10, kilitAktif: true, hatirlatmaGunOnce: 7 },
-        sistem: { oturumSuresiDakika: 60 },
-        yedek: { otomatik: false, saat: '02:00', siklik: 'daily', gecmis: [] },
-      });
-      cfg = await AdminCRUD.getConfig();
-      toast('İlk kurulum tamamlandı. Master şifre belirlendi.', 's');
+  try {
+    // Firebase config eksik kontrolü
+    if (FIREBASE_CONFIG.messagingSenderId === 'YOUR_SENDER_ID') {
+      console.warn('Firebase messagingSenderId ayarlanmamış — devam ediliyor');
     }
 
-    const inputHash = await sha256(pass);
-    if (inputHash !== cfg.masterHash) throw new Error('Şifre yanlış');
+    // Adım 1: Firebase hazır ol
+    btn.textContent = 'Bağlantı kuruluyor...';
+    await waitFirebase();
 
-    SESSION.loggedIn = true;
-    SESSION.masterHash = cfg.masterHash;
-    SYSTEM_CFG = cfg;
+    // Adım 2: Admin config oku
+    btn.textContent = 'Doğrulanıyor...';
+    let cfg = null;
+    try {
+      cfg = await AdminCRUD.getConfig();
+    } catch(e) {
+      // Config okuma hatası — Firestore Rules sorunu olabilir
+      console.error('Config okuma hatası:', e);
+      throw new Error(`Firestore bağlantı hatası: ${e.message}. Firebase Console'da Rules ve Auth ayarlarını kontrol edin.`);
+    }
+
+    if (!cfg || !cfg.masterSifre) {
+      // İlk kurulum — şifreyi kaydet
+      btn.textContent = 'İlk kurulum yapılıyor...';
+      const newHash = await sha256(pass);
+      await AdminCRUD.setConfig({
+        masterSifre:  newHash,
+        adminUids:   [],
+        abonelik:    { gracePeriodGun: 10, kilitAktif: true, hatirlatmaGunOnce: 7 },
+        sistem:      { oturumSuresiDakika: 60 },
+        yedek:       { otomatik: false, saat: '02:00', siklik: 'daily', gecmis: [] },
+        bildirim:    { emailjsServiceId: '', emailjsTemplateId: '', emailjsPublicKey: '' },
+      });
+      cfg = await AdminCRUD.getConfig();
+      toast('✅ İlk kurulum tamamlandı! Master şifre belirlendi.', 's');
+    }
+
+    // Adım 3: Şifre doğrula
+    const inputHash = await sha256(pass);
+    if (inputHash !== cfg.masterSifre) {
+      throw new Error('Şifre yanlış');
+    }
+
+    // Adım 4: Giriş başarılı
+    SESSION.loggedIn   = true;
+    SESSION.masterSifre = cfg.masterSifre;
+    SYSTEM_CFG         = cfg;
 
     document.getElementById('loginScreen').classList.remove('active');
     document.getElementById('appScreen').classList.add('active');
@@ -1240,11 +1267,15 @@ window.doAdminLogin = async function() {
     await loadAll();
     await addLog('—', 'login', 'Süper Admin girişi yapıldı');
     toast('Hoş geldiniz, Süper Admin 🛡️', 's');
+
   } catch(e) {
-    errEl.textContent = e.message || 'Giriş başarısız';
+    console.error('Login hatası:', e);
+    errEl.textContent = e.message || 'Giriş başarısız — Console\'u kontrol edin (F12)';
     errEl.classList.add('show');
   }
-  btn.disabled = false; btn.textContent = '🛡️ Giriş Yap';
+
+  btn.disabled = false;
+  btn.textContent = '🛡️ Giriş Yap';
 };
 
 // ─── LOAD ALL ────────────────────────────────────────
@@ -1837,11 +1868,11 @@ window.masterSifreGuncelle = async function() {
   if (yeni1 !== yeni2) { toast('Şifreler eşleşmiyor','e'); return; }
   if (yeni1.length < 8) { toast('En az 8 karakter gerekli','e'); return; }
   const eskiHash = await sha256(eski);
-  if (eskiHash !== SESSION.masterHash) { toast('Mevcut şifre yanlış','e'); return; }
+  if (eskiHash !== SESSION.masterSifre) { toast('Mevcut şifre yanlış','e'); return; }
   const yeniHash = await sha256(yeni1);
-  await AdminCRUD.setConfig({ masterHash: yeniHash });
-  SESSION.masterHash = yeniHash;
-  SYSTEM_CFG.masterHash = yeniHash;
+  await AdminCRUD.setConfig({ masterSifre: yeniHash });
+  SESSION.masterSifre = yeniHash;
+  SYSTEM_CFG.masterSifre = yeniHash;
   toast('Master şifre güncellendi ✅','s');
   await addLog('—','master_sifre','Master şifre değiştirildi');
   closeModal('modalMasterSifre');
@@ -1856,7 +1887,7 @@ window.adminBinayaGir = async function(binaId) {
 
   // Token oluştur (db.js AdminToken — memory only)
   const { AdminToken } = await import('./firebase/db.js');
-  const { token, timestamp } = await AdminToken.create(SESSION.masterHash, binaId);
+  const { token, timestamp } = await AdminToken.create(SESSION.masterSifre, binaId);
 
   // Hedef URL — token YOK
   const base   = window.location.href.replace('admin.html', 'index.html');
