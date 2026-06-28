@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>BinaPlus — Logo Kitabı</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#0f1117;color:#e8eaf0;min-height:100vh;padding:40px 24px}
+h1{font-size:13px;font-weight:700;letter-spacing:2px;color:#52b788;text-transform:uppercase;margin-bottom:40px;text-align:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;max-width:1000px;margin:0 auto}
+.card{border-radius:16px;padding:32px;display:flex;flex-direction:column;align-items:center;gap:20px}
+.card-dark{background:#12151f;border:1px solid #232840}
+.card-light{background:#f0f2f7;border:1px solid #d4d9e8}
+.card-navy{background:#1B2A4A;border:1px solid #2a3a5a}
+.label{font-size:11px;font-weight:700;letter-spacing:1.5px;color:#555f72;text-transform:uppercase}
+.card-light .label{color:#8892a4}
+.divider{height:1px;background:#232840;margin:32px 0;max-width:1000px;width:100%;margin-left:auto;margin-right:auto}
+.size-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap;justify-content:center;max-width:1000px;margin:0 auto 20px}
+.download-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:1000px;margin:20px auto 0}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;border:none;font-family:'Nunito',sans-serif;transition:opacity .2s}
+.btn-gold{background:#D4A843;color:#0f1117}.btn-gold:hover{opacity:.85}
+.btn-green{background:#52b788;color:#0f1117}.btn-green:hover{opacity:.85}
+.btn-ghost{background:transparent;color:#8892a4;border:1px solid #232840}.btn-ghost:hover{color:#e8eaf0;border-color:#4A6FA5}
+.usage{max-width:1000px;margin:40px auto 0;background:#12151f;border:1px solid #232840;border-radius:16px;padding:28px}
+.usage h2{font-size:14px;font-weight:800;color:#e8eaf0;margin-bottom:20px}
+.usage-row{display:flex;align-items:center;gap:16px;padding:12px 0;border-bottom:1px solid #1e2333}
+.usage-row:last-child{border-bottom:none}
+.usage-check{width:20px;height:20px;background:rgba(82,183,136,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:#52b788;flex-shrink:0}
+.usage-text{font-size:13px;color:#8892a4}
+.usage-text strong{color:#e8eaf0}
+</style>
+</head>
+<body>
+
+<h1>BinaPlus — Logo Kitabı</h1>
+
+<!-- Tam logo - koyu arka plan -->
+<div class="grid">
+  <div class="card card-dark">
+    <img src="logo.svg" alt="BinaPlus Logo" style="width:100%;max-width:280px"/>
+    <span class="label">Ana Logo — Koyu Tema</span>
+  </div>
+  <div class="card card-navy">
+    <img src="logo-white.svg" alt="BinaPlus Logo Beyaz" style="width:100%;max-width:260px"/>
+    <span class="label">Beyaz Versiyon — Lacivert</span>
+  </div>
+  <div class="card card-light">
+    <img src="logo-white.svg" alt="BinaPlus Logo Açık" style="width:100%;max-width:260px"
+         style="filter:invert(1)"/>
+    <span class="label">Açık Tema Kullanımı</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- İkon versiyonları -->
+<div class="size-row">
+  <div style="text-align:center">
+    <img src="logo-icon.svg" width="80" height="80" alt="BinaPlus İkon"/>
+    <div class="label" style="margin-top:8px">80px</div>
+  </div>
+  <div style="text-align:center">
+    <img src="logo-icon.svg" width="56" height="56" alt="BinaPlus İkon"/>
+    <div class="label" style="margin-top:8px">56px</div>
+  </div>
+  <div style="text-align:center">
+    <img src="logo-icon.svg" width="40" height="40" alt="BinaPlus İkon"/>
+    <div class="label" style="margin-top:8px">40px</div>
+  </div>
+  <div style="text-align:center">
+    <img src="logo-icon.svg" width="28" height="28" alt="BinaPlus İkon"/>
+    <div class="label" style="margin-top:8px">28px</div>
+  </div>
+  <div style="text-align:center">
+    <img src="logo-icon.svg" width="20" height="20" alt="BinaPlus İkon"/>
+    <div class="label" style="margin-top:8px">20px (favicon)</div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- İndirme -->
+<div class="download-row">
+  <a href="logo.svg" download class="btn btn-gold">⬇️ Ana Logo (SVG)</a>
+  <a href="logo-icon.svg" download class="btn btn-green">⬇️ İkon (SVG)</a>
+  <a href="logo-white.svg" download class="btn btn-ghost">⬇️ Beyaz Versiyon (SVG)</a>
+</div>
+
+<!-- Kullanım kılavuzu -->
+<div class="usage">
+  <h2>📐 Kullanım Kılavuzu</h2>
+
+  <div class="usage-row">
+    <div class="usage-check">✓</div>
+    <div class="usage-text"><strong>index.html sidebar:</strong> logo-white.svg veya logo.svg — max-height: 36px</div>
+  </div>
+  <div class="usage-row">
+    <div class="usage-check">✓</div>
+    <div class="usage-text"><strong>Login ekranı:</strong> logo.svg — width: 200px, ortala</div>
+  </div>
+  <div class="usage-row">
+    <div class="usage-check">✓</div>
+    <div class="usage-text"><strong>Favicon:</strong> logo-icon.svg — manifest.json ve &lt;link rel="icon"&gt;</div>
+  </div>
+  <div class="usage-row">
+    <div class="usage-check">✓</div>
+    <div class="usage-text"><strong>PWA splash:</strong> logo-icon.svg — 512×512 boyutunda</div>
+  </div>
+  <div class="usage-row">
+    <div class="usage-check">✓</div>
+    <div class="usage-text"><strong>Renk tokenları:</strong> Altın <strong>#D4A843</strong> · Yeşil <strong>#52b788</strong> · Lacivert <strong>#1B2A4A</strong></div>
+  </div>
+  <div class="usage-row">
+    <div class="usage-check">✓</div>
+    <div class="usage-text"><strong>Font:</strong> Nunito 900 (Black) — Google Fonts</div>
+  </div>
+</div>
+
+</body>
+</html>

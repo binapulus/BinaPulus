@@ -1,24 +1,37 @@
 {
-  "name": "BinaPlus — Apartman Yönetim Sistemi",
+  "name": "BinaPlus — Akıllı Bina Yönetimi",
   "short_name": "BinaPlus",
-  "description": "Profesyonel apartman ve site yönetim sistemi",
-  "start_url": "/",
+  "description": "Apartman ve site yönetimi için akıllı platform",
+  "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#00C853",
+  "background_color": "#0f1117",
+  "theme_color": "#0f1117",
   "orientation": "portrait-primary",
+  "lang": "tr",
+  "categories": ["business", "productivity"],
   "icons": [
     {
-      "src": "icon-binaplus-192.svg",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-binaplus-512.svg",
-      "sizes": "512x512",
+      "src": "logo-icon.svg",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Yönetici Girişi",
+      "short_name": "Yönetici",
+      "url": "./index.html",
+      "icons": [{ "src": "logo-icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Süper Admin",
+      "short_name": "Admin",
+      "url": "./admin.html",
+      "icons": [{ "src": "logo-icon.svg", "sizes": "any" }]
+    }
+  ],
+  "screenshots": [],
+  "related_applications": [],
+  "prefer_related_applications": false
 }
