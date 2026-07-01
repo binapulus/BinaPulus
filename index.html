@@ -4,28 +4,35 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <title>BinaPlus - Apartman Yönetim</title>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyD6vTEjXSx9yTBE7o_y-PgE9EQydFzt7Rs",
-    authDomain: "binapulus-4ae17.firebaseapp.com",
-    projectId: "binapulus-4ae17",
-    storageBucket: "binapulus-4ae17.firebasestorage.app",
-    messagingSenderId: "74314699158",
-    appId: "1:74314699158:web:c8c4c40d9ab17960cccdb7"
+// Firebase dinamik yükle
+function loadFirebase(){
+  var s1=document.createElement('script');
+  s1.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js';
+  s1.onload=function(){
+    var s2=document.createElement('script');
+    s2.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js';
+    s2.onload=function(){
+      firebase.initializeApp({
+        apiKey:"AIzaSyD6vTEjXSx9yTBE7o_y-PgE9EQydFzt7Rs",
+        authDomain:"binapulus-4ae17.firebaseapp.com",
+        projectId:"binapulus-4ae17",
+        storageBucket:"binapulus-4ae17.firebasestorage.app",
+        messagingSenderId:"74314699158",
+        appId:"1:74314699158:web:c8c4c40d9ab17960cccdb7"
+      });
+      window.db=firebase.firestore();
+      window.firebaseReady=true;
+      console.log('Firebase hazir!');
+      // Firestore sync başlat
+      if(window._appReady)firestoreBaslat();
+      else window._firebaseLoaded=true;
+    };
+    document.head.appendChild(s2);
   };
-  firebase.initializeApp(firebaseConfig);
-  var db = firebase.firestore();
-  window.db = db;
-  window.fbStore = {
-    doc: function(d,col,id){return d.collection(col).doc(id);},
-    setDoc: function(ref,data){return ref.set(data);},
-    getDoc: function(ref){return ref.get();},
-    onSnapshot: function(ref,fn){return ref.onSnapshot(fn);}
-  };
-  window.firebaseReady = true;
-  console.log('Firebase hazir!');
+  document.head.appendChild(s1);
+}
+loadFirebase();
 </script>
 <meta name="description" content="BinaPlus Apartman Yönetim Sistemi"/>
 <meta name="theme-color" content="#1a5c38"/>
@@ -184,7 +191,7 @@ html,body{height:100%;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;background:var(--bg)"><div style="text-align:center"><div style="font-size:40px;margin-bottom:16px">🏢</div><div style="font-size:16px;font-weight:700;color:#1a5c38">BinaPlus</div><div style="font-size:13px;color:#666;margin-top:8px">Yükleniyor...</div></div></div></div>
 <script>
 // ── VERİ ─────────────────────────────────────────
 const AY=['Oca','\u015eub','Mar','Nis','May','Haz','Tem','A\u011fu','Eyl','Eki','Kas','Ara'];
@@ -195,6 +202,17 @@ const bugun=()=>new Date().toISOString().split('T')[0];
 const uid=()=>'_'+Math.random().toString(36).slice(2,9);
 const simdiAy=()=>new Date().getMonth();
 const simdiYil=()=>new Date().getFullYear();
+
+// ── DOM YARDIMCILARI ─────────────────────────────
+function el(tag,cls,html){var e=document.createElement(tag);if(cls)e.className=cls;if(html!==undefined)e.innerHTML=html;return e;}
+function dv(cls,html){return el('div',cls,html);}
+function inp(type,val,ph){var i=el('input');i.type=type||'text';if(val!==undefined)i.value=val;if(ph)i.placeholder=ph;return i;}
+function sel(opts,val){var s=el('select');opts.forEach(function(o){var op=el('option');op.value=o[0];op.textContent=o[1];if(o[0]==val)op.selected=true;s.appendChild(op);});return s;}
+function btn(cls,txt,fn){var b=el('button',cls,txt);if(fn)b.onclick=fn;return b;}
+function fg(lbl,child){var d=dv('fg');d.appendChild(el('label','',lbl));d.appendChild(child);return d;}
+function fgr(){var d=dv('fgr');for(var i=0;i<arguments.length;i++)d.appendChild(arguments[i]);return d;}
+function alrt(cls,txt){return dv('al '+cls,txt);}
+function append(parent){for(var i=1;i<arguments.length;i++)if(arguments[i])parent.appendChild(arguments[i]);}
 
 const INIT={
   admin:{email:'abdulkadiry06@hotmail.com',kullaniciAdi:'abdulkadiry06@hotmail.com',password:'123456',name:'Sistem Y\u00f6neticisi'},
@@ -307,7 +325,7 @@ async function firestoreBaslat(){
   const yuklendi=await firestoreYukle();
   if(yuklendi){
     migrateData();
-    render(); // Firestore verisiyle güncelle
+    if(typeof render==='function')render();
   }
   // Gerçek zamanlı dinleme - başka cihaz veri güncellerse otomatik yansısın
   if(window.db&&window.fbStore){
@@ -319,7 +337,8 @@ async function firestoreBaslat(){
             const uzak=JSON.parse(sd.json);
             D=uzak;migrateData();
             localStorage.setItem('bp5',JSON.stringify(D));
-            render();console.log('Firestore guncelleme alindi');
+            if(typeof render==='function')render();
+            console.log('Firestore guncelleme alindi');
           }
         }catch(e){console.warn('Snap hatasi:',e);}
       }
@@ -2325,7 +2344,20 @@ function lokalBildirim(baslik,mesaj,icon){
 window.addEventListener('load', function(){
   migrateData();
   render(); // Önce local veriyle hemen göster
-  firestoreBaslat(); // Sonra Firestore'dan güncelle
+  window._appReady=true;
+  // Firebase zaten yüklendiyse Firestore'u başlat, yoksa bekle
+  if(window._firebaseLoaded||window.firebaseReady){
+    firestoreBaslat();
+  } else {
+    // Firebase yüklenene kadar bekle
+    var checkFb=setInterval(function(){
+      if(window.firebaseReady){
+        clearInterval(checkFb);
+        firestoreBaslat();
+      }
+    },200);
+    setTimeout(function(){clearInterval(checkFb);},10000);
+  }
   setTimeout(function(){pushIzniAl();},3000);
 });
 </script>
