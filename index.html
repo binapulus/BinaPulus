@@ -22,29 +22,28 @@
     window.emailjsReady=true;
   })();
 </script>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyD6vTEjXSx9yTBE7o_y-PgE9EQydFzt7Rs",
-  authDomain: "binapulus-4ae17.firebaseapp.com",
-  projectId: "binapulus-4ae17",
-  storageBucket: "binapulus-4ae17.firebasestorage.app",
-  messagingSenderId: "74314699158",
-  appId: "1:74314699158:web:c8c4c40d9ab17960cccdb7"
-};
-
-const fbApp = initializeApp(firebaseConfig);
-const db = getFirestore(fbApp);
-const auth = getAuth(fbApp);
-window.db = db;
-window.auth = auth;
-window.fbAuth = { signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged };
-window.fbStore = { doc, setDoc, getDoc, collection, getDocs, onSnapshot };
-window.firebaseReady = true;
-console.log('Firebase hazır!');
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD6vTEjXSx9yTBE7o_y-PgE9EQydFzt7Rs",
+    authDomain: "binapulus-4ae17.firebaseapp.com",
+    projectId: "binapulus-4ae17",
+    storageBucket: "binapulus-4ae17.firebasestorage.app",
+    messagingSenderId: "74314699158",
+    appId: "1:74314699158:web:c8c4c40d9ab17960cccdb7"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  window.db = db;
+  window.fbStore = {
+    doc: function(db,col,id){return db.collection(col).doc(id);},
+    setDoc: function(ref,data){return ref.set(data);},
+    getDoc: function(ref){return ref.get();},
+    onSnapshot: function(ref,fn){return ref.onSnapshot(fn);}
+  };
+  window.firebaseReady = true;
+  console.log('Firebase hazır!');
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
