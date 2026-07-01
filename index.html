@@ -252,7 +252,7 @@ const kaydet=async()=>{
   if(window.db&&window.fbStore){
     try{
       window._yaziyorum=true;
-      await window.fbStore.setDoc(window.fbStore.doc(window.db,'binaplus','data'),{
+      await window.db.collection('binaplus').doc('data').set({
         json:JSON.stringify(D),
         guncelleme:new Date().toISOString()
       });
@@ -266,162 +266,30 @@ const guncelle=(fn)=>{fn();kaydet();render();};
 async function firestoreYukle(){
   if(!window.db||!window.fbStore)return false;
   try{
-    const snap=await window.fbStore.getDoc(window.fbStore.doc(window.db,'binaplus','data'));
-    if(snap.exists){
+    const ref=window.db.collection('binaplus').doc('data');
+    const snap=await ref.get();
+    if(snap&&snap.exists){
       const data=snap.data();
       if(data&&data.json){
         const uzak=JSON.parse(data.json);
         const lokalStr=localStorage.getItem('bp5');
         if(!lokalStr){
           D=uzak;localStorage.setItem('bp5',JSON.stringify(D));
-          console.log('Firestore verisi yuklendi');return true;
+          console.log('Firestore yuklendi');return true;
         }
         try{
           const lokal=JSON.parse(lokalStr);
           if(uzak.guncelleme&&lokal.guncelleme&&uzak.guncelleme>lokal.guncelleme){
             D=uzak;localStorage.setItem('bp5',JSON.stringify(D));
-            console.log('Firestore guncel, yuklendi');return true;
+            console.log('Firestore guncel');return true;
           }
-        }catch(pe){}
+        }catch(e2){}
       }
     }
   }catch(e){console.warn('Firestore okuma hatasi:',e);}
   return false;
 }
 
-// ── DOM YARDIMCILARI ─────────────────────────────
-function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!==undefined)e.innerHTML=html;return e;}
-function dv(cls,html){return el('div',cls,html);}
-function inp(type,val,ph){const i=el('input');i.type=type||'text';if(val!==undefined)i.value=val;if(ph)i.placeholder=ph;return i;}
-function sel(opts,val){const s=el('select');opts.forEach(([v,t])=>{const o=el('option');o.value=v;o.textContent=t;if(v==val)o.selected=true;s.appendChild(o);});return s;}
-function btn(cls,txt,fn){const b=el('button',cls,txt);if(fn)b.onclick=fn;return b;}
-function fg(lbl,child){const d=dv('fg');d.appendChild(el('label','',lbl));d.appendChild(child);return d;}
-function fgr(...items){const d=dv('fgr');items.forEach(i=>d.appendChild(i));return d;}
-function alrt(cls,txt){return dv('al '+cls,txt);}
-function append(parent,...children){children.forEach(c=>{if(c)parent.appendChild(c);});}
-
-// ── MODAL ────────────────────────────────────────
-function modal(title,bodyFn){
-  document.querySelectorAll('.mbg').forEach(e=>e.remove());
-  const bg=dv('mbg');
-  const m=dv('modal');
-  append(m,dv('mh'));
-  const t=dv('mt',title);
-  m.appendChild(t);
-  bodyFn(m,()=>bg.remove());
-  bg.appendChild(m);
-  document.body.appendChild(bg);
-  bg.addEventListener('click',function(e){if(e.target===bg)bg.remove();});
-}
-function toast(msg,type){
-  const t=dv('al al-'+(type||'ok'),msg);
-  t.style.cssText='position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:999;min-width:240px;max-width:88vw;border-radius:11px;box-shadow:0 4px 16px rgba(0,0,0,.15)';
-  document.body.appendChild(t);
-  setTimeout(function(){t.remove();},2500);
-}
-
-// ── HESAPLAMALAR ─────────────────────────────────
-function kasaBilgi(bid){
-  const h=D.kasaH[bid]||[];
-  const bas=((D.ayarlar||{})[bid]||{}).kasaBas||0;
-  let g=0,gi=0;
-  h.forEach(function(x){if(x.tip==='gelir')g+=x.tutar;else gi+=x.tutar;});
-  return{gelir:g,gider:gi,bakiye:bas+g-gi};
-}
-function aidatBorcu(bid){
-  const dl=D.daireler[bid]||[];
-  const al=D.aidatlar[bid]||{};
-  const yr=simdiYil(),ay=simdiAy();
-  let t=0;
-  dl.filter(function(d){return!d.muaf;}).forEach(function(d){
-    const dy=(al[d.id]||{})[yr]||{};
-    for(let m=0;m<=ay;m++){const p=dy[m];if(!p||p.durum==='odenmedi')t+=d.aidat;}
-  });
-  return t;
-}
-function abonelikBilgi(y){
-  if(!y)return{tip:'demo',etiket:'Demo',renk:'#f59e0b',bitti:false};
-  if(y.abonelik==='tam'){
-    if(!y.abonelikBitis)return{tip:'tam',etiket:'Tam S\u00fcr\u00fcm',renk:'var(--g1)',bitti:false};
-    const g=Math.ceil((new Date(y.abonelikBitis)-new Date())/864e5);
-    if(g<=0)return{tip:'bitti',etiket:'S\u00fcresi Doldu',renk:'var(--red)',bitti:true};
-    if(g<=7)return{tip:'tam',etiket:'Tam ('+g+' g\u00fcn)',renk:'#f59e0b',bitti:false};
-    return{tip:'tam',etiket:'Tam S\u00fcr\u00fcm',renk:'var(--g1)',bitti:false};
-  }
-  // Demo
-  const bas=y.abonelikBaslangic||y.tarih||'';
-  if(bas){
-    const gecen=Math.ceil((new Date()-new Date(bas))/864e5);
-    const kalan=30-gecen;
-    if(kalan<=0)return{tip:'bitti',etiket:'Demo Bitti',renk:'var(--red)',bitti:true};
-    return{tip:'demo',etiket:'Demo ('+kalan+' g\u00fcn)',renk:'#f59e0b',bitti:false};
-  }
-  return{tip:'demo',etiket:'Demo S\u00fcr\u00fcm',renk:'#f59e0b',bitti:false};
-}
-
-function abonelikBilgi(y){
-  if(!y)return{tip:'demo',etiket:'Demo',renk:'#f59e0b',bitti:false};
-  if(y.abonelik==='tam'){
-    if(!y.abonelikBitis)return{tip:'tam',etiket:'Tam S\u00fcr\u00fcm',renk:'var(--g1)',bitti:false};
-    const g=Math.ceil((new Date(y.abonelikBitis)-new Date())/864e5);
-    if(g<=0)return{tip:'bitti',etiket:'S\u00fcresi Doldu',renk:'var(--red)',bitti:true};
-    return{tip:'tam',etiket:'Tam S\u00fcr\u00fcm ('+(g<=7?g+' g\u00fcn':'')+')',renk:'var(--g1)',bitti:false};
-  }
-  if(y.abonelikBaslangic){
-    const gecen=Math.ceil((new Date()-new Date(y.abonelikBaslangic))/864e5);
-    const kalan=30-gecen;
-    if(kalan<=0)return{tip:'bitti',etiket:'Demo Bitti',renk:'var(--red)',bitti:true};
-    return{tip:'demo',etiket:'Demo ('+kalan+' g\u00fcn)',renk:'#f59e0b',bitti:false};
-  }
-  return{tip:'demo',etiket:'Demo S\u00fcr\u00fcm',renk:'#f59e0b',bitti:false};
-}
-function timerB(bitis,askida){
-  if(askida)return{cls:'tsu',ic:'\uD83D\uDD12',lbl:'Ask\u0131da'};
-  if(!bitis)return{cls:'tok',ic:'\u2705',lbl:'S\u00fcresiz'};
-  const g=Math.ceil((new Date(bitis)-new Date())/864e5);
-  if(g<=0)return{cls:'tex',ic:'\u274C',lbl:'Doldu'};
-  if(g<=30)return{cls:'twn',ic:'\u26A0\uFE0F',lbl:g+' g\u00fcn'};
-  return{cls:'tok',ic:'\u2705',lbl:g+' g\u00fcn'};
-}
-function pYaz(t){
-  const b=['','Bir','\u0130ki','\u00dc\u00e7','D\u00f6rt','Be\u015f','Alt\u0131','Yedi','Sekiz','Dokuz'];
-  const o=['','On','Yirmi','Otuz','K\u0131rk','Elli','Altm\u0131\u015f','Yetmi\u015f','Seksen','Doksan'];
-  function gY(n){let s='';if(n>=100){s+=b[Math.floor(n/100)]+'Y\u00fcz';n=n%100;}if(n>=10){s+=o[Math.floor(n/10)];n=n%10;}if(n>0)s+=b[n];return s;}
-  if(!t||t===0)return'S\u0131f\u0131r T\u00fcrk Liras\u0131';
-  let s=Math.floor(t),r='';
-  if(s>=1000){const x=Math.floor(s/1000);r+=(x===1?'Bir':gY(x))+'Bin';s=s%1000;}
-  return r+gY(s)+' T\u00fcrk Liras\u0131';
-}
-function mNo(){return'MKB-'+Math.floor(100000+Math.random()*900000);}
-
-// ── EMAİL BİLDİRİMLERİ ───────────────────────────
-async function mailGonder(toEmail, alici, baslik, mesaj, bina){
-  // Lokal bildirim de gönder
-  lokalBildirim(baslik, mesaj, 'icon-192.png');
-  if(!window.emailjsReady){console.warn('EmailJS hazır değil');return;}
-  if(!toEmail){console.warn('Alıcı mail yok');return;}
-  try{
-    await emailjs.send(window.EMAILJS_SERVICE, window.EMAILJS_TEMPLATE,{
-      to_email: toEmail,
-      alici: alici||'Kullanıcı',
-      baslik: baslik||'BinaPlus Bildirimi',
-      mesaj: mesaj||'',
-      bina: bina||'',
-      tarih: new Date().toLocaleDateString('tr-TR')
-    });
-    console.log('Mail gönderildi:', toEmail);
-  }catch(e){
-    console.warn('Mail gönderilemedi:', e);
-  }
-}
-
-// Yöneticinin emailini bul
-function yoneticiMailAl(binaId){
-  const y=D.yoneticiler.find(function(x){return x.binaId===binaId;});
-  return y?y.email:'';
-}
-
-// ── FİRESTORE SENKRON ────────────────────────────
 async function firestoreBaslat(){
   // Kısa süre bekle Firebase'in yüklenmesi için
   let deneme=0;
@@ -442,22 +310,19 @@ async function firestoreBaslat(){
   render();
   // Gerçek zamanlı dinleme - başka cihaz veri güncellerse otomatik yansısın
   if(window.db&&window.fbStore){
-    window.fbStore.onSnapshot(
-      window.fbStore.doc(window.db,'binaplus','data'),
-      function(snap){
-        if(snap.exists&&!window._yaziyorum){
-          try{
-            const sd=snap.data();
-            if(sd&&sd.json){
-              const uzak=JSON.parse(sd.json);
-              D=uzak;migrateData();
-              localStorage.setItem('bp5',JSON.stringify(D));
-              render();console.log('Firestore guncelleme alindi');
-            }
-          }catch(e){console.warn('Snap parse hatasi:',e);}
-        }
+    window.db.collection('binaplus').doc('data').onSnapshot(function(snap){
+      if(snap&&snap.exists&&!window._yaziyorum){
+        try{
+          const sd=snap.data();
+          if(sd&&sd.json){
+            const uzak=JSON.parse(sd.json);
+            D=uzak;migrateData();
+            localStorage.setItem('bp5',JSON.stringify(D));
+            render();console.log('Firestore guncelleme alindi');
+          }
+        }catch(e){console.warn('Snap hatasi:',e);}
       }
-    );
+    });
   }
 }
 function migrateData(){
