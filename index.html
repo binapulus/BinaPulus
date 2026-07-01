@@ -306,10 +306,9 @@ async function firestoreBaslat(){
   }
   const yuklendi=await firestoreYukle();
   if(yuklendi){
-    // Migrate
     migrateData();
+    render(); // Firestore verisiyle güncelle
   }
-  render();
   // Gerçek zamanlı dinleme - başka cihaz veri güncellerse otomatik yansısın
   if(window.db&&window.fbStore){
     window.db.collection('binaplus').doc('data').onSnapshot(function(snap){
@@ -2323,10 +2322,12 @@ function lokalBildirim(baslik,mesaj,icon){
 }
 
 // ── BAŞLAT ───────────────────────────────────────
-migrateData();
-firestoreBaslat();
-// Push izni iste
-setTimeout(function(){pushIzniAl();},3000);
+window.addEventListener('load', function(){
+  migrateData();
+  render(); // Önce local veriyle hemen göster
+  firestoreBaslat(); // Sonra Firestore'dan güncelle
+  setTimeout(function(){pushIzniAl();},3000);
+});
 </script>
 </body>
 </html>
