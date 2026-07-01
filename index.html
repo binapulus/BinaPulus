@@ -267,23 +267,22 @@ async function firestoreYukle(){
   if(!window.db||!window.fbStore)return false;
   try{
     const snap=await window.fbStore.getDoc(window.fbStore.doc(window.db,'binaplus','data'));
-    if(snap.exists()){
-      const uzak=JSON.parse(snap.data().json);
-      // Uzak veri daha yeni ise kullan
-      const lokalStr=localStorage.getItem('bp5');
-      if(!lokalStr){
-        D=uzak;
-        localStorage.setItem('bp5',JSON.stringify(D));
-        console.log('Firestore verisi yuklendi');
-        return true;
-      }
-      const lokal=JSON.parse(lokalStr);
-      // Firestore daha yeniyse onu kullan
-      if(uzak.guncelleme>lokal.guncelleme){
-        D=uzak;
-        localStorage.setItem('bp5',JSON.stringify(D));
-        console.log('Firestore guncel, yuklendi');
-        return true;
+    if(snap.exists){
+      const data=snap.data();
+      if(data&&data.json){
+        const uzak=JSON.parse(data.json);
+        const lokalStr=localStorage.getItem('bp5');
+        if(!lokalStr){
+          D=uzak;localStorage.setItem('bp5',JSON.stringify(D));
+          console.log('Firestore verisi yuklendi');return true;
+        }
+        try{
+          const lokal=JSON.parse(lokalStr);
+          if(uzak.guncelleme&&lokal.guncelleme&&uzak.guncelleme>lokal.guncelleme){
+            D=uzak;localStorage.setItem('bp5',JSON.stringify(D));
+            console.log('Firestore guncel, yuklendi');return true;
+          }
+        }catch(pe){}
       }
     }
   }catch(e){console.warn('Firestore okuma hatasi:',e);}
@@ -446,15 +445,16 @@ async function firestoreBaslat(){
     window.fbStore.onSnapshot(
       window.fbStore.doc(window.db,'binaplus','data'),
       function(snap){
-        if(snap.exists()&&!window._yaziyorum){
+        if(snap.exists&&!window._yaziyorum){
           try{
-            const uzak=JSON.parse(snap.data().json);
-            D=uzak;
-            migrateData();
-            localStorage.setItem('bp5',JSON.stringify(D));
-            render();
-            console.log('Firestore güncelleme alındı');
-          }catch(e){}
+            const sd=snap.data();
+            if(sd&&sd.json){
+              const uzak=JSON.parse(sd.json);
+              D=uzak;migrateData();
+              localStorage.setItem('bp5',JSON.stringify(D));
+              render();console.log('Firestore guncelleme alindi');
+            }
+          }catch(e){console.warn('Snap parse hatasi:',e);}
         }
       }
     );
