@@ -955,61 +955,6 @@ function adminYedek(){
     toast('\u2705 \u0130ndirildi','ok');
   }));
   wrap.appendChild(ac);
-  // Admin şifre değiştir
-  const aps=dv('ss');aps.style.cssText='background:#f0f4ff;border:1.5px solid #c0cfff;border-radius:14px;padding:14px;margin-bottom:14px';
-  aps.innerHTML='<div style="font-size:12px;font-weight:800;letter-spacing:.05em;color:#2c5fd4;margin-bottom:12px">\uD83D\uDD10 ADM\u0130N \u015e\u0130FRES\u0130N\u0130 DE\u011e\u0130\u015eT\u0130R</div>';
-  const ap0=inp('password','','Mevcut \u015fifre');
-  const ap1=inp('password','','Yeni \u015fifre');
-  const ap2=inp('password','','Tekrar');
-  const apMsg=dv('');
-  append(aps,fg('MEVCUT \u015e\u0130FRE',ap0),fg('YEN\u0130 \u015e\u0130FRE',ap1),fg('TEKRAR',ap2),apMsg);
-  aps.appendChild(btn('btn bg','\uD83D\uDD10 \u015eifre G\u00fcncelle',function(){
-    apMsg.innerHTML='';
-    if(!ap0.value||!ap1.value||!ap2.value){apMsg.appendChild(alrt('al-err','T\u00fcm alanlar\u0131 doldurun.'));return;}
-    if(ap0.value!==D.admin.password){apMsg.appendChild(alrt('al-err','Mevcut \u015fifre yanl\u0131\u015f.'));return;}
-    if(ap1.value.length<6){apMsg.appendChild(alrt('al-err','En az 6 karakter.'));return;}
-    if(ap1.value!==ap2.value){apMsg.appendChild(alrt('al-err','\u015eifreler e\u015fle\u015fmiyor.'));return;}
-    guncelle(function(){D.admin.password=ap1.value;});
-    ap0.value='';ap1.value='';ap2.value='';
-    apMsg.appendChild(alrt('al-ok','\u2705 Admin \u015fifresi g\u00fcncellendi!'));
-    setTimeout(function(){apMsg.innerHTML='';},2500);
-  }));
-  wrap.appendChild(aps);
-
-  wrap.appendChild(dv('stit','\uD83C\uDFE2 Bina Baz\u0131 Yedek'));
-  D.binalar.forEach(function(b){
-    const card=dv('card');
-    card.innerHTML='<div style="font-size:14px;font-weight:700;margin-bottom:10px">\uD83C\uDFE2 '+b.ad+'</div>';
-    const br2=dv('');br2.style.cssText='display:flex;gap:8px';
-    br2.appendChild(btn('btn bg bsm','\uD83D\uDCBE \u0130ndir',function(){
-      const content={bina:b,daireler:D.daireler[b.id],aidatlar:D.aidatlar[b.id],kasaH:D.kasaH[b.id],faturalar:D.faturalar[b.id],kampanyalar:D.kampanyalar[b.id],evraklar:D.evraklar[b.id],ayarlar:(D.ayarlar||{})[b.id],tarih:new Date().toISOString()};
-      const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(content,null,2)],{type:'application/json'}));a.download=b.ad+'_'+bugun()+'.json';a.click();
-    }));
-    br2.appendChild(btn('btn bgr bsm','\u2601\uFE0F Bulut',function(){toast('\u2601\uFE0F Bulut ye\u0111e\u011fi kaydedildi','ok');}));
-    card.appendChild(br2);wrap.appendChild(card);
-  });
-  // Admin şifre değiştir
-  const aps=dv('ss');aps.style.cssText='background:#f0f4ff;border:1.5px solid #c0cfff;border-radius:14px;padding:14px;margin-top:14px';
-  const apsT=dv('');apsT.style.cssText='font-size:12px;font-weight:800;letter-spacing:.05em;color:#2c5fd4;margin-bottom:12px';
-  apsT.textContent='\uD83D\uDD10 ADM\u0130N \u015e\u0130FRES\u0130N\u0130 DE\u011e\u0130\u015eT\u0130R';
-  aps.appendChild(apsT);
-  const ap0=inp('password','','Mevcut \u015fifre');
-  const ap1=inp('password','','Yeni \u015fifre (en az 6 karakter)');
-  const ap2=inp('password','','Tekrar');
-  const apMsg=dv('');
-  append(aps,fg('MEVCUT \u015e\u0130FRE',ap0),fg('YEN\u0130 \u015e\u0130FRE',ap1),fg('TEKRAR',ap2),apMsg);
-  aps.appendChild(btn('btn bg','\uD83D\uDD10 \u015eifre G\u00fcncelle',function(){
-    apMsg.innerHTML='';
-    if(!ap0.value||!ap1.value||!ap2.value){apMsg.appendChild(alrt('al-err','T\u00fcm alanlar\u0131 doldurun.'));return;}
-    if(ap0.value!==D.admin.password){apMsg.appendChild(alrt('al-err','Mevcut \u015fifre yanl\u0131\u015f.'));return;}
-    if(ap1.value.length<6){apMsg.appendChild(alrt('al-err','En az 6 karakter olmal\u0131.'));return;}
-    if(ap1.value!==ap2.value){apMsg.appendChild(alrt('al-err','\u015eifreler e\u015fle\u015fmiyor.'));return;}
-    guncelle(function(){D.admin.password=ap1.value;});
-    ap0.value='';ap1.value='';ap2.value='';
-    apMsg.appendChild(alrt('al-ok','\u2705 Admin \u015fifresi g\u00fcncellendi!'));
-    setTimeout(function(){apMsg.innerHTML='';},2500);
-  }));
-  wrap.appendChild(aps);
   return wrap;
 }
 function modalBinaEkle(){
