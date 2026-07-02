@@ -1687,14 +1687,14 @@ function modalGelir(bina){
     append(m,fg('TUTAR (\u20ba) *',tI),fg('KATEGO R\u0130',kSel),fg('A\u00c7IKLAMA',aI),fg('TAR\u0130H',dI),errD);
     const brow=dv('brow');
     brow.appendChild(btn('btn bgr','\u0130ptal',close));
-    brow.appendChild(btn('btn bg','+ Gelir Ekle',function(){onayModal(fP(+tI.value)+' tutarında gelir eklensin mi?',function(){
+    brow.appendChild(btn('btn bg','+ Gelir Ekle',function(){
       if(!tI.value||+tI.value<=0){errD.innerHTML='';errD.appendChild(alrt('al-err','Tutar girin.'));return;}
-      onayModal(fP(+tI.value)+' tutarında gelir eklensin mi?',function(){
+      onayModal(fP(+tI.value)+' tutar\u0131nda gelir eklensin mi?',function(){
         guncelle(function(){
           if(!D.kasaH[bina.id])D.kasaH[bina.id]=[];
           D.kasaH[bina.id].push({id:uid(),tip:'gelir',tutar:+tI.value,kategori:kSel.value,aciklama:aI.value,tarih:dI.value,saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
         },'Gelir eklendi: '+kSel.value+' '+fP(+tI.value));
-        close();toast('\u2705 Gelir eklendi','ok');});});
+        close();toast('\u2705 Gelir eklendi','ok');
       });
     }));
     m.appendChild(brow);
