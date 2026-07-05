@@ -417,12 +417,17 @@ let D,S={user:null,sekme:'kasa',yil:simdiYil(),adminSekme:'ozet'};
   if(!D.kasaH){D.kasaH={};}
   D.binalar.forEach(function(b){
     if(!D.daireler[b.id]||D.daireler[b.id].length===0){
-      // 15 daire otomatik oluştur
       var mkisalt=binaKisalt(b.ad);
       var mdaireler=[];
+      var mevcutKAlar=[];
       for(var mi=1;mi<=15;mi++){
         var mdaireNo='D'+mi;
-        mdaireler.push({id:uid(),no:mdaireNo,kat:Math.ceil(mi/3)-1,sakin:'',tip:'M\u00fclk Sahibi',aidat:b.aylikAidat||500,muaf:false,sakinKA:mkisalt+'_'+mdaireNo,sakinSifre:'123456'});
+        var mka=mkisalt+'_'+mdaireNo;
+        // Çakışma varsa farklı KA oluştur
+        var mkaf=mka;var msc=2;
+        while(mevcutKAlar.indexOf(mkaf)>=0){mkaf=mka+'_'+msc;msc++;}
+        mevcutKAlar.push(mkaf);
+        mdaireler.push({id:uid(),no:mdaireNo,kat:Math.ceil(mi/3)-1,sakin:'',tip:'M\u00fclk Sahibi',aidat:b.aylikAidat||500,muaf:false,sakinKA:mkaf,sakinSifre:'123456'});
       }
       D.daireler[b.id]=mdaireler;
     }
@@ -520,12 +525,17 @@ function migrateData(){
   if(!D.kasaH)D.kasaH={};
   D.binalar.forEach(function(b){
     if(!D.daireler[b.id]||D.daireler[b.id].length===0){
-      // 15 daire otomatik oluştur
       var mkisalt=binaKisalt(b.ad);
       var mdaireler=[];
+      var mevcutKAlar=[];
       for(var mi=1;mi<=15;mi++){
         var mdaireNo='D'+mi;
-        mdaireler.push({id:uid(),no:mdaireNo,kat:Math.ceil(mi/3)-1,sakin:'',tip:'M\u00fclk Sahibi',aidat:b.aylikAidat||500,muaf:false,sakinKA:mkisalt+'_'+mdaireNo,sakinSifre:'123456'});
+        var mka=mkisalt+'_'+mdaireNo;
+        // Çakışma varsa farklı KA oluştur
+        var mkaf=mka;var msc=2;
+        while(mevcutKAlar.indexOf(mkaf)>=0){mkaf=mka+'_'+msc;msc++;}
+        mevcutKAlar.push(mkaf);
+        mdaireler.push({id:uid(),no:mdaireNo,kat:Math.ceil(mi/3)-1,sakin:'',tip:'M\u00fclk Sahibi',aidat:b.aylikAidat||500,muaf:false,sakinKA:mkaf,sakinSifre:'123456'});
       }
       D.daireler[b.id]=mdaireler;
     }
@@ -2024,14 +2034,18 @@ function modalDaireEkle(bina){
     brow.appendChild(btn('btn bgr','\u0130ptal',close));
     brow.appendChild(btn('btn bg','\uD83C\uDFE0 Ekle',function(){
       if(!noI.value.trim()){errD.innerHTML='';errD.appendChild(alrt('al-err','Daire no girin.'));return;}
-      const ka=skaI.value.trim();
-      if(ka){
-        const cakisma=(D.daireler[bina.id]||[]).find(function(d){return d.sakinKA===ka;});
-        if(cakisma){errD.innerHTML='';errD.appendChild(alrt('al-err','Bu kullan\u0131c\u0131 ad\u0131 ba\u015fka bir dairede kullan\u0131l\u0131yor.'));return;}
+      var ka=skaI.value.trim();
+      // KA boşsa otomatik oluştur
+      if(!ka)ka=daireKA(bina.ad,noI.value.trim());
+      // Çakışma varsa sonuna rakam ekle
+      var kaFinal=ka;
+      var sayac=2;
+      while((D.daireler[bina.id]||[]).find(function(d){return d.sakinKA===kaFinal;})){
+        kaFinal=ka+'_'+sayac;sayac++;
       }
       guncelle(function(){
         if(!D.daireler[bina.id])D.daireler[bina.id]=[];
-        D.daireler[bina.id].push({id:uid(),no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:ka,sakinSifre:sspI.value,sakinTel:telI.value.trim()});
+        D.daireler[bina.id].push({id:uid(),no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:kaFinal,sakinSifre:sspI.value||'123456',sakinTel:telI.value.trim()});
       });
       close();toast('\u2705 Daire eklendi','ok');
     }));
