@@ -1619,14 +1619,14 @@ function modalArizaBildir(bina,daire){
     const baI=inp('text','','Ar\u0131za ba\u015fl\u0131\u011f\u0131 (\u00f6rn: Musluk ar\u0131zas\u0131)');
     const acI=el('textarea');acI.placeholder='Detayl\u0131 a\u00e7\u0131klama...';acI.style.cssText='width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:11px;font-size:14px;min-height:80px;outline:none;resize:vertical';
     const fileI=document.createElement('input');fileI.type='file';fileI.accept='image/*,image/heic,image/heif';
-    fileI.style.cssText='position:absolute;width:1px;height:1px;opacity:0;overflow:hidden';
+    fileI.style.cssText='display:none';
     var fileId='fileInput_'+uid();
     fileI.id=fileId;
     const fileLabel=document.createElement('label');
     fileLabel.htmlFor=fileId;
     fileLabel.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:2px dashed var(--g2);border-radius:11px;font-size:14px;font-weight:700;color:var(--g2);background:var(--g4);cursor:pointer;box-sizing:border-box;-webkit-tap-highlight-color:transparent';
     fileLabel.innerHTML='\uD83D\uDCF7 Foto\u011fraf veya PDF Se\u00e7';
-    document.body.appendChild(fileI);
+    fileLabel.appendChild(fileI);
     const onizleme=dv('');onizleme.style.marginTop='10px';
     let resimData='';
     fileI.onchange=function(e){
@@ -1734,7 +1734,7 @@ function renderYonetici(bina){
     wrap.appendChild(banner);
   }
   const tabs=dv('tabs');
-  [{k:'kasa',i:'\uD83D\uDCB0',l:'Kasa'},{k:'daireler',i:'\uD83C\uDFE0',l:'Daireler'},{k:'aidat',i:'\uD83D\uDCC5',l:'Aidat'},{k:'dekontlar',i:'\uD83E\uDDFE',l:'Dekontlar'},{k:'arizalar',i:'\uD83D\uDD27',l:'Ar\u0131zalar'},{k:'duyurular',i:'\uD83D\uDCE2',l:'Duyurular'},{k:'ekstra',i:'\uD83C\uDFD7\uFE0F',l:'Ekstra'},{k:'evraklar',i:'\uD83D\uDCCB',l:'Evraklar'},{k:'faturalar',i:'\uD83D\uDCC3',l:'Faturalar'},{k:'ayarlar',i:'\u2699\uFE0F',l:'Ayarlar'}].forEach(function(t){
+  [{k:'kasa',i:'\uD83D\uDCB0',l:'Kasa'},{k:'daireler',i:'\uD83C\uDFE0',l:'Daireler'},{k:'aidat',i:'\uD83D\uDCC5',l:'Aidat'},{k:'dekontlar',i:'\uD83E\uDDFE',l:'Dekontlar'},{k:'arizalar',i:'\uD83D\uDD27',l:'Ar\u0131zalar'},{k:'bildirim',i:'\uD83D\uDCF2',l:'Bildirim'},{k:'duyurular',i:'\uD83D\uDCE2',l:'Duyurular'},{k:'ekstra',i:'\uD83C\uDFD7\uFE0F',l:'Ekstra'},{k:'evraklar',i:'\uD83D\uDCCB',l:'Evraklar'},{k:'faturalar',i:'\uD83D\uDCC3',l:'Faturalar'},{k:'ayarlar',i:'\u2699\uFE0F',l:'Ayarlar'}].forEach(function(t){
     const tab=dv('tab'+(S.sekme===t.k?' act':''),t.i+' '+t.l);
     tab.onclick=function(){S.sekme=t.k;render();};
     tabs.appendChild(tab);
@@ -1745,6 +1745,7 @@ function renderYonetici(bina){
   else if(S.sekme==='aidat')cnt.appendChild(renderAidat(bina));
   else if(S.sekme==='dekontlar')cnt.appendChild(renderDekontlar(bina));
   else if(S.sekme==='arizalar')cnt.appendChild(renderArizalar(bina));
+  else if(S.sekme==='bildirim')cnt.appendChild(renderBildirim(bina));
   else if(S.sekme==='duyurular')cnt.appendChild(renderDuyurular(bina));
   else if(S.sekme==='ekstra')cnt.appendChild(renderEkstra(bina));
   else if(S.sekme==='evraklar')cnt.appendChild(renderEvraklar(bina));
@@ -1776,7 +1777,7 @@ function defterPDF(bina){
   var yonetici=D.yoneticiler.find(function(y){return y.binaId===bina.id;})||{ad:''};
   var bugunStr=new Date().toLocaleDateString('tr-TR');
 
-  function satirGelir(i,g){
+  function satirGelir(g,i){
     return '<tr style="background:'+(i%2===0?'#fff':'#f9fafb')+'">'
       +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;color:#555">'+(i+1)+'</td>'
       +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px">'+fT(g.tarih)+'</td>'
@@ -1785,7 +1786,7 @@ function defterPDF(bina){
       +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;font-weight:700;color:#2e7d32">'+fP(g.tutar)+'</td>'
       +'</tr>';
   }
-  function satirGider(i,g){
+  function satirGider(g,i){
     return '<tr style="background:'+(i%2===0?'#fff':'#f9fafb')+'">'
       +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;color:#555">'+(i+1)+'</td>'
       +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px">'+fT(g.tarih)+'</td>'
@@ -2016,7 +2017,7 @@ function modalDaireEkle(bina){
       }
     });
     const sspI=inp('text','','\u015eifre');
-    append(m,fg('SAK\u0130N KULLANICI ADI',skaI),fg('SAK\u0130N \u015e\u0130FRES\u0130',sspI));
+    append(m,fg('SAK\u0130N KULLANICI ADI',skaI),fg('SAK\u0130N \u015e\u0130FRES\u0130',sspI),fg('TELEFON (WhatsApp)',telI));
     m.appendChild(errD);
     const brow=dv('brow');
     brow.appendChild(btn('btn bgr','\u0130ptal',close));
@@ -2056,6 +2057,7 @@ function modalDaireDuzenle(bina,d){
     // Kullanıcı adı otomatik oluştur (boşsa)
     var autoKA=d.sakinKA||daireKA(bina.ad,d.no);
     const skaI=inp('text',autoKA,'kullanici_adi');
+    const telI=inp('tel',d.sakinTel||'','05xxxxxxxxx');
     const sspI=inp('text',d.sakinSifre||'','\u015eifre');
     const errD=dv('');
     append(m,fg('SAK\u0130N KULLANICI ADI',skaI),fg('SAK\u0130N \u015e\u0130FRES\u0130',sspI),errD);
@@ -2069,7 +2071,7 @@ function modalDaireDuzenle(bina,d){
       }
       guncelle(function(){
         const i=D.daireler[bina.id].findIndex(function(x){return x.id===d.id;});
-        if(i>=0)D.daireler[bina.id][i]={id:d.id,no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:ka,sakinSifre:sspI.value};
+        if(i>=0)D.daireler[bina.id][i]={id:d.id,no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:ka,sakinSifre:sspI.value,sakinTel:telI.value.trim(),sakinEmail:d.sakinEmail||''};
       });
       close();toast('\u2705 G\u00fcncellendi','ok');
     }));
@@ -2232,6 +2234,15 @@ function modalAyOdeme(bina,daire,ay,yil,mevcut){
             if(!D.aidatlar[bina.id][daire.id])D.aidatlar[bina.id][daire.id]={};
             if(!D.aidatlar[bina.id][daire.id][yil])D.aidatlar[bina.id][daire.id][yil]={};
             delete D.aidatlar[bina.id][daire.id][yil][ay];
+            // Kasadan da düş - aynı daire+ay+yil olan geliri sil
+            if(D.kasaH[bina.id]){
+              var iptalAciklama=daire.no;
+              D.kasaH[bina.id]=D.kasaH[bina.id].filter(function(h){
+                return !(h.tip==='gelir'&&h.kategori==='Aidat Tahsilat\u0131'&&
+                  h.aciklama&&h.aciklama.indexOf(daire.no)>=0&&
+                  h.aciklama.indexOf(AYF[ay])>=0);
+              });
+            }
           },'Aidat iptal: '+daire.no+' '+AYF[ay]+' '+yil);
           close();toast('\u274C \u00d6deme iptal edildi','err');
         });
@@ -2245,7 +2256,10 @@ function modalAyOdeme(bina,daire,ay,yil,mevcut){
             if(!D.aidatlar[bina.id][daire.id][yil])D.aidatlar[bina.id][daire.id][yil]={};
             D.aidatlar[bina.id][daire.id][yil][ay]={durum:'odendi',tutar:daire.aidat,tarih:tarI.value,not:notI.value};
             if(!D.kasaH[bina.id])D.kasaH[bina.id]=[];
-            D.kasaH[bina.id].push({id:uid(),tip:'gelir',tutar:daire.aidat,kategori:'Aidat Tahsilat\u0131',aciklama:daire.no+' \u2014 '+AYF[ay]+' '+yil,tarih:tarI.value,saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
+            // Tutar 0 ise kasaya ekleme
+            if(daire.aidat>0){
+              D.kasaH[bina.id].push({id:uid(),tip:'gelir',tutar:daire.aidat,kategori:'Aidat Tahsilat\u0131',aciklama:daire.no+' \u2014 '+AYF[ay]+' '+yil,tarih:tarI.value,saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
+            }
           },'Aidat \u00f6dendi: '+daire.no+' '+AYF[ay]+' '+yil);
           close();toast('\u2705 \u00d6dendi i\u015faretlendi','ok');
         });
@@ -2345,7 +2359,9 @@ function renderDekontlar(bina){
             if(!D.aidatlar[bina.id][dk.daireId][dk.yil])D.aidatlar[bina.id][dk.daireId][dk.yil]={};
             D.aidatlar[bina.id][dk.daireId][dk.yil][dk.ay]={durum:'odendi',tutar:daire.aidat,tarih:dk.tarih};
             if(!D.kasaH[bina.id])D.kasaH[bina.id]=[];
-            D.kasaH[bina.id].push({id:uid(),tip:'gelir',tutar:daire.aidat,kategori:'Aidat Tahsilat\u0131',aciklama:dk.daireNo+' \u2014 '+(dk.sakinAdi||'')+' \u2014 '+AYF[dk.ay]+' (Dekont)',tarih:dk.tarih,saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
+            if(daire.aidat>0){
+              D.kasaH[bina.id].push({id:uid(),tip:'gelir',tutar:daire.aidat,kategori:'Aidat Tahsilat\u0131',aciklama:dk.daireNo+' \u2014 '+(dk.sakinAdi||'')+' \u2014 '+AYF[dk.ay]+' (Dekont)',tarih:dk.tarih,saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
+            }
           }
         });
         toast('\u2705 Dekont onayland\u0131, aidat i\u015flendi','ok');
@@ -2401,6 +2417,165 @@ function renderArizalar(bina){
   });
   return wrap;
 }
+function renderBildirim(bina){
+  const wrap=dv('');
+  wrap.appendChild(dv('stit','\uD83D\uDCF2 Borç Hatırlatma & Bildirim'));
+
+  // Borçlu daireler listesi
+  const daireler=D.daireler[bina.id]||[];
+  const aidatlar=D.aidatlar[bina.id]||{};
+  const ylNow=simdiYil(),ayNow=simdiAy();
+
+  const borcluDaireler=[];
+  const kampanyalar=D.kampanyalar[bina.id]||[];
+  daireler.forEach(function(d){
+    if(d.muaf)return;
+    var borc=0;
+    var yilAidat=(aidatlar[d.id]||{})[ylNow]||{};
+    for(var m=0;m<=ayNow;m++){
+      var p=yilAidat[m];
+      if(!p||(p.durum!=='odendi'&&p.durum!=='erken'))borc+=d.aidat;
+    }
+    // Kampanya borçları
+    var kampanyaBorc=0;
+    var kampanyaDetay=[];
+    kampanyalar.forEach(function(k){
+      var dKayitlar=k.daireler.filter(function(x){return x.daireId===d.id&&!x.odendi;});
+      if(dKayitlar.length>0){
+        var kBorc=dKayitlar.length*(k.daireBasiTutar||0);
+        kampanyaBorc+=kBorc;
+        kampanyaDetay.push(k.ad+': '+fP(kBorc));
+      }
+    });
+    if(borc>0||kampanyaBorc>0)borcluDaireler.push({daire:d,borc:borc,kampanyaBorc:kampanyaBorc,kampanyaDetay:kampanyaDetay});
+  });
+
+  // Özet
+  const ozet=dv('');ozet.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px';
+  var topBorc=borcluDaireler.reduce(function(s,x){return s+x.borc+x.kampanyaBorc;},0);
+  var topAidat=borcluDaireler.reduce(function(s,x){return s+x.borc;},0);
+  var topKampanya=borcluDaireler.reduce(function(s,x){return s+x.kampanyaBorc;},0);
+  [[borcluDaireler.length+' Daire','BORÇLU'],[fP(topAidat),'A\u0130DAT BORCU'],[fP(topKampanya),'KAMPANYA BORCU'],[fP(topBorc),'TOPLAM']].forEach(function(item){
+    var kart=dv('');kart.style.cssText='background:#fee2e2;border:1.5px solid #fca5a5;border-radius:12px;padding:14px;text-align:center';
+    kart.innerHTML='<div style="font-size:18px;font-weight:900;color:#c62828">'+item[0]+'</div><div style="font-size:10px;color:#991b1b;font-weight:700;margin-top:4px">'+item[1]+'</div>';
+    ozet.appendChild(kart);
+  });
+  wrap.appendChild(ozet);
+
+  if(!borcluDaireler.length){
+    wrap.appendChild(alrt('al-ok','\u2705 Tüm daireler ödeme yapmış, borç yok!'));
+    return wrap;
+  }
+
+  // Toplu hatırlatma butonu
+  // Toplu WhatsApp
+  const topluWABtn=btn('btn bg','\uD83D\uDCAC Tüm Borçlulara WhatsApp',function(){
+    var mesajlar=[];
+    borcluDaireler.forEach(function(item){
+      var d=item.daire;
+      var tel=(d.sakinTel||'').replace(/[^0-9]/g,'');
+      if(tel){
+        if(tel.startsWith('0'))tel='90'+tel.slice(1);
+        var mesajParcalar=['Say\u0131n '+(d.sakin||d.no)+', '+bina.ad+' apartman\u0131ndaki '+d.no+' numaral\u0131 dairenize ait bilgiler:'];
+      if(item.borc>0)mesajParcalar.push('\uD83D\uDCB0 Aidat Borcu: '+fP(item.borc));
+      if(item.kampanyaBorc>0){mesajParcalar.push('\uD83C\uDFD7\uFE0F Kampanya Borcu: '+fP(item.kampanyaBorc));if(item.kampanyaDetay&&item.kampanyaDetay.length)item.kampanyaDetay.forEach(function(k){mesajParcalar.push('  - '+k);});}
+      mesajParcalar.push('\uD83D\uDCB3 Toplam: '+fP(item.borc+item.kampanyaBorc));
+      mesajParcalar.push('L\u00fctfen \u00f6demenizi yap\u0131n\u0131z.');
+      var mesaj=mesajParcalar.join('\n');
+        mesajlar.push({tel:tel,mesaj:mesaj,no:d.no});
+      }
+    });
+    if(!mesajlar.length){toast('\u26A0\uFE0F Hi\u00e7bir dairede telefon tan\u0131ml\u0131 de\u011fil','err');return;}
+    var i=0;
+    function sonraki(){
+      if(i>=mesajlar.length){toast('\u2705 '+mesajlar.length+' WA mesaj\u0131 haz\u0131rland\u0131','ok');return;}
+      var m=mesajlar[i++];
+      window.open('https://wa.me/'+m.tel+'?text='+encodeURIComponent(m.mesaj),'_blank');
+      setTimeout(sonraki,1500);
+    }
+    toast('\uD83D\uDCAC '+mesajlar.length+' mesaj g\u00f6nderilecek...','ok');
+    sonraki();
+  });
+  topluWABtn.style.cssText='margin-bottom:8px;width:100%';
+  wrap.appendChild(topluWABtn);
+
+  const topluBtn=btn('btn bg','\uD83D\uDCE7 Tüm Borçlulara Mail Gönder',function(){
+    onayModal(borcluDaireler.length+' daireye borç hatırlatma maili gönderilsin mi?',function(){
+      var gonderilen=0;
+      borcluDaireler.forEach(function(item){
+        var d=item.daire;
+        if(d.sakinEmail){
+          mailGonder(d.sakinEmail,d.sakin||d.no,
+            '\uD83D\uDCB0 Aidat Borç Hatırlatması - '+bina.ad,
+            'Sayın '+( d.sakin||d.no)+',\n\n'+bina.ad+' apartmanındaki '+d.no+' numaralı dairenizin toplam aidat borcu: '+fP(item.borc)+'\n\nLütfen en kısa sürede ödemenizi yapınız.',
+            bina.ad
+          );
+          gonderilen++;
+        }
+      });
+      toast('\uD83D\uDCE7 '+gonderilen+' kişiye mail gönderildi','ok');
+    });
+  });
+  topluBtn.style.marginBottom='12px';
+  wrap.appendChild(topluBtn);
+
+  // Borçlu daire listesi
+  borcluDaireler.forEach(function(item){
+    var d=item.daire;
+    var card=dv('card');card.style.cssText='margin-bottom:10px;border-left:4px solid #fca5a5';
+    var kampanyaDetayHtml=item.kampanyaDetay&&item.kampanyaDetay.length?'<div style="font-size:11px;color:#c62828;margin-top:2px">Kampanya: '+item.kampanyaDetay.join(' | ')+'</div>':'';
+    card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<div><div style="font-weight:800;font-size:14px">\uD83C\uDFE0 '+d.no+(d.sakin?' \u2014 '+d.sakin:'')+'</div>'
+      +'<div style="font-size:12px;color:var(--text2);margin-top:2px">Aidat: <span style="color:#c62828;font-weight:700">'+fP(item.borc)+'</span>'+(item.kampanyaBorc>0?' | Kampanya: <span style="color:#c62828;font-weight:700">'+fP(item.kampanyaBorc)+'</span>':'')+'</div>'
+      +kampanyaDetayHtml+'</div></div>';
+
+    // Email alanı
+    var emailRow=dv('');emailRow.style.cssText='display:flex;gap:8px;align-items:center;margin-top:8px';
+    var emailI=inp('email',d.sakinEmail||'','sakin@mail.com');
+    emailI.style.cssText='flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none';
+    var saveEmailBtn=btn('btn bg bsm','\uD83D\uDCBE',function(){
+      guncelle(function(){
+        var idx=D.daireler[bina.id].findIndex(function(x){return x.id===d.id;});
+        if(idx>=0)D.daireler[bina.id][idx].sakinEmail=emailI.value.trim();
+      },'Sakin email güncellendi: '+d.no);
+      toast('\u2705 Email kaydedildi','ok');
+    });
+    var mailBtn=btn('btn bgr bsm','\uD83D\uDCE7 Mail',function(){
+      if(!emailI.value.trim()){toast('\u26A0\uFE0F Email girin','err');return;}
+      mailGonder(emailI.value.trim(),d.sakin||d.no,
+        '\uD83D\uDCB0 Aidat Bor\u00e7 Hat\u0131rlatmas\u0131 - '+bina.ad,
+        'Say\u0131n '+(d.sakin||d.no)+',\n\n'+d.no+' numaral\u0131 dairenize ait bor\u00e7 bilgileri:\n'+(item.borc>0?'\uD83D\uDCB0 Aidat Borcu: '+fP(item.borc)+'\n':'')+(item.kampanyaBorc>0?'\uD83C\uDFD7\uFE0F Kampanya Borcu: '+fP(item.kampanyaBorc)+'\n':'')+'\uD83D\uDCB3 Toplam: '+fP(item.borc+item.kampanyaBorc)+'\n\nL\u00fctfen \u00f6demenizi yap\u0131n\u0131z.',
+        bina.ad
+      );
+      toast('\uD83D\uDCE7 Mail g\u00f6nderildi','ok');
+    });
+    // WhatsApp butonu
+    var telI2=inp('tel',d.sakinTel||'','Tel');
+    telI2.style.cssText='flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none';
+    var wpBtn=btn('btn bg bsm','\uD83D\uDCAC WhatsApp',function(){
+      var tel=(telI2.value||d.sakinTel||'').replace(/[^0-9]/g,'');
+      if(!tel){toast('\u26A0\uFE0F Telefon girin','err');return;}
+      if(tel.startsWith('0'))tel='90'+tel.slice(1);
+      var mesaj='Sayın '+(d.sakin||d.no)+', '+bina.ad+' apartmanındaki '+d.no+' numaralı dairenizin aidat borcu: '+fP(item.borc)+'. Lütfen ödemenizi yapınız.';
+      window.open('https://wa.me/'+tel+'?text='+encodeURIComponent(mesaj),'_blank');
+    });
+    var saveTelBtn=btn('btn bgr bsm','\uD83D\uDCBE',function(){
+      guncelle(function(){
+        var idx=D.daireler[bina.id].findIndex(function(x){return x.id===d.id;});
+        if(idx>=0)D.daireler[bina.id][idx].sakinTel=telI2.value.trim();
+      },'Tel kaydedildi: '+d.no);
+      toast('\u2705 Tel kaydedildi','ok');
+    });
+    var wpRow=dv('');wpRow.style.cssText='display:flex;gap:8px;align-items:center;margin-top:6px';
+    append(wpRow,telI2,saveTelBtn,wpBtn);
+    card.appendChild(wpRow);
+    append(emailRow,emailI,saveEmailBtn,mailBtn);
+    card.appendChild(emailRow);
+    wrap.appendChild(card);
+  });
+  return wrap;
+}
+
 function renderDuyurular(bina){
   const wrap=dv('');
   wrap.appendChild(dv('stit','\uD83D\uDCE2 Duyurular'));
