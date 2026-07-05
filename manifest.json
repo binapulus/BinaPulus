@@ -3,10 +3,12 @@
   "short_name": "BinaPlus",
   "description": "Apartman Yönetim Sistemi",
   "start_url": "/BinaPulus/",
+  "scope": "/BinaPulus/",
   "display": "standalone",
-  "background_color": "#f2ede8",
+  "background_color": "#1a5c38",
   "theme_color": "#1a5c38",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icon-192.png",
@@ -20,7 +22,5 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ],
-  "scope": "/BinaPulus/",
-  "prefer_related_applications": false
+  ]
 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'binaplus-v2';
+const CACHE_NAME = 'binaplus-v3';
 const ASSETS = [
   '/BinaPulus/index.html',
   '/BinaPulus/manifest.json',
