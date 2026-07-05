@@ -2547,39 +2547,65 @@ function renderEkstra(bina){
 
     append(kc2,kch,kcs,pl,pbar);
 
-    // Daire listesi - sadece ödenmeyenler
-    const odenmeyenler=k.daireler.filter(function(d){return!d.odendi;});
-    if(odenmeyenler.length>0){
-      const dListTitle=dv('');dListTitle.style.cssText='color:rgba(255,255,255,.7);font-size:11px;font-weight:700;margin:10px 0 6px;letter-spacing:.05em';
-      dListTitle.textContent='\u00d6DEME BEKLEYENLER';
-      kc2.appendChild(dListTitle);
-      odenmeyenler.forEach(function(d){
-        const daire=(D.daireler[bina.id]||[]).find(function(x){return x.id===d.daireId;})||{no:d.daireId,sakin:''};
-        const row=dv('');row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.1)';
-        row.innerHTML='<div style="color:#fff;font-size:13px">\uD83C\uDFE0 '+daire.no+(daire.sakin?' \u2014 '+daire.sakin:'')+'</div>';
-        const odeBtn=document.createElement('button');
-        odeBtn.textContent='\u00d6dendi';
-        odeBtn.style.cssText='background:rgba(255,255,255,.2);color:#fff;border:none;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;cursor:pointer';
-        odeBtn.onclick=(function(dd){return function(){
-          onayModal(daire.no+' i\u00e7in '+k.ad+' tahsilat\u0131 i\u015faretlensin mi?',function(){
-            guncelle(function(){
-              var ki=D.kampanyalar[bina.id].findIndex(function(x){return x.id===k.id;});
-              if(ki>=0){
-                var di=D.kampanyalar[bina.id][ki].daireler.findIndex(function(x){return x.daireId===dd.daireId;});
-                if(di>=0){
-                  D.kampanyalar[bina.id][ki].daireler[di].odendi=true;
-                  if(!D.kasaH[bina.id])D.kasaH[bina.id]=[];
-                  D.kasaH[bina.id].push({id:uid(),tip:'gelir',tutar:dd.tutar||k.daireBasiTutar||0,kategori:'Ekstra Tahsilat',aciklama:k.ad+' \u2014 '+daire.no,tarih:bugun(),saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
-                }
-              }
-            },'Kampanya tahsilat\u0131: '+k.ad+' \u2014 '+daire.no);
-            toast('\u2705 \u00d6dendi','ok');
-          });
-        };})(d);
-        row.appendChild(odeBtn);
-        kc2.appendChild(row);
-      });
+    // Daire listesi - ay bazlı kutular
+    const daireler2=D.daireler[bina.id]||[];
+    // Kampanyanın aylarını bul
+    const kampanyaAylar=[];
+    var basAy2=k.basAy!==undefined?k.basAy:0;
+    var basYil2=k.yil||simdiYil();
+    var kaçAy2=k.kaçAy||1;
+    for(var ai=0;ai<kaçAy2;ai++){
+      var gAy=(basAy2+ai)%12;
+      var gYil=basYil2+Math.floor((basAy2+ai)/12);
+      kampanyaAylar.push({ay:gAy,yil:gYil});
     }
+    daireler2.forEach(function(daire){
+      // Bu daireye ait kampanya kayıtlarını bul
+      const dKayitlar=k.daireler.filter(function(x){return x.daireId===daire.id;});
+      if(!dKayitlar.length)return;
+      const dRow=dv('');dRow.style.cssText='margin-bottom:10px;border-top:1px solid rgba(255,255,255,.1);padding-top:10px';
+      // Daire başlığı
+      const dBaslik=dv('');dBaslik.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:8px';
+      const odenenKayit=dKayitlar.filter(function(x){return x.odendi;}).length;
+      const tumTamam=odenenKayit===dKayitlar.length;
+      dBaslik.innerHTML='<div style="color:#fff;font-size:13px;font-weight:700">\uD83C\uDFE0 '+daire.no+(daire.sakin?' \u2014 '+daire.sakin:'')+'</div>'
+        +(tumTamam?'<span style="color:#a0e4b8;font-size:12px;font-weight:800">\u2713 Tamam</span>'
+          :'<span style="color:#ffb3a7;font-size:12px;font-weight:700">'+fP((dKayitlar.length-odenenKayit)*(k.daireBasiTutar||0))+'</span>');
+      dRow.appendChild(dBaslik);
+      // Ay kutuları
+      const ayGrid=dv('');ayGrid.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:5px';
+      kampanyaAylar.forEach(function(kayitAy,ai){
+        var ilgiliKayit=dKayitlar.find(function(x){return x.ay===kayitAy.ay&&x.yil===kayitAy.yil;});
+        if(!ilgiliKayit)ilgiliKayit=dKayitlar[ai];
+        var odendi=ilgiliKayit&&ilgiliKayit.odendi;
+        const cell=dv('');
+        cell.style.cssText='padding:8px 4px;border-radius:10px;text-align:center;cursor:'+(odendi?'default':'pointer')+';background:'+(odendi?'rgba(0,200,100,.3)':'rgba(200,0,0,.25)');
+        cell.innerHTML='<div style="font-size:14px;font-weight:800;color:'+(odendi?'#a0e4b8':'#ffb3a7')+'">'+(odendi?'\u2713':'\u2717')+'</div>'
+          +'<div style="font-size:9px;color:'+(odendi?'#a0e4b8':'#ffb3a7')+';margin-top:2px">'+AYF[kayitAy.ay]+'</div>'
+          +'<div style="font-size:8px;color:rgba(255,255,255,.5);margin-top:1px">'+kayitAy.yil+'</div>';
+        if(!odendi&&ilgiliKayit){
+          cell.onclick=(function(kayit,d2,kayitAy2){return function(){
+            onayModal(daire.no+' '+AYF[kayitAy2.ay]+' '+kayitAy2.yil+' \u00f6dendi i\u015faretlensin mi?',function(){
+              guncelle(function(){
+                var ki=D.kampanyalar[bina.id].findIndex(function(x){return x.id===k.id;});
+                if(ki>=0){
+                  var di=D.kampanyalar[bina.id][ki].daireler.findIndex(function(x){return x===kayit;});
+                  if(di>=0){
+                    D.kampanyalar[bina.id][ki].daireler[di].odendi=true;
+                    if(!D.kasaH[bina.id])D.kasaH[bina.id]=[];
+                    D.kasaH[bina.id].push({id:uid(),tip:'gelir',tutar:kayit.tutar||k.daireBasiTutar||0,kategori:'Ekstra Tahsilat',aciklama:k.ad+' \u2014 '+daire.no+' \u2014 '+AYF[kayitAy2.ay],tarih:bugun(),saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
+                  }
+                }
+              },'Kampanya: '+k.ad+' \u2014 '+daire.no+' '+AYF[kayitAy2.ay]);
+              toast('\u2705 \u00d6dendi','ok');
+            });
+          };})(ilgiliKayit,daire,kayitAy);
+        }
+        ayGrid.appendChild(cell);
+      });
+      dRow.appendChild(ayGrid);
+      kc2.appendChild(dRow);
+    });
     wrap.appendChild(kc2);
   });
   return wrap;
