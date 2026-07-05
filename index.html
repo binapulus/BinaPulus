@@ -51,7 +51,7 @@ loadFirebase();
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="BinaPlus"/>
-<!-- manifest geçici kapalı -->
+<link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/svg+xml" href="favicon.svg"/>
 <link rel="shortcut icon" href="favicon.svg"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
@@ -3381,6 +3381,16 @@ function lokalBildirim(baslik,mesaj,icon){
       badge:'icon-192.png'
     });
   }
+}
+
+// ── PWA SERVICE WORKER ──────────────────────────
+if('serviceWorker' in navigator){
+  window.addEventListener('load',function(){
+    navigator.serviceWorker.register('sw.js').then(function(reg){
+      console.log('SW kayitli:',reg.scope);
+      window._swReg=reg;
+    }).catch(function(e){console.warn('SW hatasi:',e);});
+  });
 }
 
 // ── BAŞLAT ───────────────────────────────────────

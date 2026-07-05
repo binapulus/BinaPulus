@@ -2,7 +2,7 @@
   "name": "BinaPlus - Apartman Yönetim",
   "short_name": "BinaPlus",
   "description": "Apartman Yönetim Sistemi",
-  "start_url": "/BinaPulus/",
+  "start_url": "/BinaPulus/index.html",
   "scope": "/BinaPulus/",
   "display": "standalone",
   "background_color": "#1a5c38",
@@ -11,16 +11,28 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "icon-192.png",
+      "src": "/BinaPulus/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
-      "src": "icon-512.png",
+      "src": "/BinaPulus/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/BinaPulus/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    },
+    {
+      "src": "/BinaPulus/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
