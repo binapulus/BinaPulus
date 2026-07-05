@@ -1754,6 +1754,7 @@ function renderYonetici(bina){
     if(S.sekme==='daireler')modalDaireEkle(bina);
     else if(S.sekme==='kasa')modalGelir(bina);
     else if(S.sekme==='duyurular')modalDuyuruEkle(bina);
+    else if(S.sekme==='ekstra')modalKampanyaEkle(bina);
     else if(S.sekme==='faturalar')modalFaturaEkle(bina);
     else if(S.sekme==='ekstra')cnt.scrollTo({top:0,behavior:'smooth'});
     else if(S.sekme==='evraklar')modalEvrakEkle(bina);
@@ -2208,6 +2209,91 @@ function modalDaireAySecim(bina,daire,yil){
     brow.appendChild(btn('btn bg','\u2705 Se\u00e7imi Onayla',function(){
       S.seciliDaireler[daire.id]=yeniSecim;
       close();render();
+    }));
+    m.appendChild(brow);
+  });
+}
+
+function modalAyOdeme(bina,daire,ay,yil,mevcut){
+  modal('\uD83D\uDCC5 '+daire.no+' \u2014 '+AYF[ay]+' '+yil,function(m,close){
+    const durum=mevcut?mevcut.durum:'odenmedi';
+    m.appendChild(dv('al al-info','Mevcut: '+(durum==='odendi'?'\u2705 \u00d6dendi':durum==='erken'?'\u26A1 Erken':'\u2717 \u00d6denmedi')));
+    const tarI=inp('date',bugun(),'');
+    const notI=inp('text',mevcut&&mevcut.not||'','Not (iste\u011fe ba\u011fl\u0131)');
+    append(m,fg('\u00d6DEME TAR\u0130H\u0130',tarI),fg('NOT',notI));
+    const brow=dv('brow');
+    brow.appendChild(btn('btn bgr','\u0130ptal',close));
+    if(mevcut&&mevcut.durum==='odendi'){
+      brow.appendChild(btn('btn br','\u274C \u0130ptal Et',function(){
+        onayModal('\u00d6deme iptal edilsin mi?',function(){
+          guncelle(function(){
+            if(!D.aidatlar[bina.id])D.aidatlar[bina.id]={};
+            if(!D.aidatlar[bina.id][daire.id])D.aidatlar[bina.id][daire.id]={};
+            if(!D.aidatlar[bina.id][daire.id][yil])D.aidatlar[bina.id][daire.id][yil]={};
+            delete D.aidatlar[bina.id][daire.id][yil][ay];
+          },'Aidat iptal: '+daire.no+' '+AYF[ay]+' '+yil);
+          close();toast('\u274C \u00d6deme iptal edildi','err');
+        });
+      }));
+    } else {
+      brow.appendChild(btn('btn bg','\u2705 \u00d6dendi \u0130\u015faretle',function(){
+        onayModal(daire.no+' '+AYF[ay]+' aidat\u0131 \u00f6dendi i\u015faretlensin mi?',function(){
+          guncelle(function(){
+            if(!D.aidatlar[bina.id])D.aidatlar[bina.id]={};
+            if(!D.aidatlar[bina.id][daire.id])D.aidatlar[bina.id][daire.id]={};
+            if(!D.aidatlar[bina.id][daire.id][yil])D.aidatlar[bina.id][daire.id][yil]={};
+            D.aidatlar[bina.id][daire.id][yil][ay]={durum:'odendi',tutar:daire.aidat,tarih:tarI.value,not:notI.value};
+            if(!D.kasaH[bina.id])D.kasaH[bina.id]=[];
+            D.kasaH[bina.id].push({id:uid(),tip:'gelir',tutar:daire.aidat,kategori:'Aidat Tahsilat\u0131',aciklama:daire.no+' \u2014 '+AYF[ay]+' '+yil,tarih:tarI.value,saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
+          },'Aidat \u00f6dendi: '+daire.no+' '+AYF[ay]+' '+yil);
+          close();toast('\u2705 \u00d6dendi i\u015faretlendi','ok');
+        });
+      }));
+    }
+    m.appendChild(brow);
+  });
+}
+
+function modalKampanyaEkle(bina){
+  modal('\uD83C\uDFD7\uFE0F Kampanya Ekle',function(m,close){
+    const adI=inp('text','','Kampanya ad\u0131 (\u00f6rn: Boya Badana)');
+    const tutI=inp('number','0','Daire ba\u015f\u0131 tutar');
+    const acI=el('textarea');acI.placeholder='A\u00e7\u0131klama...';acI.style.cssText='width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:11px;font-size:14px;min-height:60px;outline:none;resize:vertical';
+    const errD=dv('');
+    append(m,fg('KAMPANYA ADI *',adI),fg('DA\u0130RE BA\u015eI TUTAR (\u20ba)',tutI),fg('A\u00c7IKLAMA',acI),errD);
+    // Daire seçimi
+    const daireler=D.daireler[bina.id]||[];
+    const daireBas=dv('stit','Da\u0131re Se\u00e7');
+    m.appendChild(daireBas);
+    const secDaireler=[];
+    daireler.forEach(function(d){
+      const cbr=dv('cbr');
+      const cbb=dv('cbb');
+      const cbl=dv('');cbl.innerHTML='<div class="cbl">'+d.no+(d.sakin?' \u2014 '+d.sakin:'')+'</div>';
+      cbr.appendChild(cbb);cbr.appendChild(cbl);
+      var secili=true;
+      secDaireler.push({daireId:d.id,secili:true,tutar:0});
+      cbb.className='cbb chk';cbb.textContent='\u2713';
+      cbr.onclick=function(){
+        secili=!secili;
+        cbb.className='cbb'+(secili?' chk':'');
+        cbb.textContent=secili?'\u2713':'';
+        var idx2=secDaireler.findIndex(function(x){return x.daireId===d.id;});
+        if(idx2>=0)secDaireler[idx2].secili=secili;
+      };
+      m.appendChild(cbr);
+    });
+    const brow=dv('brow');
+    brow.appendChild(btn('btn bgr','\u0130ptal',close));
+    brow.appendChild(btn('btn bg','\uD83C\uDFD7\uFE0F Olu\u015ftur',function(){
+      if(!adI.value.trim()){errD.innerHTML='';errD.appendChild(alrt('al-err','Kampanya ad\u0131 girin.'));return;}
+      const secilenler=secDaireler.filter(function(x){return x.secili;}).map(function(x){return{daireId:x.daireId,odendi:false,tutar:+tutI.value||0};});
+      if(!secilenler.length){errD.innerHTML='';errD.appendChild(alrt('al-err','En az bir daire se\u00e7in.'));return;}
+      guncelle(function(){
+        if(!D.kampanyalar[bina.id])D.kampanyalar[bina.id]=[];
+        D.kampanyalar[bina.id].push({id:uid(),ad:adI.value.trim(),daireBasiTutar:+tutI.value||0,aciklama:acI.value.trim(),tarih:bugun(),daireler:secilenler});
+      },'Kampanya eklendi: '+adI.value.trim());
+      close();toast('\u2705 Kampanya olu\u015fturuldu','ok');
     }));
     m.appendChild(brow);
   });
