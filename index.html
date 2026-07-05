@@ -2017,6 +2017,7 @@ function modalDaireEkle(bina){
       }
     });
     const sspI=inp('text','','\u015eifre');
+    const telI=inp('tel','','05xxxxxxxxx');
     append(m,fg('SAK\u0130N KULLANICI ADI',skaI),fg('SAK\u0130N \u015e\u0130FRES\u0130',sspI),fg('TELEFON (WhatsApp)',telI));
     m.appendChild(errD);
     const brow=dv('brow');
@@ -2030,7 +2031,7 @@ function modalDaireEkle(bina){
       }
       guncelle(function(){
         if(!D.daireler[bina.id])D.daireler[bina.id]=[];
-        D.daireler[bina.id].push({id:uid(),no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:ka,sakinSifre:sspI.value});
+        D.daireler[bina.id].push({id:uid(),no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:ka,sakinSifre:sspI.value,sakinTel:telI.value.trim()});
       });
       close();toast('\u2705 Daire eklendi','ok');
     }));
