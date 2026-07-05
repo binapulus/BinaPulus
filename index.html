@@ -300,11 +300,11 @@ var kaydet=function(){
       var D2=JSON.parse(JSON.stringify(D));
       // Dekontlardaki resimleri temizle
       Object.keys(D2.dekontlar||{}).forEach(function(bid){
-        (D2.dekontlar[bid]||[]).forEach(function(d){if(d.resim&&d.resim.length>500)d.resim='[resim_local]';});
+        (D2.dekontlar[bid]||[]).forEach(function(d){if(d.resim&&d.resim.length>200000)d.resim='[resim_local]';});
       });
       // Arızalardaki resimleri temizle
       Object.keys(D2.arizalar||{}).forEach(function(bid){
-        (D2.arizalar[bid]||[]).forEach(function(a){if(a.resim&&a.resim.length>500)a.resim='[resim_local]';});
+        (D2.arizalar[bid]||[]).forEach(function(a){if(a.resim&&a.resim.length>200000)a.resim='[resim_local]';});
       });
       var jsonStr=JSON.stringify(D2);
       var boyut=new Blob([jsonStr]).size;
@@ -1567,16 +1567,31 @@ function modalDekontYukle(bina,daire){
       const file=e.target.files[0];if(!file)return;
       const reader=new FileReader();
       reader.onload=function(ev){
-        resimData=ev.target.result;
+        var rawData=ev.target.result;
         onizleme.innerHTML='';
         if(file.type==='application/pdf'){
+          resimData=rawData;
           const pdfBox=document.createElement('div');
           pdfBox.style.cssText='background:#fee2e2;border:1.5px solid #fca5a5;border-radius:10px;padding:16px;text-align:center';
           pdfBox.innerHTML='<div style="font-size:32px;margin-bottom:6px">\uD83D\uDCC4</div><div style="font-size:13px;font-weight:700;color:#991b1b">'+file.name+'</div><div style="font-size:11px;color:#991b1b;margin-top:2px">PDF dosyas\u0131 se\u00e7ildi</div>';
           onizleme.appendChild(pdfBox);
         }else{
-          const img=document.createElement('img');img.src=resimData;img.style.cssText='width:100%;border-radius:10px;max-height:200px;object-fit:cover';
-          onizleme.appendChild(img);
+          // Resmi sıkıştır - max 800px, kalite 0.7
+          var sıkıstırImg=new Image();
+          sıkıstırImg.onload=function(){
+            var canvas=document.createElement('canvas');
+            var maxW=800,maxH=800;
+            var w=sıkıstırImg.width,h=sıkıstırImg.height;
+            if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+            if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+            canvas.width=w;canvas.height=h;
+            var ctx=canvas.getContext('2d');
+            ctx.drawImage(sıkıstırImg,0,0,w,h);
+            resimData=canvas.toDataURL('image/jpeg',0.7);
+            var img=document.createElement('img');img.src=resimData;img.style.cssText='width:100%;border-radius:10px;max-height:200px;object-fit:cover';
+            onizleme.appendChild(img);
+          };
+          sıkıstırImg.src=rawData;
         }
       };
       reader.readAsDataURL(file);
@@ -1643,10 +1658,23 @@ function modalArizaBildir(bina,daire){
       const file=e.target.files[0];if(!file)return;
       const reader=new FileReader();
       reader.onload=function(ev){
-        resimData=ev.target.result;
-        onizleme.innerHTML='';
-        const img=document.createElement('img');img.src=resimData;img.style.cssText='width:100%;border-radius:10px;max-height:200px;object-fit:cover';
-        onizleme.appendChild(img);
+        var rawData=ev.target.result;
+        var sıkıstırImg=new Image();
+        sıkıstırImg.onload=function(){
+          var canvas=document.createElement('canvas');
+          var maxW=800,maxH=800;
+          var w=sıkıstırImg.width,h=sıkıstırImg.height;
+          if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+          if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+          canvas.width=w;canvas.height=h;
+          var ctx=canvas.getContext('2d');
+          ctx.drawImage(sıkıstırImg,0,0,w,h);
+          resimData=canvas.toDataURL('image/jpeg',0.7);
+          onizleme.innerHTML='';
+          var img=document.createElement('img');img.src=resimData;img.style.cssText='width:100%;border-radius:10px;max-height:200px;object-fit:cover';
+          onizleme.appendChild(img);
+        };
+        sıkıstırImg.src=rawData;
       };
       reader.readAsDataURL(file);
     };
@@ -2360,12 +2388,13 @@ function renderDekontlar(bina){
     if(dk.durum==='bekliyor'){
       const br2=dv('');br2.style.cssText='display:flex;gap:8px';
       br2.appendChild(btn('btn br bsm','\u274C Reddet',function(){
-        if(confirm('Reddedilsin mi?')){guncelle(function(){const i=D.dekontlar[bina.id].findIndex(function(x){return x.id===dk.id;});if(i>=0)D.dekontlar[bina.id][i].durum='reddedildi';});}
+        if(confirm('Reddedilsin mi?')){guncelle(function(){const i=D.dekontlar[bina.id].findIndex(function(x){return x.id===dk.id;});if(i>=0){D.dekontlar[bina.id][i].durum='reddedildi';D.dekontlar[bina.id][i].resim='';}});}
       }));
       br2.appendChild(btn('btn bg bsm','\u2705 Onayla & \u0130\u015fle',function(){
         guncelle(function(){
           const i=D.dekontlar[bina.id].findIndex(function(x){return x.id===dk.id;});
           if(i>=0)D.dekontlar[bina.id][i].durum='onaylandi';
+          D.dekontlar[bina.id][i].resim='';
           // Aidatı otomatik öde
           const daire=(D.daireler[bina.id]||[]).find(function(x){return x.id===dk.daireId;});
           if(daire){
