@@ -2,7 +2,7 @@
   "name": "BinaPlus - Apartman Yönetim",
   "short_name": "BinaPlus",
   "description": "Apartman Yönetim Sistemi",
-  "start_url": "/",
+  "start_url": "/BinaPulus/",
   "display": "standalone",
   "background_color": "#f2ede8",
   "theme_color": "#1a5c38",
@@ -20,5 +20,7 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "scope": "/BinaPulus/",
+  "prefer_related_applications": false
 }

@@ -47,6 +47,8 @@ loadFirebase();
 <meta name="theme-color" content="#1a5c38"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-touch-fullscreen" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="BinaPlus"/>
 <!-- manifest geçici kapalı -->
@@ -1543,7 +1545,7 @@ function modalDekontYukle(bina,daire){
   modal('\uD83E\uDDFE Dekont Y\u00fckle',function(m,close){
     const aySel=sel(AYF.map(function(a,i){return[i,a];}),simdiAy());
     const ylI=inp('number',simdiYil(),'');
-    const fileI=document.createElement('input');fileI.type='file';fileI.accept='image/*,application/pdf';
+    const fileI=document.createElement('input');fileI.type='file';fileI.accept='image/*,application/pdf,image/heic,image/heif';
     fileI.style.cssText='position:absolute;width:1px;height:1px;opacity:0;overflow:hidden';
     const fileLabel=document.createElement('label');
     fileLabel.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:2px dashed var(--g2);border-radius:11px;font-size:14px;font-weight:700;color:var(--g2);background:var(--g4);cursor:pointer;box-sizing:border-box';
@@ -1616,12 +1618,15 @@ function modalArizaBildir(bina,daire){
   modal('\uD83D\uDD27 Ar\u0131za Bildir',function(m,close){
     const baI=inp('text','','Ar\u0131za ba\u015fl\u0131\u011f\u0131 (\u00f6rn: Musluk ar\u0131zas\u0131)');
     const acI=el('textarea');acI.placeholder='Detayl\u0131 a\u00e7\u0131klama...';acI.style.cssText='width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:11px;font-size:14px;min-height:80px;outline:none;resize:vertical';
-    const fileI=document.createElement('input');fileI.type='file';fileI.accept='image/*';fileI.capture='environment';
+    const fileI=document.createElement('input');fileI.type='file';fileI.accept='image/*,image/heic,image/heif';
     fileI.style.cssText='position:absolute;width:1px;height:1px;opacity:0;overflow:hidden';
+    var fileId='fileInput_'+uid();
+    fileI.id=fileId;
     const fileLabel=document.createElement('label');
-    fileLabel.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:2px dashed var(--g2);border-radius:11px;font-size:14px;font-weight:700;color:var(--g2);background:var(--g4);cursor:pointer;box-sizing:border-box';
-    fileLabel.innerHTML='\uD83D\uDCF7 Foto\u011draf Se\u00e7 / \u00c7ek';
-    fileLabel.appendChild(fileI);
+    fileLabel.htmlFor=fileId;
+    fileLabel.style.cssText='display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;border:2px dashed var(--g2);border-radius:11px;font-size:14px;font-weight:700;color:var(--g2);background:var(--g4);cursor:pointer;box-sizing:border-box;-webkit-tap-highlight-color:transparent';
+    fileLabel.innerHTML='\uD83D\uDCF7 Foto\u011fraf veya PDF Se\u00e7';
+    document.body.appendChild(fileI);
     const onizleme=dv('');onizleme.style.marginTop='10px';
     let resimData='';
     fileI.onchange=function(e){
@@ -1759,6 +1764,126 @@ function renderYonetici(bina){
 }
 
 // ── KASA ─────────────────────────────────────────
+function defterPDF(bina){
+  var h=D.kasaH[bina.id]||[];
+  var bas=((D.ayarlar||{})[bina.id]||{}).kasaBas||0;
+  var gelirler=h.filter(function(x){return x.tip==='gelir';}).sort(function(a,b){return a.tarih>b.tarih?1:-1;});
+  var giderler=h.filter(function(x){return x.tip==='gider';}).sort(function(a,b){return a.tarih>b.tarih?1:-1;});
+  var topGelir=gelirler.reduce(function(s,x){return s+x.tutar;},0);
+  var topGider=giderler.reduce(function(s,x){return s+x.tutar;},0);
+  var bakiye=bas+topGelir-topGider;
+  var yonetici=D.yoneticiler.find(function(y){return y.binaId===bina.id;})||{ad:''};
+  var bugunStr=new Date().toLocaleDateString('tr-TR');
+
+  function satirGelir(i,g){
+    return '<tr style="background:'+(i%2===0?'#fff':'#f9fafb')+'">'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;color:#555">'+(i+1)+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px">'+fT(g.tarih)+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px"><span style="background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700">'+g.kategori+'</span></td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px">'+(g.aciklama||'\u2014')+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;font-weight:700;color:#2e7d32">'+fP(g.tutar)+'</td>'
+      +'</tr>';
+  }
+  function satirGider(i,g){
+    return '<tr style="background:'+(i%2===0?'#fff':'#f9fafb')+'">'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;color:#555">'+(i+1)+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px">'+fT(g.tarih)+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px"><span style="background:#fce4ec;color:#c62828;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700">'+g.kategori+'</span></td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px">'+(g.aciklama||'\u2014')+'</td>'
+      +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;font-weight:700;color:#c62828">'+fP(g.tutar)+'</td>'
+      +'</tr>';
+  }
+
+  var html='<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"/>'
+    +'<title>Gelir Gider Defteri - '+bina.ad+'</title>'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Segoe UI,Arial,sans-serif;background:#f0f0f0;padding:20px;}'
+    +'.sayfa{width:210mm;min-height:297mm;background:#fff;margin:0 auto;padding:16mm;box-shadow:0 4px 20px rgba(0,0,0,.15);}'
+    +'@media print{body{background:#fff;padding:0;}.sayfa{box-shadow:none;}.no-print{display:none}}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:24px;}'
+    +'thead tr{background:#1a5c38;color:#fff;}'
+    +'thead th{padding:9px 10px;text-align:left;font-size:11px;font-weight:700;}'
+    +'thead th:last-child{text-align:right;}'
+    +'tfoot td{padding:9px 10px;font-weight:800;font-size:13px;border-top:2px solid #ddd;background:#f5f5f5;}'
+    +'tfoot td:last-child{text-align:right;}'
+    +'</style></head><body>'
+    +'<div class="sayfa">'
+    // Başlık
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #1a5c38;padding-bottom:14px;margin-bottom:20px">'
+    +'<div style="display:flex;align-items:center;gap:10px">'
+    +'<div style="width:52px;height:52px;background:#1a5c38;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px">\uD83C\uDFE2</div>'
+    +'<div><div style="font-size:22px;font-weight:900;color:#1a5c38">BinaPlus</div><div style="font-size:11px;color:#666">Apartman Y\u00f6netim Sistemi</div></div>'
+    +'</div>'
+    +'<div style="text-align:right">'
+    +'<div style="font-size:15px;font-weight:800;color:#1a5c38">'+bina.ad+'</div>'
+    +'<div style="font-size:11px;color:#666;margin-top:3px">'+(bina.adres||'')+'</div>'
+    +'<div style="font-size:11px;color:#666">Y\u00f6netici: '+yonetici.ad+'</div>'
+    +'<div style="margin-top:4px;font-weight:700;color:#1a5c38;font-size:12px">GEL\u0130R G\u0130DER DEFTER\u0130</div>'
+    +'<div style="font-size:11px;color:#666">Olu\u015fturma: '+bugunStr+'</div>'
+    +'</div></div>'
+    // Özet kartlar
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">'
+    +'<div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:12px;padding:14px;text-align:center">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#666;margin-bottom:6px">\uD83D\uDCB0 Toplam Gelir</div>'
+    +'<div style="font-size:20px;font-weight:900;color:#2e7d32">'+fP(topGelir)+'</div></div>'
+    +'<div style="background:#fce4ec;border:1.5px solid #f48fb1;border-radius:12px;padding:14px;text-align:center">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#666;margin-bottom:6px">\uD83D\uDCB8 Toplam Gider</div>'
+    +'<div style="font-size:20px;font-weight:900;color:#c62828">'+fP(topGider)+'</div></div>'
+    +'<div style="background:#e3f2fd;border:1.5px solid #90caf9;border-radius:12px;padding:14px;text-align:center">'
+    +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#666;margin-bottom:6px">\uD83C\uDFE6 Net Bakiye</div>'
+    +'<div style="font-size:20px;font-weight:900;color:'+(bakiye>=0?'#1565c0':'#c62828')+'">'+fP(bakiye)+'</div></div>'
+    +'</div>'
+    // Gelirler tablosu
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    +'<div style="font-size:14px;font-weight:800;color:#1a5c38">\uD83D\uDCB0 Gelirler</div>'
+    +'<div style="font-size:11px;color:#888;background:#f5f5f5;padding:4px 10px;border-radius:20px">'+gelirler.length+' kay\u0131t</div>'
+    +'</div>'
+    +'<table><thead><tr>'
+    +'<th style="width:40px">#</th><th>Tarih</th><th>Kategori</th><th>A\u00e7\u0131klama</th>'
+    +'<th style="text-align:right">Tutar</th>'
+    +'</tr></thead><tbody>'
+    +gelirler.map(satirGelir).join('')
+    +'</tbody><tfoot><tr>'
+    +'<td colspan="4" style="color:#2e7d32">Toplam Gelir</td>'
+    +'<td style="color:#2e7d32;text-align:right">'+fP(topGelir)+'</td>'
+    +'</tr></tfoot></table>'
+    // Giderler tablosu
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    +'<div style="font-size:14px;font-weight:800;color:#c62828">\uD83D\uDCB8 Giderler</div>'
+    +'<div style="font-size:11px;color:#888;background:#f5f5f5;padding:4px 10px;border-radius:20px">'+giderler.length+' kay\u0131t</div>'
+    +'</div>'
+    +'<table><thead><tr>'
+    +'<th style="width:40px">#</th><th>Tarih</th><th>Kategori</th><th>A\u00e7\u0131klama</th>'
+    +'<th style="text-align:right">Tutar</th>'
+    +'</tr></thead><tbody>'
+    +giderler.map(satirGider).join('')
+    +'</tbody><tfoot><tr>'
+    +'<td colspan="4" style="color:#c62828">Toplam Gider</td>'
+    +'<td style="color:#c62828;text-align:right">'+fP(topGider)+'</td>'
+    +'</tr></tfoot></table>'
+    // Alt bilgi
+    +'<div style="border-top:2px solid #eee;padding-top:14px;display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px">'
+    +'<div><div style="font-size:11px;color:#666">Olu\u015fturma: '+bugunStr+'</div>'
+    +'<div style="font-size:11px;color:#666;margin-top:3px">BinaPlus Apartman Y\u00f6netim Sistemi</div></div>'
+    +'<div style="text-align:center">'
+    +'<div style="border-top:1px solid #333;width:150px;margin:40px auto 6px"></div>'
+    +'<div style="font-size:11px;color:#666">Y\u00f6netici \u0130mzas\u0131</div>'
+    +'<div style="font-size:10px;margin-top:2px">'+yonetici.ad+'</div>'
+    +'</div>'
+    +'<div style="text-align:center">'
+    +'<div style="width:100px;height:100px;border:1.5px dashed #ccc;border-radius:8px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:11px">Ka\u015fe</div>'
+    +'<div style="font-size:11px;color:#666">Resmi M\u00fchr</div>'
+    +'</div></div>'
+    +'<div style="font-size:10px;color:#aaa;text-align:center;margin-top:14px">Bu belge BinaPlus Apartman Y\u00f6netim Sistemi taraf\u0131ndan otomatik olu\u015fturulmu\u015ftur.</div>'
+    +'</div>'
+    +'<div class="no-print" style="text-align:center;margin-top:20px">'
+    +'<button onclick="window.print()" style="background:#1a5c38;color:#fff;border:none;padding:12px 30px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">\uD83D\uDDA8\uFE0F Yazd\u0131r / PDF Kaydet</button>'
+    +'</div>'
+    +'</body></html>';
+
+  var w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+}
+
 function renderKasa(bina){
   const wrap=dv('');
   // Bina ile ilgili bekleyen başvurular
@@ -1769,7 +1894,12 @@ function renderKasa(bina){
     uyariK.appendChild(btn('btn bg bsm','\uD83D\uDCC2 G\u00f6r',function(){modalYoneticiBasvurular(bina);}));
     wrap.appendChild(uyariK);
   }
-  wrap.appendChild(dv('stit','\uD83D\uDCB0 Kasa Hareketleri'));
+  var kasaTopBar=dv('');kasaTopBar.style.cssText='display:flex;justify-content:space-between;align-items:center;margin-bottom:4px';
+  var kasaTitle=dv('stit','\uD83D\uDCB0 Kasa Hareketleri');kasaTitle.style.margin='0';
+  var defterBtn=btn('btn bgr','\uD83D\uDCC4 Defter PDF',function(){defterPDF(bina);});
+  defterBtn.style.cssText='font-size:12px;padding:7px 13px;border-radius:8px;flex-shrink:0';
+  kasaTopBar.appendChild(kasaTitle);kasaTopBar.appendChild(defterBtn);
+  wrap.appendChild(kasaTopBar);
   const h=D.kasaH[bina.id]||[];
   if(!h.length){wrap.appendChild(dv('empty','<div class="ei">\uD83D\uDCB8</div><h3>Hareket yok</h3><p>Gelir veya gider ekleyin</p>'));return wrap;}
   const list=[...h].reverse();
@@ -2785,10 +2915,14 @@ if('serviceWorker' in navigator){
 
 // Push notification izni iste
 async function pushIzniAl(){
-  if(!('Notification' in window))return false;
+  // iOS Safari'de Notification farklı çalışır
+  if(!('Notification' in window)){console.log('Bildirim desteklenmiyor');return false;}
   if(Notification.permission==='granted')return true;
-  const izin=await Notification.requestPermission();
-  return izin==='granted';
+  if(Notification.permission==='denied')return false;
+  try{
+    const izin=await Notification.requestPermission();
+    return izin==='granted';
+  }catch(e){return false;}
 }
 
 // Lokal bildirim gönder (uygulama açıkken)
