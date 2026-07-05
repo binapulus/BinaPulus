@@ -1587,9 +1587,14 @@ function modalDekontYukle(bina,daire){
             canvas.width=w;canvas.height=h;
             var ctx=canvas.getContext('2d');
             ctx.drawImage(sıkıstırImg,0,0,w,h);
-            resimData=canvas.toDataURL('image/jpeg',0.7);
-            var img=document.createElement('img');img.src=resimData;img.style.cssText='width:100%;border-radius:10px;max-height:200px;object-fit:cover';
-            onizleme.appendChild(img);
+            resimData=canvas.toDataURL('image/jpeg',0.65);
+            onizleme.innerHTML='';
+            var img=document.createElement('img');
+            img.src=resimData;
+            img.style.cssText='width:100%;border-radius:10px;max-height:200px;object-fit:cover';
+            img.onload=function(){onizleme.appendChild(img);};
+            img.onerror=function(){onizleme.appendChild(img);};
+            if(img.complete)onizleme.appendChild(img);
           };
           sıkıstırImg.src=rawData;
         }
@@ -1669,10 +1674,14 @@ function modalArizaBildir(bina,daire){
           canvas.width=w;canvas.height=h;
           var ctx=canvas.getContext('2d');
           ctx.drawImage(sıkıstırImg,0,0,w,h);
-          resimData=canvas.toDataURL('image/jpeg',0.7);
+          resimData=canvas.toDataURL('image/jpeg',0.65);
           onizleme.innerHTML='';
-          var img=document.createElement('img');img.src=resimData;img.style.cssText='width:100%;border-radius:10px;max-height:200px;object-fit:cover';
-          onizleme.appendChild(img);
+          var img=document.createElement('img');
+          img.src=resimData;
+          img.style.cssText='width:100%;border-radius:10px;max-height:200px;object-fit:cover';
+          img.onload=function(){onizleme.appendChild(img);};
+          img.onerror=function(){onizleme.appendChild(img);};
+          if(img.complete)onizleme.appendChild(img);
         };
         sıkıstırImg.src=rawData;
       };
@@ -2418,8 +2427,15 @@ function renderDekontlar(bina){
 }
 function modalResimBuyut(src){
   modal('\uD83D\uDDBC\uFE0F Foto\u011fraf',function(m,close){
-    const img=document.createElement('img');img.src=src;img.style.cssText='width:100%;border-radius:12px';
-    m.appendChild(img);
+    if(!src||src==='[resim_local]'||src.length<50){
+      m.appendChild(dv('al al-warn','\u26A0\uFE0F Resim bu cihazda mevcut de\u011fil veya silinmi\u015f.'));
+    } else {
+      const img=document.createElement('img');
+      img.style.cssText='width:100%;border-radius:12px';
+      img.onerror=function(){img.style.display='none';m.appendChild(dv('al al-warn','\u26A0\uFE0F Resim y\u00fcklenemedi.'));};
+      img.src=src;
+      m.appendChild(img);
+    }
     m.appendChild(btn('btn bgr','Kapat',close));
   });
 }
@@ -2454,8 +2470,21 @@ function renderArizalar(bina){
         toast('\u2705 Ar\u0131za \u00e7\u00f6z\u00fcld\u00fc olarak i\u015faretlendi','ok');
       }));
       card.appendChild(br2);
-    } else if(a.yonetimNotu){
-      const nd=dv('');nd.style.cssText='font-size:12px;color:var(--g1);background:var(--g4);padding:8px;border-radius:8px';nd.textContent='\uD83D\uDC64 '+a.yonetimNotu;card.appendChild(nd);
+    } else {
+      if(a.yonetimNotu){
+        const nd=dv('');nd.style.cssText='font-size:12px;color:var(--g1);background:var(--g4);padding:8px;border-radius:8px';nd.textContent='\uD83D\uDC64 '+a.yonetimNotu;card.appendChild(nd);
+      }
+      // Çözüldü ise sil butonu göster
+      const silBtn=btn('btn br bsm','\uD83D\uDDD1\uFE0F Kayd\u0131 Sil',function(){
+        if(confirm('Bu ar\u0131za kayd\u0131 silinsin mi?')){
+          guncelle(function(){
+            D.arizalar[bina.id]=D.arizalar[bina.id].filter(function(x){return x.id!==a.id;});
+          },'Ar\u0131za silindi: '+a.baslik);
+          toast('\uD83D\uDDD1\uFE0F Ar\u0131za kayd\u0131 silindi','ok');
+        }
+      });
+      silBtn.style.cssText='margin-top:8px;font-size:11px;padding:6px 12px';
+      card.appendChild(silBtn);
     }
     wrap.appendChild(card);
   });
