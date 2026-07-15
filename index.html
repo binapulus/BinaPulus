@@ -1517,32 +1517,64 @@ function renderSakinKampanya(bina,daire){
   const wrap=dv('');
   wrap.appendChild(dv('stit','\uD83C\uDFD7\uFE0F Kampanya Durumum'));
   const kl=D.kampanyalar[bina.id]||[];
-  // Sadece bu dairenin dahil olduğu kampanyalar
-  const ilgili=kl.filter(function(k){return k.daireler.some(function(d){return d.daireId===daire.id;});});
-  if(!ilgili.length){wrap.appendChild(dv('empty','<div class="ei">\uD83C\uDFD7\uFE0F</div><h3>Kat\u0131ld\u0131\u011f\u0131n\u0131z kampanya yok</h3>'));return wrap;}
+  const ilgili=kl.filter(function(k){
+    return k.daireler.some(function(d){return d.daireId===daire.id;});
+  });
+  if(!ilgili.length){
+    wrap.appendChild(dv('empty','<div class="ei">\uD83C\uDFD7\uFE0F</div><h3>Kat\u0131ld\u0131\u011f\u0131n\u0131z kampanya yok</h3>'));
+    return wrap;
+  }
   ilgili.forEach(function(k){
-    const benim=k.daireler.find(function(d){return d.daireId===daire.id;});
-    const toplam=k.daireler.length;
-    const odenen=k.daireler.filter(function(d){return d.odendi;}).length;
+    const dKayitlar=k.daireler.filter(function(d){return d.daireId===daire.id;});
+    const odenen=dKayitlar.filter(function(d){return d.odendi;}).length;
+    const toplam=dKayitlar.length;
     const pct=toplam>0?Math.round(odenen/toplam*100):0;
-    const card=dv('kc');
-    const kch=dv('kch');
-    kch.innerHTML='<div class="kct">\uD83C\uDFD7\uFE0F '+k.ad+'</div>';
-    const durumSpan=dv('',benim.odendi?'<span style="background:#a0e4b8;color:#1a5c38;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px">\u2705 \u00d6dedim</span>':'<span style="background:#ffb3a7;color:#991b1b;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px">\u2717 \u00d6demedim</span>');
-    kch.appendChild(durumSpan);
-    const kcs=dv('kcs');
-    [[fP(benim.tutar||k.daireBasiTutar),'BENİM TUTARIM'],[odenen+'/'+toplam,'GENEL İLERLEME']].forEach(function(item){
-      const s=dv('kcsb');s.innerHTML='<div class="kcsv">'+item[0]+'</div><div class="kcsl">'+item[1]+'</div>';kcs.appendChild(s);
+    const toplamTutar=toplam*(k.daireBasiTutar||0);
+    const odenenTutar=odenen*(k.daireBasiTutar||0);
+    const kalanTutar=toplamTutar-odenenTutar;
+
+    // Kampanya kartı - koyu yeşil (aidat gibi)
+    const kc=dv('');kc.style.cssText='margin-bottom:14px;border-radius:16px;overflow:hidden;background:#1a5c38;color:#fff';
+
+    // Başlık
+    const kh=dv('');kh.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:12px 14px';
+    kh.innerHTML='<div><b style="font-size:15px">\uD83C\uDFD7\uFE0F '+k.ad+'</b></div>'
+      +(kalanTutar===0
+        ?'<span style="color:#a0e4b8;font-weight:800;font-size:14px">\u2713 Tamam</span>'
+        :'<span style="color:#ffb3a7;font-weight:800;font-size:15px">'+fP(kalanTutar)+'</span>');
+
+    // Özet
+    const ks=dv('');ks.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:rgba(255,255,255,.1);margin:0 10px;border-radius:10px;overflow:hidden';
+    [[fP(k.daireBasiTutar||0),'KİŞİ BAŞI'],[odenen+'/'+toplam,'ÖDEME'],[fP(odenenTutar),'ÖDENDİ']].forEach(function(item){
+      var s=dv('');s.style.cssText='padding:8px;text-align:center;background:rgba(0,0,0,.15)';
+      s.innerHTML='<div style="font-size:13px;font-weight:900;color:#fff">'+item[0]+'</div><div style="font-size:9px;color:rgba(255,255,255,.6);margin-top:2px">'+item[1]+'</div>';
+      ks.appendChild(s);
     });
-    const pbar=dv('kpb');const pbf=dv('kpbf');pbf.style.width=pct+'%';pbar.appendChild(pbf);
-    const pl=dv('');pl.style.cssText='display:flex;justify-content:space-between;font-size:11px;color:rgba(255,255,255,.7);margin-bottom:5px';
-    pl.innerHTML='<span>Genel \u0130lerleme</span><span>%'+pct+'</span>';
-    if(k.aciklama){const ac=dv('');ac.style.cssText='color:rgba(255,255,255,.7);font-size:12px;margin-top:10px';ac.textContent=k.aciklama;append(card,kch,kcs,pl,pbar,ac);}
-    else append(card,kch,kcs,pl,pbar);
-    wrap.appendChild(card);
+
+    // İlerleme çubuğu
+    const pb=dv('');pb.style.cssText='margin:8px 10px;background:rgba(255,255,255,.2);border-radius:10px;height:6px;overflow:hidden';
+    const pbf=dv('');pbf.style.cssText='height:100%;background:#a0e4b8;border-radius:10px;width:'+pct+'%';
+    pb.appendChild(pbf);
+
+    // Ay kutuları - dKayitlar'ı ay sırasına göre göster
+    const mg=dv('');mg.style.cssText='display:grid;grid-template-columns:repeat(6,1fr);gap:5px;padding:8px 10px 12px';
+    dKayitlar.forEach(function(dk,ai){
+      var ayLabel=AYF[dk.ay]||('Ay '+(ai+1));
+      var odendi=dk.odendi;
+      var cell=dv('');
+      cell.style.cssText='padding:8px 4px;border-radius:10px;text-align:center;background:'+(odendi?'rgba(0,200,100,.3)':'rgba(200,0,0,.25)');
+      cell.innerHTML='<div style="font-size:14px;font-weight:800;color:'+(odendi?'#a0e4b8':'#ffb3a7')+'">'+(odendi?'\u2713':'\u2717')+'</div>'
+        +'<div style="font-size:9px;color:'+(odendi?'#a0e4b8':'#ffb3a7')+';margin-top:2px">'+ayLabel+'</div>'
+        +(dk.yil?'<div style="font-size:8px;color:rgba(255,255,255,.4)">'+dk.yil+'</div>':'');
+      mg.appendChild(cell);
+    });
+
+    append(kc,kh,ks,pb,mg);
+    wrap.appendChild(kc);
   });
   return wrap;
 }
+
 function renderSakinDuyurular(bina){
   const wrap=dv('');
   wrap.appendChild(dv('stit','\uD83D\uDCE2 Y\u00f6netici Duyurular\u0131'));
@@ -2059,8 +2091,18 @@ function defterPDF(bina){
     +'</div>'
     +'</body></html>';
 
-  var w=window.open('','_blank');
-  if(w){w.document.write(html);w.document.close();}
+  // PWA uyumlu açma
+  try{
+    var w=window.open('','_blank');
+    if(w){w.document.write(html);w.document.close();}
+    else{throw new Error('blocked');}
+  }catch(e){
+    var blob=new Blob([html],{type:'text/html'});
+    var burl=URL.createObjectURL(blob);
+    var a=document.createElement('a');a.href=burl;a.target='_blank';
+    document.body.appendChild(a);a.click();
+    setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(burl);},2000);
+  }
 }
 
 function renderKasa(bina){
@@ -2089,7 +2131,7 @@ function renderKasa(bina){
     const rt=dv('hr');
     const amt=dv('ha '+(hm.tip==='gelir'?'p':'m'),(hm.tip==='gelir'?'+':'-')+fP(hm.tutar));
     const acts=dv('hact');
-    acts.appendChild(btn('hb hb-m','\uD83D\uDDB8 Makbuz',function(){modalMakbuz(hm,bina);}));
+    acts.appendChild(btn('hb hb-m','\uD83D\uDDB8 Makbuz',function(){var daire=(D.daireler[bina.id]||[]).find(function(d){return hm.aciklama&&hm.aciklama.indexOf(d.no)>=0;});modalMakbuz(hm,bina,daire);}));
     acts.appendChild(btn('hb hb-s','\u2715 sil',function(){
       if(confirm('Silinsin mi?')){guncelle(function(){D.kasaH[bina.id]=(D.kasaH[bina.id]||[]).filter(function(x){return x.id!==hm.id;});});}
     }));
@@ -2739,7 +2781,14 @@ function renderBildirim(bina){
     var d=item.daire;
     var card=dv('card');card.style.cssText='margin-bottom:10px;border-left:4px solid #fca5a5';
     var tamam=item.borc===0&&item.kampanyaBorc===0;
-    var kampanyaDetayHtml=item.kampanyaDetay&&item.kampanyaDetay.length?'<div style="font-size:11px;color:#c62828;margin-top:2px">'+item.kampanyaDetay.join(' | ')+'</div>':'';
+    var kampanyaDetayHtml='';
+    if(item.kampanyaDetay&&item.kampanyaDetay.length){
+      kampanyaDetayHtml='<div style="font-size:11px;color:#c62828;margin-top:4px">';
+      item.kampanyaDetay.forEach(function(kd){
+        kampanyaDetayHtml+='<div>\uD83C\uDFD7\uFE0F '+kd+'</div>';
+      });
+      kampanyaDetayHtml+='</div>';
+    }
     card.style.borderLeft='4px solid '+(tamam?'#a5d6a7':item.muaf?'#90caf9':'#fca5a5');
     card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
       +'<div style="flex:1"><div style="font-weight:800;font-size:14px">\uD83C\uDFE0 '+d.no+(d.sakin?' \u2014 '+d.sakin:'')+'</div>'
@@ -3390,16 +3439,97 @@ function modalAdminAbonelikDuzenle(y){
     m.appendChild(brow);
   });
 }
-function modalMakbuz(h,bina){
-  const yonetici=D.yoneticiler.find(function(y){return y.binaId===bina.id;})||D.yoneticiler.find(function(y){return y.id===S.user.id;})||{ad:'\u2014'};
+function modalMakbuz(h,bina,daire){
+  const yonetici=D.yoneticiler.find(function(y){return y.binaId===bina.id;})||{ad:'\u2014'};
   const no=mNo();
   const tarih=new Date().toLocaleDateString('tr-TR',{day:'numeric',month:'long',year:'numeric'})+' \u00b7 '+new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
   const yazili=pYaz(h.tutar||0);
-  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Makbuz</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f0f0f0}.w{max-width:420px;margin:0 auto;background:#fff;min-height:100vh}@media print{body{background:#fff}.np{display:none}}</style></head><body><div class="w"><div class="np" style="display:flex;gap:8px;padding:12px;background:#f5f5f5;position:sticky;top:0;z-index:9"><button onclick="window.print()" style="flex:1;background:#2d7a50;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">\uD83D\uDDB8\uFE0F Yazd\u0131r / PDF Kaydet</button><button onclick="window.close()" style="background:#e0e0e0;border:none;border-radius:10px;padding:12px 16px;font-size:18px;cursor:pointer">\u2715</button></div><div style="background:#1a5c38;padding:18px"><div style="display:flex;align-items:center;gap:12px"><div style="width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:50%;border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:22px">\uD83C\uDFDB\uFE0F</div><div><div style="color:rgba(255,255,255,.7);font-size:9px;letter-spacing:.15em">T . C .</div><div style="color:#fff;font-size:16px;font-weight:800">'+bina.ad+'</div><div style="color:rgba(255,255,255,.6);font-size:11px;margin-top:2px">'+( bina.adres||'')+'</div><div style="color:#f0c040;font-size:11px;margin-top:2px">Y\u00f6netici: '+yonetici.ad+'</div></div></div></div><div style="background:#f8f5ee;border-bottom:3px solid #c9a227;padding:12px 18px;text-align:center"><div style="letter-spacing:.18em;font-size:14px;font-weight:800">T A H S \u0130 L A T &nbsp; M A K B U Z U</div><div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px"><span>Say\u0131: <strong>'+no+'</strong></span><span>Tarih: <strong>'+tarih+'</strong></span></div></div><div style="padding:14px 18px;border-bottom:1px solid #eee"><div style="background:#1a5c38;border-radius:11px;padding:12px 15px;display:flex;align-items:center;justify-content:space-between"><div><div style="color:#f0c040;font-size:9px;letter-spacing:.1em;margin-bottom:5px">ALINAN TUTAR</div><div style="color:#fff;font-size:26px;font-weight:900">\u20ba '+( h.tutar||0).toLocaleString('tr-TR')+'</div><div style="color:rgba(255,255,255,.7);font-size:10px;font-style:italic;margin-top:3px">'+yazili+'</div></div><div style="border:2px dashed rgba(255,255,255,.3);border-radius:9px;padding:12px 8px;text-align:center;min-width:65px"><div style="color:rgba(255,255,255,.4);font-size:8px">KA\u015eE/M\u00dcH\u00dcR</div><div style="color:rgba(255,255,255,.25);font-size:8px;margin-top:3px">RESM\u0130<br>KA\u015eE</div></div></div></div><div style="padding:12px 18px"><div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#888;margin-bottom:8px">TAHSILAT B\u0130LG\u0130LER\u0130</div><table style="width:100%;border-collapse:collapse;font-size:12px"><tr style="background:#f9f7f3"><td style="padding:9px 11px;font-weight:700;border:1px solid #e8e3da;width:38%">Ad\u0131 Soyad\u0131</td><td style="padding:9px 11px;border:1px solid #e8e3da">'+(h.aciklama||h.kategori||'\u2014')+'</td></tr><tr><td style="padding:9px 11px;font-weight:700;border:1px solid #e8e3da">\u00d6deme T\u00fcr\u00fc</td><td style="padding:9px 11px;border:1px solid #e8e3da">'+(h.kategori||'\u2014')+'</td></tr><tr style="background:#f9f7f3"><td style="padding:9px 11px;font-weight:700;border:1px solid #e8e3da">Tutar (Yaz\u0131)</td><td style="padding:9px 11px;border:1px solid #e8e3da;font-style:italic">'+yazili+'</td></tr><tr><td style="padding:9px 11px;font-weight:700;border:1px solid #e8e3da">Tahsilat Durumu</td><td style="padding:9px 11px;border:1px solid #e8e3da"><strong>\u221a Tahsil Edilmi\u015ftir</strong></td></tr></table></div><div style="padding:0 18px 14px"><div style="background:#fef9ee;border:1.5px solid #c9a227;border-radius:9px;padding:11px 13px"><div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:#c9a227;margin-bottom:4px">A\u00c7IKLAMA</div><div style="font-size:12px">'+(h.aciklama||h.kategori||'\u2014')+'</div></div></div><div style="padding:0 18px 18px"><div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:#888;margin-bottom:12px;padding-bottom:5px;border-bottom:1px solid #eee">\u0130MZA & ONAY</div><div style="height:44px"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:6px"><div style="border-top:2px solid #c9a227;padding-top:7px;text-align:center"><div style="font-size:9px;font-weight:700;color:#888">TESL\u0130M EDEN</div><div style="font-size:11px;font-style:italic;margin-top:2px">'+yonetici.ad+'</div><div style="font-size:9px;color:#888">Bina Y\u00f6neticisi</div></div><div style="border-top:2px solid #c9a227;padding-top:7px;text-align:center"><div style="font-size:9px;font-weight:700;color:#888">TESL\u0130M ALAN</div><div style="font-size:11px;font-style:italic;margin-top:2px">'+(h.aciklama||'\u2014')+'</div></div></div></div><div style="background:#1a5c38;padding:9px 18px;text-align:center"><div style="color:rgba(255,255,255,.6);font-size:9px">'+bina.ad+' \u00b7 Bu makbuz resmi belgedir.</div></div></div></body></html>';
-  const win=window.open('','_blank','width=460,height=820,scrollbars=yes');
-  if(win){win.document.write(html);win.document.close();}
-  else toast('\u26A0\uFE0F Popup izni gerekli','warn');
+  // Daire ve ay bilgisi
+  const daireNo=daire?daire.no:(h.aciklama||'').split(' ')[0]||'\u2014';
+  const daireAdi=daire?daire.sakin||'':( h.aciklama||'').replace(daireNo,'').replace('\u2014','').trim()||'';
+  const odenmeTarihi=h.tarih?fT(h.tarih):'\u2014';
+  // Dosya adı için ay bilgisi
+  const dosyaAdi=bina.ad+'_'+daireNo+'_'+(h.aciklama||h.kategori||'Makbuz').replace(/[^a-zA-Z0-9\u00c0-\u024f]/g,'_');
+  const html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Makbuz - '+daireNo+'</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f0f0f0}'
+    +'.w{max-width:420px;margin:0 auto;background:#fff;min-height:100vh}'
+    +'@media print{'
+    +'  body{background:#fff;margin:0}'
+    +'  .np{display:none!important}'
+    +'  .w{max-width:100%;min-height:auto;box-shadow:none}'
+    +'  @page{margin:10mm;size:A5}'
+    +'}'
+    +'</style></head><body><div class="w">'
+    // Yazdır butonu
+    +'<div class="np" style="display:flex;gap:8px;padding:12px;background:#f5f5f5;position:sticky;top:0;z-index:9">'
+    +'<button onclick="window.print()" style="flex:1;background:#2d7a50;color:#fff;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">\uD83D\uDDB8\uFE0F Yazd\u0131r / PDF Kaydet</button>'
+    +'<button onclick="window.close()" style="background:#e0e0e0;border:none;border-radius:10px;padding:12px 16px;font-size:18px;cursor:pointer">\u2715</button>'
+    +'</div>'
+    // Header
+    +'<div style="background:#1a5c38;padding:18px">'
+    +'<div style="display:flex;align-items:center;gap:12px">'
+    +'<div style="width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:50%;border:2px solid rgba(255,255,255,.3);display:flex;align-items:center;justify-content:center;font-size:22px">\uD83C\uDFDB\uFE0F</div>'
+    +'<div><div style="color:rgba(255,255,255,.7);font-size:9px;letter-spacing:.15em">T . C .</div>'
+    +'<div style="color:#fff;font-size:16px;font-weight:800">'+bina.ad+'</div>'
+    +'<div style="color:rgba(255,255,255,.6);font-size:11px;margin-top:2px">'+(bina.adres||'')+'</div>'
+    +'<div style="color:#f0c040;font-size:11px;margin-top:2px">Y\u00f6netici: '+yonetici.ad+'</div>'
+    +'</div></div></div>'
+    // Makbuz başlık
+    +'<div style="background:#f8f5ee;padding:14px 18px;border-bottom:2px solid #e8e3da;display:flex;justify-content:space-between;align-items:center">'
+    +'<div><div style="font-size:11px;color:#888;font-weight:700;letter-spacing:.1em">MAKBUZ NO</div>'
+    +'<div style="font-size:14px;font-weight:800;color:#333">'+no+'</div></div>'
+    +'<div style="text-align:right"><div style="font-size:11px;color:#888;font-weight:700;letter-spacing:.1em">TAR\u0130H</div>'
+    +'<div style="font-size:12px;font-weight:700;color:#333">'+tarih+'</div></div>'
+    +'</div>'
+    // DAİRE BİLGİSİ - YENİ EKLENEN
+    +'<div style="padding:14px 18px;border-bottom:1px solid #f0ede6;background:#fff">'
+    +'<table style="width:100%;border-collapse:collapse;font-size:13px">'
+    +'<tr><td style="padding:7px 11px;color:#888;font-weight:700;width:40%;border:1px solid #e8e3da">DA\u0130RE NO</td>'
+    +'<td style="padding:7px 11px;font-weight:800;border:1px solid #e8e3da">'+daireNo+'</td></tr>'
+    +(daireAdi?'<tr><td style="padding:7px 11px;color:#888;font-weight:700;border:1px solid #e8e3da">SAK\u0130N</td>'
+    +'<td style="padding:7px 11px;font-weight:700;border:1px solid #e8e3da">'+daireAdi+'</td></tr>':'')
+    +'<tr><td style="padding:7px 11px;color:#888;font-weight:700;border:1px solid #e8e3da">KONU</td>'
+    +'<td style="padding:7px 11px;border:1px solid #e8e3da">'+(h.aciklama||h.kategori||'\u2014')+'</td></tr>'
+    +'<tr><td style="padding:7px 11px;color:#888;font-weight:700;border:1px solid #e8e3da">\u00d6DEME TAR\u0130H\u0130</td>'
+    +'<td style="padding:7px 11px;font-weight:700;border:1px solid #e8e3da">'+odenmeTarihi+'</td></tr>'
+    +'<tr><td style="padding:7px 11px;color:#888;font-weight:700;border:1px solid #e8e3da">KATEGOR\u0130</td>'
+    +'<td style="padding:7px 11px;border:1px solid #e8e3da">'+(h.kategori||'\u2014')+'</td></tr>'
+    +'</table></div>'
+    // Tutar
+    +'<div style="padding:18px;text-align:center;border-bottom:1px solid #f0ede6">'
+    +'<div style="font-size:11px;color:#888;font-weight:700;letter-spacing:.1em;margin-bottom:6px">ALINAN TUTAR</div>'
+    +'<div style="font-size:36px;font-weight:900;color:#1a5c38">'+fP(h.tutar||0)+'</div>'
+    +'<div style="font-size:11px;color:#888;margin-top:6px;font-style:italic">('+yazili+')</div>'
+    +'</div>'
+    // İmza
+    +'<div style="padding:18px;display:flex;justify-content:space-between">'
+    +'<div style="text-align:center"><div style="border-top:1px solid #333;width:120px;margin:40px auto 6px"></div>'
+    +'<div style="font-size:11px;color:#666">\u00d6deyen</div>'
+    +(daireAdi?'<div style="font-size:10px;color:#999">'+daireAdi+'</div>':'')
+    +'</div>'
+    +'<div style="text-align:center"><div style="border-top:1px solid #333;width:120px;margin:40px auto 6px"></div>'
+    +'<div style="font-size:11px;color:#666">Y\u00f6netici</div>'
+    +'<div style="font-size:10px;color:#999">'+yonetici.ad+'</div>'
+    +'</div></div>'
+    +'<div style="padding:12px 18px;text-align:center;font-size:10px;color:#aaa;border-top:1px solid #f0ede6">'
+    +'BinaPlus Apartman Y\u00f6netim Sistemi \u2022 '+bina.ad
+    +'</div>'
+    +'</div></body></html>';
+  (function(){
+    try{
+      var win=window.open('','_blank');
+      if(!win)throw 0;
+      win.document.write(html);win.document.close();
+    }catch(e){
+      var b=new Blob([html],{type:'text/html'});
+      var u=URL.createObjectURL(b);
+      var a=document.createElement('a');a.href=u;a.target='_blank';
+      document.body.appendChild(a);a.click();
+      setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},2000);
+    }
+  })();
 }
+
 function modalTopluMakbuz(bina,yil){
   const h=D.kasaH[bina.id]||[];
   // Aidat ödemelerini bul - kategori farklı yazılmış olabilir, geniş filtre kullan
@@ -3448,7 +3578,7 @@ function modalTopluMakbuz(bina,yil){
       close();
       if(!allH.length){toast('Hareket yok','warn');return;}
       toast('\uD83D\uDDB8\uFE0F '+allH.length+' makbuz haz\u0131rlan\u0131yor...','ok');
-      allH.forEach(function(hm,i){setTimeout(function(){modalMakbuz(hm,bina);},i*800);});
+      allH.forEach(function(hm,i){setTimeout(function(){var daire=(D.daireler[bina.id]||[]).find(function(d){return hm.aciklama&&hm.aciklama.indexOf(d.no)>=0;});modalMakbuz(hm,bina,daire);},i*800);});
     }));
     m.appendChild(brow);
   });
