@@ -29,6 +29,24 @@ function loadFirebase(){
           if(!firebase.apps.length)firebase.initializeApp(cfg);
           window.db=firebase.firestore();
           window.fbAuth=firebase.auth();
+          // ── Anonim oturum: yazma izni için kimlik (Firebase Console'da
+          //    Authentication > Sign-in method > Anonymous AÇIK olmalı) ──
+          try{
+            window.fbAuth.onAuthStateChanged(function(u){
+              if(!u){window.fbAuth.signInAnonymously().catch(function(e){console.warn('Anonim giris:',e.code);});}
+              else{console.log('Oturum hazir ('+(u.isAnonymous?'anonim':'hesap')+')');}
+            });
+          }catch(e){}
+          // ── App Check (istege bagli): reCAPTCHA v3 site anahtarini asagiya yaz ──
+          var APPCHECK_KEY='';
+          if(APPCHECK_KEY){
+            var sAC=document.createElement('script');
+            sAC.src='https://www.gstatic.com/firebasejs/9.23.0/firebase-app-check-compat.js';
+            sAC.onload=function(){
+              try{firebase.appCheck().activate(APPCHECK_KEY,true);console.log('App Check aktif');}catch(e){console.warn('App Check:',e);}
+            };
+            document.head.appendChild(sAC);
+          }
           window.firebaseReady=true;
           console.log('Firebase hazir!');
           if(window._appReady)firestoreBaslat();
@@ -211,6 +229,66 @@ const fP=n=>new Intl.NumberFormat('tr-TR',{minimumFractionDigits:0,maximumFracti
 const fT=d=>d?new Date(d).toLocaleDateString('tr-TR'):'-';
 const bugun=()=>new Date().toISOString().split('T')[0];
 const uid=()=>'_'+Math.random().toString(36).slice(2,9);
+// ── SHA-256 (şifreler düz metin saklanmaz) ──
+function sha256(ascii){
+  function rr(v,a){return(v>>>a)|(v<<(32-a));}
+  var mP=Math.pow,mW=mP(2,32),result='';
+  var words=[],aBL=ascii.length*8;
+  var hash=sha256.h=sha256.h||[],k=sha256.k=sha256.k||[],pC=k.length;
+  var isC={};
+  for(var cand=2;pC<64;cand++){
+    if(!isC[cand]){
+      for(var i=0;i<313;i+=cand)isC[i]=cand;
+      hash[pC]=(mP(cand,.5)*mW)|0;
+      k[pC++]=(mP(cand,1/3)*mW)|0;
+    }
+  }
+  ascii+='\x80';
+  while(ascii.length%64-56)ascii+='\x00';
+  for(i=0;i<ascii.length;i++){
+    var j=ascii.charCodeAt(i);
+    if(j>>8)return'';
+    words[i>>2]|=j<<((3-i)%4)*8;
+  }
+  words[words.length]=(aBL/mW)|0;words[words.length]=aBL;
+  for(j=0;j<words.length;){
+    var w=words.slice(j,j+=16),oldH=hash;
+    hash=hash.slice(0,8);
+    for(i=0;i<64;i++){
+      var w15=w[i-15],w2=w[i-2];
+      var a=hash[0],e=hash[4];
+      var t1=hash[7]+(rr(e,6)^rr(e,11)^rr(e,25))+((e&hash[5])^((~e)&hash[6]))+k[i]
+        +(w[i]=(i<16)?w[i]:(w[i-16]+(rr(w15,7)^rr(w15,18)^(w15>>>3))+w[i-7]+(rr(w2,17)^rr(w2,19)^(w2>>>10)))|0);
+      var t2=(rr(a,2)^rr(a,13)^rr(a,22))+((a&hash[1])^(a&hash[2])^(hash[1]&hash[2]));
+      hash=[(t1+t2)|0].concat(hash);
+      hash[4]=(hash[4]+t1)|0;
+    }
+    for(i=0;i<8;i++)hash[i]=(hash[i]+oldH[i])|0;
+  }
+  for(i=0;i<8;i++){
+    for(j=3;j+1;j--){
+      var b=(hash[i]>>(j*8))&255;
+      result+=((b<16)?0:'')+b.toString(16);
+    }
+  }
+  return result;
+}
+function sifreHash(s){try{var h=sha256(unescape(encodeURIComponent(String(s||''))));return h||String(s||'');}catch(e){return String(s||'');}}
+function sifreKontrol(girilen,kayitli){
+  if(!kayitli)return false;
+  if(/^[a-f0-9]{64}$/.test(kayitli))return sifreHash(girilen)===kayitli;
+  return girilen===kayitli; // eski düz metin kayıtlarla uyumluluk
+}
+function sifreMigrasyon(){
+  try{
+    var hd=function(p){return(p&&!/^[a-f0-9]{64}$/.test(p))?sifreHash(p):p;};
+    if(D.admin&&D.admin.password)D.admin.password=hd(D.admin.password);
+    (D.yoneticiler||[]).forEach(function(y){if(y.password)y.password=hd(y.password);});
+    Object.keys(D.daireler||{}).forEach(function(b){
+      (D.daireler[b]||[]).forEach(function(d){if(d.sakinSifre)d.sakinSifre=hd(d.sakinSifre);});
+    });
+  }catch(e){}
+}
 const simdiAy=()=>new Date().getMonth();
 const simdiYil=()=>new Date().getFullYear();
 
@@ -294,6 +372,9 @@ function abonelikBilgi(y){
 var kaydet=function(){
   window._sonKayitZaman=Date.now();
   try{localStorage.setItem('bp5',JSON.stringify(D));}catch(e){}
+  // KORUMA: Buluttan ilk okuma yapılmadan Firestore'a ASLA yazma
+  // (Aksi halde demo/INIT verisi gerçek veriyi ezebilir)
+  if(!window._bulutOkundu){console.warn('Bulut hen\u00fcz okunmad\u0131, yaz\u0131m atland\u0131');return;}
   if(window.db){
     try{
       // Resimleri çıkar - Firestore 1MB limit aşılmasın
@@ -380,22 +461,33 @@ function yoneticiMailAl(binaId){
 }
 async function mailGonder(toEmail,alici,baslik,mesaj,bina){
   lokalBildirim(baslik,mesaj);
-  if(!window.emailjsReady||!toEmail)return;
-  try{
-    await emailjs.send(window.EMAILJS_SERVICE,window.EMAILJS_TEMPLATE,{
-      to_email:toEmail,alici:alici||'Kullanıcı',baslik:baslik||'BinaPlus',
-      mesaj:mesaj||'',bina:bina||'',tarih:new Date().toLocaleDateString('tr-TR')
-    });
-  }catch(e){console.warn('Mail gönderilemedi:',e);}
+  if(!window.emailjsReady){console.warn('EmailJS hazir degil');return Promise.resolve(false);}
+  if(!toEmail){console.warn('Mail adresi bos');return Promise.resolve(false);}
+  return emailjs.send(window.EMAILJS_SERVICE,window.EMAILJS_TEMPLATE,{
+    to_email:toEmail,
+    alici:alici||'Kullan\u0131c\u0131',
+    baslik:baslik||'BinaPlus',
+    mesaj:mesaj||'',
+    bina:bina||'',
+    tarih:new Date().toLocaleDateString('tr-TR')
+  }).then(function(r){
+    console.log('Mail gonderildi:',toEmail,r.status);
+    return true;
+  }).catch(function(e){
+    var det=(e&&e.text)?e.text:(e&&e.message)?e.message:String(e);
+    console.error('MAIL HATASI ('+toEmail+'):',det);
+    toast('\u26A0\uFE0F Mail g\u00f6nderilemedi: '+det.substring(0,80),'err');
+    return false;
+  });
 }
 
 const INIT={
-  admin:{email:'abdulkadiry06@hotmail.com',kullaniciAdi:'abdulkadiry06@hotmail.com',password:'123456',name:'Sistem Y\u00f6neticisi'},
+  admin:{email:'abdulkadiry06@hotmail.com',kullaniciAdi:'abdulkadiry06@hotmail.com',password:sifreHash('123456'),name:'Sistem Y\u00f6neticisi'},
   binalar:[{id:'b1',ad:'Lale Apartman\u0131',adres:'Atat\u00fcrk Cad. No:12, Kad\u0131k\u00f6y',yoneticiId:'y1',aylikAidat:500,baslangicYili:2024,askida:false,bitis:'2027-12-31'}],
-  yoneticiler:[{id:'y1',ad:'Ahmet Y\u0131lmaz',kullaniciAdi:'ahmet',email:'ahmet@binaplus.com',password:'123456',binaId:'b1',askida:false,bitis:'2027-12-31',gSoru:'',gCevap:'',onaylandi:true,abonelik:'tam',abonelikBitis:''}],
+  yoneticiler:[{id:'y1',ad:'Ahmet Y\u0131lmaz',kullaniciAdi:'ahmet',email:'ahmet@binaplus.com',password:sifreHash('123456'),binaId:'b1',askida:false,bitis:'2027-12-31',gSoru:'',gCevap:'',onaylandi:true,abonelik:'tam',abonelikBitis:''}],
   basvurular:[],
   daireler:{b1:[
-    {id:'d1',no:'D1',kat:1,sakin:'Mehmet Demir',tip:'Kirac\u0131',aidat:250,muaf:false,sakinKA:'mehmet',sakinSifre:'123456'}
+    {id:'d1',no:'D1',kat:1,sakin:'Mehmet Demir',tip:'Kirac\u0131',aidat:250,muaf:false,sakinKA:'mehmet',sakinSifre:sifreHash('123456')}
   ]},
   duyurular:{b1:[]},
   arizalar:{b1:[]},
@@ -427,7 +519,7 @@ let D,S={user:null,sekme:'kasa',yil:simdiYil(),adminSekme:'ozet'};
         var mkaf=mka;var msc=2;
         while(mevcutKAlar.indexOf(mkaf)>=0){mkaf=mka+'_'+msc;msc++;}
         mevcutKAlar.push(mkaf);
-        mdaireler.push({id:uid(),no:mdaireNo,kat:Math.ceil(mi/3)-1,sakin:'',tip:'M\u00fclk Sahibi',aidat:b.aylikAidat||500,muaf:false,sakinKA:mkaf,sakinSifre:'123456'});
+        mdaireler.push({id:uid(),no:mdaireNo,kat:Math.ceil(mi/3)-1,sakin:'',tip:'M\u00fclk Sahibi',aidat:b.aylikAidat||500,muaf:false,sakinKA:mkaf,sakinSifre:sifreHash('123456')});
       }
       D.daireler[b.id]=mdaireler;
     }
@@ -521,6 +613,11 @@ async function firestoreBaslat(){
   }
 }
 function migrateData(){
+  sifreMigrasyon();
+  if(!D.copKutusu)D.copKutusu=[];
+  // 30 günden eski çöpleri boşalt
+  var cSinir=Date.now()-30*24*60*60*1000;
+  D.copKutusu=D.copKutusu.filter(function(c){try{return new Date(c.tarih).getTime()>cSinir;}catch(e){return false;}});
   if(!D.kasaH&&D.kasaHareketleri){D.kasaH=D.kasaHareketleri;}
   if(!D.kasaH)D.kasaH={};
   D.binalar.forEach(function(b){
@@ -535,7 +632,7 @@ function migrateData(){
         var mkaf=mka;var msc=2;
         while(mevcutKAlar.indexOf(mkaf)>=0){mkaf=mka+'_'+msc;msc++;}
         mevcutKAlar.push(mkaf);
-        mdaireler.push({id:uid(),no:mdaireNo,kat:Math.ceil(mi/3)-1,sakin:'',tip:'M\u00fclk Sahibi',aidat:b.aylikAidat||500,muaf:false,sakinKA:mkaf,sakinSifre:'123456'});
+        mdaireler.push({id:uid(),no:mdaireNo,kat:Math.ceil(mi/3)-1,sakin:'',tip:'M\u00fclk Sahibi',aidat:b.aylikAidat||500,muaf:false,sakinKA:mkaf,sakinSifre:sifreHash('123456')});
       }
       D.daireler[b.id]=mdaireler;
     }
@@ -600,22 +697,22 @@ function renderLogin(){
     if(!email||!pass){errDiv.appendChild(alrt('al-err','\u26A0\uFE0F E-posta ve \u015fifre girin.'));return;}
     // Firebase'den taze veri çek, sonra kontrol et
     var doGiris=function(){
-      if((email===D.admin.email||email===D.admin.kullaniciAdi)&&pass===D.admin.password){
-        S.user={rol:'admin'};Object.assign(S.user,D.admin);render();return true;
+      if((email===D.admin.email||email===D.admin.kullaniciAdi)&&sifreKontrol(pass,D.admin.password)){
+        S.user={rol:'admin'};Object.assign(S.user,D.admin);girisLogla(D.admin.name||D.admin.kullaniciAdi||'Admin','admin');render();return true;
       }
-      var y=D.yoneticiler.find(function(x){return(x.kullaniciAdi===email||x.email===email)&&x.password===pass;});
+      var y=D.yoneticiler.find(function(x){return(x.kullaniciAdi===email||x.email===email)&&sifreKontrol(pass,x.password);});
       if(y){
         if(!y.onaylandi){errDiv.innerHTML='';errDiv.appendChild(alrt('al-warn','\u23F3 Ba\u015fvurunuz onaylanmad\u0131.'));return true;}
         if(y.askida){errDiv.innerHTML='';errDiv.appendChild(alrt('al-err','\uD83D\uDD12 Hesab\u0131n\u0131z ask\u0131ya al\u0131nd\u0131.'));return true;}
         if(window.fbAuth&&y.email)window.fbAuth.signInWithEmailAndPassword(y.email,pass).catch(function(){});
-        S.user={rol:'yonetici'};Object.assign(S.user,y);render();return true;
+        S.user={rol:'yonetici'};Object.assign(S.user,y);girisLogla(y.ad||y.kullaniciAdi,'y\u00f6netici');render();return true;
       }
       var bd=null,bb=null;
       Object.keys(D.daireler).forEach(function(bid){
-        var d=(D.daireler[bid]||[]).find(function(x){return x.sakinKA===email&&x.sakinSifre===pass;});
+        var d=(D.daireler[bid]||[]).find(function(x){return x.sakinKA===email&&sifreKontrol(pass,x.sakinSifre);});
         if(d){bd=d;bb=bid;}
       });
-      if(bd){S.user={rol:'sakin'};Object.assign(S.user,bd);S.user.binaId=bb;render();return true;}
+      if(bd){S.user={rol:'sakin'};Object.assign(S.user,bd);S.user.binaId=bb;girisLogla((bd.sakin||bd.sakinKA)+' ('+bd.no+')','sakin');render();return true;}
       return false;
     };
     // Firestore'dan taze veri çek, sonra kontrol et
@@ -901,19 +998,59 @@ function modalBasvuruListesi(){
 
 function modalSifremiUnuttum(){
   modal('\uD83D\uDD13 \u015eifremi Unuttum',function(m,close){
-    m.appendChild(alrt('al-info','E-posta adresinizi girin.'));
-    const eI=inp('email','','ornek@mail.com');
+    m.appendChild(alrt('al-info','Kullan\u0131c\u0131 ad\u0131n\u0131z\u0131 veya kay\u0131tl\u0131 e-posta adresinizi girin. Ge\u00e7ici \u015fifre e-postan\u0131za g\u00f6nderilecek.'));
+    const eI=inp('text','','Kullan\u0131c\u0131 ad\u0131 veya e-posta');
     const errD=dv('');
-    append(m,fg('E-POSTA',eI),errD);
+    append(m,fg('KULLANICI ADI / E-POSTA',eI),errD);
     const brow=dv('brow');
     brow.appendChild(btn('btn bgr','\u0130ptal',close));
-    brow.appendChild(btn('btn bg','Devam \u2192',function(){
+    brow.appendChild(btn('btn bg','\uD83D\uDCE7 Ge\u00e7ici \u015eifre G\u00f6nder',function(){
+      errD.innerHTML='';
       const email=eI.value.trim();
-      if(!email){errD.innerHTML='';errD.appendChild(alrt('al-err','E-posta girin.'));return;}
-      const y=D.yoneticiler.find(function(x){return x.kullaniciAdi===email||x.email===email;});
-      if(!y){errD.innerHTML='';errD.appendChild(alrt('al-err','\u26A0\uFE0F Bulunamad\u0131.'));return;}
-      if(!y.gSoru||!y.gCevap){errD.innerHTML='';errD.appendChild(alrt('al-warn','\u26A0\uFE0F G\u00fcvenlik sorusu tan\u0131mlanmam\u0131\u015f.'));return;}
-      close();modalGDogrula(y);
+      if(!email){errD.appendChild(alrt('al-err','Bilgi girin.'));return;}
+      // Yönetici mi?
+      var y=D.yoneticiler.find(function(x){return x.kullaniciAdi===email||x.email===email;});
+      var hedefMail='',uygula=null,kim='';
+      if(y){
+        hedefMail=y.email||'';kim=y.ad||y.kullaniciAdi;
+        uygula=function(gs){var i=D.yoneticiler.findIndex(function(x){return x.id===y.id;});if(i>=0)D.yoneticiler[i].password=sifreHash(gs);};
+      } else {
+        // Sakin mi?
+        var bulunan=null,bulBid=null;
+        Object.keys(D.daireler||{}).forEach(function(bid){
+          var d=(D.daireler[bid]||[]).find(function(x){return x.sakinKA===email||x.sakinEmail===email;});
+          if(d){bulunan=d;bulBid=bid;}
+        });
+        if(bulunan){
+          hedefMail=bulunan.sakinEmail||'';kim=bulunan.sakin||bulunan.sakinKA;
+          uygula=function(gs){
+            var i=D.daireler[bulBid].findIndex(function(x){return x.id===bulunan.id;});
+            if(i>=0)D.daireler[bulBid][i].sakinSifre=sifreHash(gs);
+          };
+        }
+      }
+      if(!uygula){errD.appendChild(alrt('al-err','\u26A0\uFE0F Kullan\u0131c\u0131 bulunamad\u0131.'));return;}
+      if(!hedefMail){
+        errD.appendChild(alrt('al-warn','\u26A0\uFE0F Hesab\u0131n\u0131zda kay\u0131tl\u0131 e-posta yok. Y\u00f6neticinizle ileti\u015fime ge\u00e7in; \u015fifrenizi o s\u0131f\u0131rlayabilir.'));
+        return;
+      }
+      // Geçici şifre üret: 8 haneli
+      var gs='';var kr='ABCDEFGHJKLMNPRSTUVYZ23456789';
+      for(var i=0;i<8;i++)gs+=kr[Math.floor(Math.random()*kr.length)];
+      errD.appendChild(alrt('al-info','\uD83D\uDD04 G\u00f6nderiliyor...'));
+      mailGonder(hedefMail,kim,
+        '\uD83D\uDD10 BinaPlus Ge\u00e7ici \u015eifre',
+        'Say\u0131n '+kim+',\n\nGe\u00e7ici \u015fifreniz: '+gs+'\n\nBu \u015fifreyle giri\u015f yap\u0131p Ayarlar sayfas\u0131ndan yeni \u015fifrenizi belirleyin.\n\nBu talebi siz yapmad\u0131ysan\u0131z y\u00f6neticinize bildirin.',
+        'BinaPlus'
+      ).then(function(ok){
+        errD.innerHTML='';
+        if(ok){
+          guncelle(function(){uygula(gs);},'Ge\u00e7ici \u015fifre g\u00f6nderildi: '+kim);
+          errD.appendChild(alrt('al-ok','\u2705 Ge\u00e7ici \u015fifre '+hedefMail+' adresine g\u00f6nderildi! Spam klas\u00f6r\u00fcn\u00fc de kontrol edin.'));
+        } else {
+          errD.appendChild(alrt('al-err','\u26A0\uFE0F Mail g\u00f6nderilemedi, \u015fifre DE\u011e\u0130\u015eT\u0130R\u0130LMED\u0130. Tekrar deneyin.'));
+        }
+      });
     }));
     m.appendChild(brow);
   });
@@ -1040,14 +1177,20 @@ function adminBinalar(){
       if(confirm(b.ad+' ve t\u00fcm verileri silinsin mi?\n\nBu i\u015flem geri al\u0131namaz!')){
         if(confirm('Emin misiniz? Daireler, aidatlar, kasa t\u00fcm\u00fc silinecek!')){
           guncelle(function(){
+            // Çöp kutusuna taşı (30 gün saklanır)
+            if(!D.copKutusu)D.copKutusu=[];
+            D.copKutusu.unshift({tip:'bina',tarih:new Date().toISOString(),ad:b.ad,bina:b,paket:{
+              daireler:D.daireler[b.id],aidatlar:D.aidatlar[b.id],kasaH:D.kasaH[b.id],
+              faturalar:D.faturalar[b.id],kampanyalar:D.kampanyalar[b.id],evraklar:D.evraklar[b.id],
+              duyurular:D.duyurular[b.id],arizalar:D.arizalar[b.id],dekontlar:D.dekontlar[b.id],
+              ayar:(D.ayarlar||{})[b.id]}});
             D.binalar=D.binalar.filter(function(x){return x.id!==b.id;});
             delete D.daireler[b.id];delete D.aidatlar[b.id];delete D.kasaH[b.id];
             delete D.faturalar[b.id];delete D.kampanyalar[b.id];delete D.evraklar[b.id];
             delete D.duyurular[b.id];delete D.arizalar[b.id];delete D.dekontlar[b.id];
             if(D.ayarlar)delete D.ayarlar[b.id];
-            // Bağlı yöneticiyi de güncelle
             D.yoneticiler.forEach(function(y){if(y.binaId===b.id)y.binaId='';});
-          },'Bina silindi: '+b.ad);
+          },'Bina silindi (\u00e7\u00f6p kutusunda): '+b.ad);
           toast('\uD83D\uDDD1\uFE0F '+b.ad+' silindi','err');
         }
       }
@@ -1260,11 +1403,148 @@ function adminAyarlar(){
     lg.appendChild(temizBtn);
   }
   wrap.appendChild(lg);
+
+  // ── GİRİŞ KAYITLARI (IP + Konum) ──
+  var gl=dv('ss');gl.style.cssText='background:#f8f8f8;border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px';
+  var glT=dv('');glT.style.cssText='font-size:12px;font-weight:800;letter-spacing:.05em;color:var(--text2);margin-bottom:12px';
+  glT.textContent='\uD83D\uDD10 G\u0130R\u0130\u015e KAYITLARI (IP + KONUM)';
+  gl.appendChild(glT);
+  var glogs=D.girisLog||[];
+  if(!glogs.length){gl.appendChild(dv('al al-info','Hen\u00fcz giri\u015f kayd\u0131 yok.'));}
+  else{
+    glogs.slice(0,30).forEach(function(g){
+      var row=dv('');row.style.cssText='padding:7px 0;border-bottom:1px solid var(--border);font-size:12px';
+      row.innerHTML='<div style="display:flex;justify-content:space-between;gap:8px">'
+        +'<span style="font-weight:700;color:var(--text)">'+(g.kullanici||'?')+' <span style="font-weight:400;color:var(--text2)">('+(g.rol||'?')+')</span></span>'
+        +'<span style="color:var(--text2);white-space:nowrap;font-size:11px">'+(g.zaman||'')+'</span></div>'
+        +'<div style="color:var(--text2);font-size:11px;margin-top:2px">\uD83C\uDF10 '+(g.ip||'?')+' \u00b7 \uD83D\uDCCD '+(g.konum||'?')+'</div>';
+      gl.appendChild(row);
+    });
+  }
+  wrap.appendChild(gl);
   return wrap;
 }
 
 function adminYedek(){
   const wrap=dv('');
+
+  // ── BULUT YEDEKLERİ (günlük otomatik, 5 ay saklanır) ──
+  const bc=dv('ss');bc.style.cssText='background:#f0f4ff;border:1.5px solid #c0cfff;border-radius:14px;padding:14px;margin-bottom:10px';
+  bc.innerHTML='<div class="sst" style="color:#2c5fd4">\u2601\uFE0F G\u00fcnl\u00fck Bulut Yedekleri</div><p style="font-size:12px;color:#556;margin-bottom:10px">Her g\u00fcn otomatik al\u0131n\u0131r, 5 ay saklan\u0131r. Bir sorun olursa buradan geri d\u00f6nebilirsiniz.</p>';
+  const yList=dv('');yList.appendChild(dv('al al-info','\uD83D\uDD04 Yedekler y\u00fckleniyor...'));
+  bc.appendChild(yList);
+  wrap.appendChild(bc);
+  if(window.db){
+    window.db.collection('yedekler').get().then(function(qs){
+      yList.innerHTML='';
+      var docs=[];
+      qs.forEach(function(doc){docs.push(doc);});
+      if(!docs.length){yList.appendChild(dv('al al-warn','Hen\u00fcz bulut yede\u011fi yok. \u0130lk yedek bug\u00fcn otomatik al\u0131nacak.'));return;}
+      // Yeniden eskiye sırala
+      docs.sort(function(a,b){return a.id<b.id?1:-1;});
+      docs.forEach(function(doc){
+        var tarihStr=doc.id.replace('yedek_','');
+        var row=dv('');row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #dde';
+        var lbl=dv('');lbl.style.cssText='font-size:13px;font-weight:700;color:#334';
+        lbl.textContent='\uD83D\uDCC5 '+tarihStr;
+        row.appendChild(lbl);
+        var btns=dv('');btns.style.cssText='display:flex;gap:6px';
+        var geriB=btn('btn bg bsm','\u21A9\uFE0F Geri Y\u00fckle',function(){
+          // Önizleme: yedeğin içinde ne var?
+          var onizle='';
+          try{
+            var pd=JSON.parse(doc.data().json);
+            var dSay=Object.keys(pd.daireler||{}).reduce(function(s,k){return s+(pd.daireler[k]||[]).length;},0);
+            var kSay=Object.keys(pd.kasaH||{}).reduce(function(s,k){return s+(pd.kasaH[k]||[]).length;},0);
+            onizle='\n\n\uD83D\uDCE6 \u0130\u00e7erik: '+(pd.binalar||[]).length+' bina \u00b7 '+dSay+' daire \u00b7 '+(pd.yoneticiler||[]).length+' y\u00f6netici \u00b7 '+kSay+' kasa kayd\u0131';
+          }catch(e){onizle='\n\n\u26A0\uFE0F Yedek i\u00e7eri\u011fi okunamad\u0131!';}
+          if(confirm(tarihStr+' tarihli yedek geri y\u00fcklensin mi?'+onizle+'\n\nMevcut veriler bu yedekle DE\u011e\u0130\u015eT\u0130R\u0130LECEK!')){
+            if(confirm('Emin misiniz? Bu i\u015flem geri al\u0131namaz!')){
+              try{
+                var yd=doc.data();
+                if(yd&&yd.json){
+                  D=JSON.parse(yd.json);
+                  migrateData();
+                  localStorage.setItem('bp5',JSON.stringify(D));
+                  window._bulutOkundu=true;
+                  kaydet();
+                  render();
+                  toast('\u2705 '+tarihStr+' yede\u011fi geri y\u00fcklendi!','ok');
+                }
+              }catch(e){alert('Yedek okunamad\u0131: '+e.message);}
+            }
+          }
+        });
+        geriB.style.cssText='font-size:11px;padding:6px 10px';
+        var indirB=btn('btn bgr bsm','\uD83D\uDCE5',function(){
+          var yd=doc.data();
+          if(yd&&yd.json){
+            var a=document.createElement('a');
+            a.href=URL.createObjectURL(new Blob([yd.json],{type:'application/json'}));
+            a.download='binaplus_bulut_'+tarihStr+'.json';a.click();
+          }
+        });
+        indirB.style.cssText='font-size:11px;padding:6px 10px';
+        btns.appendChild(geriB);btns.appendChild(indirB);
+        row.appendChild(btns);
+        yList.appendChild(row);
+      });
+    }).catch(function(e){
+      yList.innerHTML='';
+      yList.appendChild(dv('al al-err','\u26A0\uFE0F Yedekler okunamad\u0131. Firestore kurallar\u0131nda "yedekler" koleksiyonuna izin verildi\u011finden emin olun.'));
+    });
+  } else {
+    yList.innerHTML='';
+    yList.appendChild(dv('al al-warn','\u26A0\uFE0F Bulut ba\u011flant\u0131s\u0131 yok.'));
+  }
+
+  // ── ÇÖP KUTUSU (silinen bina/daireler, 30 gün) ──
+  const cc=dv('ss');cc.style.cssText='background:#fff7ed;border:1.5px solid #fed7aa;border-radius:14px;padding:14px;margin-bottom:10px';
+  cc.innerHTML='<div class="sst" style="color:#c2410c">\uD83D\uDDD1\uFE0F \u00c7\u00f6p Kutusu</div><p style="font-size:12px;color:#9a3412;margin-bottom:10px">Silinen bina ve daireler 30 g\u00fcn burada saklan\u0131r, geri alabilirsiniz.</p>';
+  var cops=D.copKutusu||[];
+  if(!cops.length){cc.appendChild(dv('al al-info','\u00c7\u00f6p kutusu bo\u015f.'));}
+  else{
+    cops.forEach(function(c,ci){
+      var row=dv('');row.style.cssText='display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #fed7aa';
+      var lbl=dv('');lbl.style.cssText='font-size:13px';
+      lbl.innerHTML='<b>'+(c.tip==='bina'?'\uD83C\uDFE2':'\uD83C\uDFE0')+' '+(c.ad||'?')+'</b><div style="font-size:11px;color:#9a3412">'+fT(c.tarih)+' silindi</div>';
+      row.appendChild(lbl);
+      var geriAl=btn('btn bg bsm','\u21A9\uFE0F Geri Al',function(){
+        if(!confirm((c.ad||'')+' geri al\u0131ns\u0131n m\u0131?'))return;
+        guncelle(function(){
+          if(c.tip==='bina'&&c.bina){
+            D.binalar.push(c.bina);
+            var p=c.paket||{};
+            D.daireler[c.bina.id]=p.daireler||[];
+            D.aidatlar[c.bina.id]=p.aidatlar||{};
+            D.kasaH[c.bina.id]=p.kasaH||[];
+            D.faturalar[c.bina.id]=p.faturalar||[];
+            D.kampanyalar[c.bina.id]=p.kampanyalar||[];
+            D.evraklar[c.bina.id]=p.evraklar||[];
+            D.duyurular[c.bina.id]=p.duyurular||[];
+            D.arizalar[c.bina.id]=p.arizalar||[];
+            D.dekontlar[c.bina.id]=p.dekontlar||[];
+            if(!D.ayarlar)D.ayarlar={};
+            D.ayarlar[c.bina.id]=p.ayar||{kasaBas:0};
+          } else if(c.tip==='daire'&&c.daire){
+            if(!D.daireler[c.binaId])D.daireler[c.binaId]=[];
+            D.daireler[c.binaId].push(c.daire);
+            if(c.aidat){
+              if(!D.aidatlar[c.binaId])D.aidatlar[c.binaId]={};
+              D.aidatlar[c.binaId][c.daire.id]=c.aidat;
+            }
+          }
+          D.copKutusu.splice(ci,1);
+        },'Geri al\u0131nd\u0131: '+(c.ad||''));
+        toast('\u21A9\uFE0F Geri al\u0131nd\u0131','ok');
+      });
+      geriAl.style.cssText='font-size:11px;padding:6px 10px';
+      row.appendChild(geriAl);
+      cc.appendChild(row);
+    });
+  }
+  wrap.appendChild(cc);
+
   const ac=dv('ss');ac.style.cssText='background:var(--g1);border-radius:14px;padding:14px;margin-bottom:10px';
   ac.innerHTML='<div class="sst" style="color:#fff">\uD83C\uDF10 T\u00fcm Sistem Yede\u011fi</div><p style="font-size:12px;color:rgba(255,255,255,.7);margin-bottom:12px">T\u00fcm binalar tek dosyaya iner.</p>';
   ac.appendChild(btn('btn bgl','\uD83D\uDCE4 Yedek Al',function(){
@@ -1302,7 +1582,7 @@ function modalBinaEkle(){
             sakin:'',tip:'M\u00fclk Sahibi',
             aidat:+aidI.value||500,muaf:false,
             sakinKA:kisalt+'_'+daireNo,
-            sakinSifre:'123456'
+            sakinSifre:sifreHash('123456')
           });
         }
         D.daireler[binaId]=daireler;
@@ -1321,7 +1601,7 @@ function modalBinaEkle(){
           ad:ad+' Y\u00f6neticisi',
           kullaniciAdi:yKAFinal,
           email:'',
-          password:'123456',
+          password:sifreHash('123456'),
           binaId:binaId,
           askida:false,
           bitis:'',
@@ -1508,6 +1788,15 @@ function renderSakinAidat(bina,daire){
     else if(S.yil<ylNow||(S.yil===ylNow&&mi<=ayNow)){cls='no';ic='\u2717';altyazi=fP(daire.aidat);}
     const cell=dv('mc '+cls);cell.style.padding='12px 6px';
     cell.innerHTML='<div class="mi" style="font-size:16px">'+ic+'</div><div class="mn" style="font-size:11px">'+AYF[mi]+'</div>'+(altyazi?'<div style="font-size:9px;margin-top:3px;opacity:.8">'+altyazi+'</div>':'');
+    // Ödenen aya tıklayınca makbuz göster/indir
+    if(p&&(p.durum==='odendi'||p.durum==='erken')){
+      cell.style.cursor='pointer';
+      (function(pp,mmi){
+        cell.onclick=function(){
+          modalMakbuz({tutar:pp.tutar||daire.aidat,kategori:'Aidat Tahsilat\u0131',aciklama:daire.no+' \u2014 '+AYF[mmi]+' '+S.yil,tarih:pp.tarih},bina,daire);
+        };
+      })(p,mi);
+    }
     mg.appendChild(cell);
   });
   wrap.appendChild(mg);
@@ -1835,7 +2124,7 @@ function renderSakinAyarlar(bina,daire){
     if(!eskiI.value||!yeniI.value||!tekI.value){
       sifMsg.appendChild(alrt('al-err','T\u00fcm alanlar\u0131 doldurun.'));return;
     }
-    if(eskiI.value!==d2.sakinSifre){
+    if(!sifreKontrol(eskiI.value,d2.sakinSifre)){
       sifMsg.appendChild(alrt('al-err','Mevcut \u015fifre yanl\u0131\u015f.'));return;
     }
     if(yeniI.value.length<6){
@@ -1847,8 +2136,8 @@ function renderSakinAyarlar(bina,daire){
     guncelle(function(){
       var idx=D.daireler[bina.id].findIndex(function(x){return x.id===daire.id;});
       if(idx>=0){
-        D.daireler[bina.id][idx].sakinSifre=yeniI.value;
-        S.user.sakinSifre=yeniI.value;
+        D.daireler[bina.id][idx].sakinSifre=sifreHash(yeniI.value);
+        S.user.sakinSifre=sifreHash(yeniI.value);
       }
     },'Sakin \u015fifre de\u011fi\u015ftirdi: '+daire.no);
     eskiI.value='';yeniI.value='';tekI.value='';
@@ -1975,6 +2264,67 @@ function renderYonetici(bina){
 }
 
 // ── KASA ─────────────────────────────────────────
+function yillikRaporPDF(bina){
+  var yil=simdiYil();
+  var girdi=prompt('Hangi y\u0131l\u0131n raporu? (\u00f6rn: '+yil+')',yil);
+  if(girdi===null)return;
+  yil=parseInt(girdi)||yil;
+  var h=(D.kasaH[bina.id]||[]).filter(function(x){return String(x.tarih||'').indexOf(String(yil))===0;});
+  var yonetici=D.yoneticiler.find(function(y){return y.binaId===bina.id;})||{ad:''};
+  // Kategori toplamları
+  var katG={},katGi={},topG=0,topGi=0;
+  var aylikG=[0,0,0,0,0,0,0,0,0,0,0,0],aylikGi=[0,0,0,0,0,0,0,0,0,0,0,0];
+  h.forEach(function(x){
+    var ay=parseInt(String(x.tarih||'').split('-')[1]||'1')-1;
+    if(x.tip==='gelir'){topG+=x.tutar;katG[x.kategori]=(katG[x.kategori]||0)+x.tutar;if(ay>=0&&ay<12)aylikG[ay]+=x.tutar;}
+    else{topGi+=x.tutar;katGi[x.kategori]=(katGi[x.kategori]||0)+x.tutar;if(ay>=0&&ay<12)aylikGi[ay]+=x.tutar;}
+  });
+  function katTablo(obj,renk){
+    var s='';Object.keys(obj).sort(function(a,b){return obj[b]-obj[a];}).forEach(function(k){
+      s+='<tr><td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px">'+k+'</td>'
+        +'<td style="padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;font-weight:700;color:'+renk+'">'+fP(obj[k])+'</td></tr>';
+    });return s;
+  }
+  var aylikSatir='';
+  AYF.forEach(function(a,i){
+    aylikSatir+='<tr><td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:12px">'+a+'</td>'
+      +'<td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;color:#2e7d32">'+fP(aylikG[i])+'</td>'
+      +'<td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;color:#c62828">'+fP(aylikGi[i])+'</td>'
+      +'<td style="padding:6px 10px;border-bottom:1px solid #eee;font-size:12px;text-align:right;font-weight:700">'+fP(aylikG[i]-aylikGi[i])+'</td></tr>';
+  });
+  var html='<!DOCTYPE html><html lang="tr"><head><meta charset="UTF-8"/><title>Y\u0131ll\u0131k Rapor '+yil+' - '+bina.ad+'</title>'
+    +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,Arial,sans-serif;background:#f0f0f0;padding:20px}'
+    +'.sayfa{width:210mm;min-height:297mm;background:#fff;margin:0 auto;padding:16mm;box-shadow:0 4px 20px rgba(0,0,0,.15)}'
+    +'@media print{body{background:#fff;padding:0}.sayfa{box-shadow:none}.np{display:none}@page{margin:10mm}}'
+    +'table{width:100%;border-collapse:collapse;margin-bottom:20px}thead tr{background:#1a5c38;color:#fff}thead th{padding:8px 10px;text-align:left;font-size:11px}thead th:not(:first-child){text-align:right}'
+    +'</style></head><body><div class="sayfa">'
+    +'<div style="display:flex;justify-content:space-between;border-bottom:3px solid #1a5c38;padding-bottom:12px;margin-bottom:18px">'
+    +'<div style="display:flex;gap:10px;align-items:center"><div style="width:48px;height:48px;background:#1a5c38;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:26px">\uD83C\uDFE2</div>'
+    +'<div><div style="font-size:20px;font-weight:900;color:#1a5c38">BinaPlus</div><div style="font-size:11px;color:#666">Y\u0131ll\u0131k Faaliyet Raporu</div></div></div>'
+    +'<div style="text-align:right"><div style="font-size:15px;font-weight:800;color:#1a5c38">'+bina.ad+'</div>'
+    +'<div style="font-size:11px;color:#666">'+(bina.adres||'')+'</div>'
+    +'<div style="font-size:13px;font-weight:800;color:#1a5c38;margin-top:4px">'+yil+' YILI RAPORU</div></div></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">'
+    +'<div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:12px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:#666">Y\u0130LLIK GEL\u0130R</div><div style="font-size:19px;font-weight:900;color:#2e7d32">'+fP(topG)+'</div></div>'
+    +'<div style="background:#fce4ec;border:1.5px solid #f48fb1;border-radius:12px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:#666">Y\u0130LLIK G\u0130DER</div><div style="font-size:19px;font-weight:900;color:#c62828">'+fP(topGi)+'</div></div>'
+    +'<div style="background:#e3f2fd;border:1.5px solid #90caf9;border-radius:12px;padding:12px;text-align:center"><div style="font-size:10px;font-weight:700;color:#666">NET</div><div style="font-size:19px;font-weight:900;color:'+((topG-topGi)>=0?'#1565c0':'#c62828')+'">'+fP(topG-topGi)+'</div></div>'
+    +'</div>'
+    +'<div style="font-size:13px;font-weight:800;color:#1a5c38;margin-bottom:8px">\uD83D\uDCC6 Ayl\u0131k \u00d6zet</div>'
+    +'<table><thead><tr><th>Ay</th><th>Gelir</th><th>Gider</th><th>Net</th></tr></thead><tbody>'+aylikSatir+'</tbody></table>'
+    +'<div style="font-size:13px;font-weight:800;color:#2e7d32;margin-bottom:8px">\uD83D\uDCB0 Gelir Kategorileri</div>'
+    +'<table><thead><tr><th>Kategori</th><th>Toplam</th></tr></thead><tbody>'+katTablo(katG,'#2e7d32')+'</tbody></table>'
+    +'<div style="font-size:13px;font-weight:800;color:#c62828;margin-bottom:8px">\uD83D\uDCB8 Gider Kategorileri</div>'
+    +'<table><thead><tr><th>Kategori</th><th>Toplam</th></tr></thead><tbody>'+katTablo(katGi,'#c62828')+'</tbody></table>'
+    +'<div style="border-top:2px solid #eee;padding-top:12px;display:flex;justify-content:space-between;align-items:flex-end">'
+    +'<div style="font-size:11px;color:#666">Olu\u015fturma: '+new Date().toLocaleDateString('tr-TR')+'<br>BinaPlus Apartman Y\u00f6netim Sistemi</div>'
+    +'<div style="text-align:center"><div style="border-top:1px solid #333;width:150px;margin:36px auto 6px"></div><div style="font-size:11px;color:#666">Y\u00f6netici: '+yonetici.ad+'</div></div></div>'
+    +'<div class="np" style="text-align:center;margin-top:16px"><button onclick="window.print()" style="background:#1a5c38;color:#fff;border:none;padding:12px 30px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">\uD83D\uDDA8\uFE0F Yazd\u0131r / PDF</button></div>'
+    +'</div></body></html>';
+  (function(){
+    try{var w=window.open('','_blank');if(!w)throw 0;w.document.write(html);w.document.close();}
+    catch(e){var b=new Blob([html],{type:'text/html'});var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.target='_blank';document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},2000);}
+  })();
+}
 function defterPDF(bina){
   var h=D.kasaH[bina.id]||[];
   var bas=((D.ayarlar||{})[bina.id]||{}).kasaBas||0;
@@ -2119,7 +2469,23 @@ function renderKasa(bina){
   var kasaTitle=dv('stit','\uD83D\uDCB0 Kasa Hareketleri');kasaTitle.style.margin='0';
   var defterBtn=btn('btn bgr','\uD83D\uDCC4 Defter PDF',function(){defterPDF(bina);});
   defterBtn.style.cssText='font-size:12px;padding:7px 13px;border-radius:8px;flex-shrink:0';
-  kasaTopBar.appendChild(kasaTitle);kasaTopBar.appendChild(defterBtn);
+  var excelBtn=btn('btn bgr','\uD83D\uDCCA Excel',function(){
+    var h=D.kasaH[bina.id]||[];
+    var csv='\uFEFFTarih;Saat;Tip;Kategori;A\u00e7\u0131klama;Tutar\n';
+    h.forEach(function(x){
+      csv+=(fT(x.tarih))+';'+(x.saat||'')+';'+(x.tip==='gelir'?'Gelir':'Gider')+';'+(x.kategori||'')+';'+String(x.aciklama||'').replace(/;/g,',')+';'+(x.tutar||0)+'\n';
+    });
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    a.download=bina.ad.replace(/\s/g,'_')+'_kasa.csv';a.click();
+    toast('\uD83D\uDCCA Excel dosyas\u0131 indirildi','ok');
+  });
+  excelBtn.style.cssText='font-size:12px;padding:7px 13px;border-radius:8px;flex-shrink:0';
+  var raporBtn=btn('btn bgr','\uD83D\uDCC8 Y\u0131ll\u0131k',function(){yillikRaporPDF(bina);});
+  raporBtn.style.cssText='font-size:12px;padding:7px 13px;border-radius:8px;flex-shrink:0';
+  var btnGrp=dv('');btnGrp.style.cssText='display:flex;gap:6px;flex-shrink:0';
+  btnGrp.appendChild(excelBtn);btnGrp.appendChild(raporBtn);btnGrp.appendChild(defterBtn);
+  kasaTopBar.appendChild(kasaTitle);kasaTopBar.appendChild(btnGrp);
   wrap.appendChild(kasaTopBar);
   const h=D.kasaH[bina.id]||[];
   if(!h.length){wrap.appendChild(dv('empty','<div class="ei">\uD83D\uDCB8</div><h3>Hareket yok</h3><p>Gelir veya gider ekleyin</p>'));return wrap;}
@@ -2254,7 +2620,7 @@ function modalDaireEkle(bina){
       }
       guncelle(function(){
         if(!D.daireler[bina.id])D.daireler[bina.id]=[];
-        D.daireler[bina.id].push({id:uid(),no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:kaFinal,sakinSifre:sspI.value||'123456',sakinTel:telI.value.trim()});
+        D.daireler[bina.id].push({id:uid(),no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:kaFinal,sakinSifre:sifreHash(sspI.value||'123456'),sakinTel:telI.value.trim()});
       });
       close();toast('\u2705 Daire eklendi','ok');
     }));
@@ -2282,11 +2648,22 @@ function modalDaireDuzenle(bina,d){
     var autoKA=d.sakinKA||daireKA(bina.ad,d.no);
     const skaI=inp('text',autoKA,'kullanici_adi');
     const telI=inp('tel',d.sakinTel||'','05xxxxxxxxx');
-    const sspI=inp('text',d.sakinSifre||'','\u015eifre');
+    const sspI=inp('text','','Yeni \u015fifre (bo\u015f b\u0131rak\u0131rsan de\u011fi\u015fmez)');
     const errD=dv('');
     append(m,fg('SAK\u0130N KULLANICI ADI',skaI),fg('SAK\u0130N \u015e\u0130FRES\u0130',sspI),errD);
     const brow=dv('brow');
     brow.appendChild(btn('btn bgr','\u0130ptal',close));
+    brow.appendChild(btn('btn br','\uD83D\uDDD1\uFE0F Sil',function(){
+      if(confirm(d.no+' dairesi silinsin mi? (30 g\u00fcn \u00e7\u00f6p kutusunda saklan\u0131r)')){
+        guncelle(function(){
+          if(!D.copKutusu)D.copKutusu=[];
+          D.copKutusu.unshift({tip:'daire',tarih:new Date().toISOString(),ad:d.no+' ('+bina.ad+')',binaId:bina.id,daire:d,aidat:((D.aidatlar[bina.id]||{})[d.id])});
+          D.daireler[bina.id]=(D.daireler[bina.id]||[]).filter(function(x){return x.id!==d.id;});
+          if(D.aidatlar[bina.id])delete D.aidatlar[bina.id][d.id];
+        },'Daire silindi (\u00e7\u00f6p kutusunda): '+d.no);
+        close();toast('\uD83D\uDDD1\uFE0F '+d.no+' \u00e7\u00f6p kutusuna ta\u015f\u0131nd\u0131','ok');
+      }
+    }));
     brow.appendChild(btn('btn bg','\u2705 Kaydet',function(){
       const ka=skaI.value.trim();
       if(ka){
@@ -2295,7 +2672,7 @@ function modalDaireDuzenle(bina,d){
       }
       guncelle(function(){
         const i=D.daireler[bina.id].findIndex(function(x){return x.id===d.id;});
-        if(i>=0)D.daireler[bina.id][i]={id:d.id,no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:ka,sakinSifre:sspI.value,sakinTel:telI.value.trim(),sakinEmail:d.sakinEmail||''};
+        if(i>=0)D.daireler[bina.id][i]={id:d.id,no:noI.value.trim(),kat:+ktI.value||0,sakin:skI.value.trim(),tip:tipSel.value,aidat:+aidI.value||500,muaf:muaf,sakinKA:ka,sakinSifre:(sspI.value?sifreHash(sspI.value):d.sakinSifre),sakinTel:telI.value.trim(),sakinEmail:d.sakinEmail||''};
       });
       close();toast('\u2705 G\u00fcncellendi','ok');
     }));
@@ -2345,6 +2722,31 @@ function renderAidat(bina){
     toolbar.appendChild(btn('btn bgr bsm','\uD83D\uDDBC\uFE0F Toplu Makbuz',function(){modalTopluMakbuz(bina,S.seciliDaireler,S.yil);}));
     toolbar.appendChild(btn('btn bgr bsm','\u2715 Temizle',function(){S.seciliDaireler={};render();}));
   }
+  var aidatXls=btn('btn bgr bsm','\uD83D\uDCCA Excel',function(){
+    var csv='\uFEFFDaire;Sakin';
+    AYF.forEach(function(a){csv+=';'+a;});
+    csv+=';Bor\u00e7\n';
+    var ds=(D.daireler[bina.id]||[]).slice().sort(function(a,b){return(parseInt(a.no.replace(/[^0-9]/g,''))||0)-(parseInt(b.no.replace(/[^0-9]/g,''))||0);});
+    var ylN=simdiYil(),ayN=simdiAy();
+    ds.forEach(function(d){
+      var ya=((D.aidatlar[bina.id]||{})[d.id]||{})[S.yil]||{};
+      var borc=0;csv+=d.no+';'+(d.sakin||'');
+      AYF.forEach(function(a,mi){
+        var p=ya[mi];var od=p&&(p.durum==='odendi'||p.durum==='erken');
+        var gecmis=S.yil<ylN||(S.yil===ylN&&mi<=ayN);
+        if(d.muaf)csv+=';MUAF';
+        else if(od)csv+=';\u00d6DEND\u0130';
+        else if(gecmis){csv+=';BOR\u00c7';borc+=d.aidat;}
+        else csv+=';-';
+      });
+      csv+=';'+borc+'\n';
+    });
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    a.download=bina.ad.replace(/\s/g,'_')+'_aidat_'+S.yil+'.csv';a.click();
+    toast('\uD83D\uDCCA Excel indirildi','ok');
+  });
+  toolbar.appendChild(aidatXls);
   wrap.appendChild(toolbar);
 
   const daireler=(D.daireler[bina.id]||[]).slice().sort(function(a,b){
@@ -3294,23 +3696,7 @@ function renderAyarlar(bina){
     }
   }));
   wrap.appendChild(ds);
-  // Değişiklik Logu
-  var lg2=dv('ss');lg2.style.cssText='background:#f8f8f8;border:1.5px solid var(--border);border-radius:14px;padding:14px;margin-bottom:10px';
-  var lg2T=dv('');lg2T.style.cssText='font-size:12px;font-weight:800;letter-spacing:.05em;color:var(--text2);margin-bottom:12px';
-  lg2T.textContent='\uD83D\uDCCB SON DE\u011e\u0130\u015e\u0130KL\u0130KLER';
-  lg2.appendChild(lg2T);
-  var logs2=D.degisiklikLog||[];
-  if(!logs2.length){lg2.appendChild(dv('al al-info','Hen\u00fcz de\u011fi\u015fiklik yok.'));}
-  else{
-    logs2.slice(0,15).forEach(function(l){
-      var row=dv('');row.style.cssText='display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;gap:8px';
-      var msg=dv('');msg.style.cssText='color:var(--text);flex:1';msg.textContent=l.mesaj||'';
-      var meta=dv('');meta.style.cssText='color:var(--text2);white-space:nowrap;font-size:11px';meta.textContent=(l.zaman||'')+(l.kullanici?' · '+l.kullanici:'');
-      row.appendChild(msg);row.appendChild(meta);
-      lg2.appendChild(row);
-    });
-  }
-  wrap.appendChild(lg2);
+
   return wrap;
 }
 // ── MAKBUZ ───────────────────────────────────────
@@ -3583,6 +3969,42 @@ function modalTopluMakbuz(bina,yil){
     m.appendChild(brow);
   });
 }
+// ── GİRİŞ KAYDI (IP + yaklaşık konum) ──
+function girisLogla(ad,rol){
+  try{
+    var kayitEkle=function(ip,konum){
+      if(!D.girisLog)D.girisLog=[];
+      D.girisLog.unshift({zaman:new Date().toLocaleString('tr-TR'),kullanici:ad||'?',rol:rol||'?',ip:ip||'?',konum:konum||'?'});
+      if(D.girisLog.length>50)D.girisLog=D.girisLog.slice(0,50);
+      kaydet();
+    };
+    fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(j){
+      kayitEkle(j.ip,(j.city||'')+(j.region&&j.region!==j.city?' / '+j.region:'')+(j.country_name?', '+j.country_name:''));
+    }).catch(function(){kayitEkle('?','?');});
+  }catch(e){}
+}
+
+// ── GÜNLÜK OTOMATİK BULUT YEDEĞİ (5 ay saklanır) ──
+function gunlukYedekAl(){
+  if(!window.db)return;
+  var bugunKey='yedek_'+new Date().toISOString().slice(0,10);
+  var col=window.db.collection('yedekler');
+  col.doc(bugunKey).get().then(function(snap){
+    if(snap&&snap.exists)return; // bugünün yedeği zaten var
+    // Yedeği BULUTTAKİ veriden al (local değil) - en güvenlisi
+    window.db.collection('binaplus').doc('data').get().then(function(s){
+      if(s&&s.exists&&s.data()&&s.data().json){
+        col.doc(bugunKey).set({
+          json:s.data().json,
+          tarih:new Date().toISOString()
+        }).then(function(){
+          console.log('G\u00fcnl\u00fck yedek al\u0131nd\u0131:',bugunKey);
+        }).catch(function(e){console.warn('Yedek hatasi:',e);});
+      }
+    }).catch(function(){});
+  }).catch(function(){});
+}
+
 // ── PWA SERVICE WORKER ───────────────────────────
 // SW'yi kaldır - cache sorunlarını önle
 if('serviceWorker' in navigator){
