@@ -1453,7 +1453,7 @@ function adminAyarlar(){
   ps.appendChild(btn('btn bg','\uD83D\uDD10 \u015eifre G\u00fcncelle',function(){
     apMsg.innerHTML='';
     if(!ap0.value||!ap1.value||!ap2.value){apMsg.appendChild(alrt('al-err','T\u00fcm alanlar\u0131 doldurun.'));return;}
-    if(ap0.value!==D.admin.password){apMsg.appendChild(alrt('al-err','Mevcut \u015fifre yanl\u0131\u015f.'));return;}
+    if(!sifreKontrol(ap0.value,D.admin.password)){apMsg.appendChild(alrt('al-err','Mevcut \u015fifre yanl\u0131\u015f.'));return;}
     if(ap1.value.length<6){apMsg.appendChild(alrt('al-err','En az 6 karakter.'));return;}
     if(ap1.value!==ap2.value){apMsg.appendChild(alrt('al-err','\u015eifreler e\u015fle\u015fmiyor.'));return;}
     guncelle(function(){D.admin.password=ap1.value;});
