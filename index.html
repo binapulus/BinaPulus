@@ -1143,7 +1143,9 @@ function modalSifremiUnuttum(){
       ).then(function(ok){
         errD.innerHTML='';
         if(ok){
-          guncelle(function(){uygula(gs);},'Ge\u00e7ici \u015fifre g\u00f6nderildi: '+kim);
+          uygula(gs);
+          window._bulutOkundu=true;
+          kaydet();
           errD.appendChild(alrt('al-ok','\u2705 Ge\u00e7ici \u015fifre '+hedefMail+' adresine g\u00f6nderildi! Spam klas\u00f6r\u00fcn\u00fc de kontrol edin.'));
         } else {
           errD.appendChild(alrt('al-err','\u26A0\uFE0F Mail g\u00f6nderilemedi, \u015fifre DE\u011e\u0130\u015eT\u0130R\u0130LMED\u0130. Tekrar deneyin.'));
