@@ -387,6 +387,8 @@ var kaydet=function(){
       Object.keys(D2.arizalar||{}).forEach(function(bid){
         (D2.arizalar[bid]||[]).forEach(function(a){if(a.resim&&a.resim.length>200000)a.resim='[resim_local]';});
       });
+      // Gizli imza JSON içine gömülür - saldırgan değiştiremez
+      D2._imza=sifreHash('BinaPlus'+new Date().toISOString().slice(0,10)+'gizli_2026_bp').slice(0,16);
       var jsonStr=JSON.stringify(D2);
       var boyut=new Blob([jsonStr]).size;
       console.log('Firestore veri boyutu:',Math.round(boyut/1024),'KB');
@@ -395,12 +397,9 @@ var kaydet=function(){
         return;
       }
       window._yaziyorum=true;
-      // Gizli imza - saldırganın üretmesi çok zor
-      var imzaKey=sifreHash('BinaPlus'+new Date().toISOString().slice(0,10)+'gizli_anahtar_2026');
       window.db.collection('binaplus').doc('data').set({
         json:jsonStr,
-        guncelleme:new Date().toISOString(),
-        imza:imzaKey.slice(0,16)
+        guncelleme:new Date().toISOString()
       }).then(function(){
         console.log('Firestore kayit OK!',Math.round(boyut/1024)+'KB');
         setTimeout(function(){window._yaziyorum=false;},2000);
@@ -625,17 +624,24 @@ async function firestoreYukle(){
     if(snap&&snap.exists){
       const data=snap.data();
       if(data&&data.json){
-          // İmza kontrolü
-          if(data.imza){
-            var beklenenImza=sifreHash('BinaPlus'+new Date().toISOString().slice(0,10)+'gizli_anahtar_2026').slice(0,16);
-            var dunkuImza=sifreHash('BinaPlus'+new Date(Date.now()-86400000).toISOString().slice(0,10)+'gizli_anahtar_2026').slice(0,16);
-            if(data.imza!==beklenenImza&&data.imza!==dunkuImza){
-              console.error('\u26A0\uFE0F UYARI: Firestore verisi manipule edilmis! Yukleme reddedildi.');
+          const uzak=JSON.parse(data.json);
+          // İmza kontrolü - JSON içindeki gizli imzayı kontrol et
+          if(uzak._imza){
+            var bugun=new Date().toISOString().slice(0,10);
+            var dun=new Date(Date.now()-86400000).toISOString().slice(0,10);
+            var evvelsi=new Date(Date.now()-172800000).toISOString().slice(0,10);
+            var gecerliImzalar=[
+              sifreHash('BinaPlus'+bugun+'gizli_2026_bp').slice(0,16),
+              sifreHash('BinaPlus'+dun+'gizli_2026_bp').slice(0,16),
+              sifreHash('BinaPlus'+evvelsi+'gizli_2026_bp').slice(0,16)
+            ];
+            if(gecerliImzalar.indexOf(uzak._imza)<0){
+              console.error('\u26A0\uFE0F UYARI: Veri manipule edilmis! Yukleme reddedildi.');
+              // Yerel veriyi koru
               window._bulutOkundu=true;
               return false;
             }
           }
-          const uzak=JSON.parse(data.json);
         const lokalStr=localStorage.getItem('bp5');
         if(!lokalStr){
           D=uzak;localStorage.setItem('bp5',JSON.stringify(D));
