@@ -1212,7 +1212,7 @@ function renderAdmin(){
     stats.appendChild(s);
   });
   const tabs=dv('tabs');
-  [{k:'ozet',i:'\uD83D\uDCCA',l:'\u00d6zet'},{k:'binalar',i:'\uD83C\uDFE2',l:'Binalar'},{k:'yoneticiler',i:'\uD83D\uDC64',l:'Y\u00f6neticiler'},{k:'yedek',i:'\uD83D\uDCBE',l:'Yedekleme'},{k:'ayarlar',i:'\u2699\uFE0F',l:'Ayarlar'}].forEach(function(t){
+  [{k:'ozet',i:'\uD83D\uDCCA',l:'\u00d6zet'},{k:'binalar',i:'\uD83C\uDFE2',l:'Binalar'},{k:'gelir',i:'\uD83D\uDCB0',l:'Gelir Takip'},{k:'yedek',i:'\uD83D\uDCBE',l:'Yedekleme'},{k:'ayarlar',i:'\u2699\uFE0F',l:'Ayarlar'}].forEach(function(t){
     const beks2=(D.basvurular||[]).filter(function(x){return x.durum==='bekliyor';});
     const lbl=t.i+' '+t.l+(t.k==='yoneticiler'&&beks2.length?' <span style="background:var(--red);color:#fff;font-size:9px;padding:1px 5px;border-radius:9px;font-weight:700">'+beks2.length+'</span>':'');
     const tab=dv('tab'+(S.adminSekme===t.k?' act':''));tab.innerHTML=lbl;
@@ -1223,7 +1223,7 @@ function renderAdmin(){
   if(S.adminSekme==='ozet')cnt.appendChild(adminOzet());
   else if(S.adminSekme==='gelir')cnt.appendChild(adminGelir());
   else if(S.adminSekme==='binalar')cnt.appendChild(adminBinalar());
-  else if(S.adminSekme==='yoneticiler')cnt.appendChild(adminYoneticiler());
+  else if(S.adminSekme==='gelir')cnt.appendChild(adminGelir());
   else if(S.adminSekme==='ayarlar')cnt.appendChild(adminAyarlar());
   else cnt.appendChild(adminYedek());
   const fab=btn('fab','\uFF0B',function(){
