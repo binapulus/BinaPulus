@@ -1100,10 +1100,16 @@ function modalSifremiUnuttum(){
       errD.innerHTML='';
       const email=eI.value.trim();
       if(!email){errD.appendChild(alrt('al-err','Bilgi girin.'));return;}
+      // Admin mi?
+      var hedefMail='',uygula=null,kim='';
+      if((email===D.admin.email||email===D.admin.kullaniciAdi)){
+        hedefMail=D.admin.email||'';
+        kim=D.admin.name||'Admin';
+        uygula=function(gs){D.admin.password=sifreHash(gs);};
+      }
       // Yönetici mi?
       var y=D.yoneticiler.find(function(x){return x.kullaniciAdi===email||x.email===email;});
-      var hedefMail='',uygula=null,kim='';
-      if(y){
+      if(!uygula&&y){
         hedefMail=y.email||'';kim=y.ad||y.kullaniciAdi;
         uygula=function(gs){var i=D.yoneticiler.findIndex(function(x){return x.id===y.id;});if(i>=0)D.yoneticiler[i].password=sifreHash(gs);};
       } else {
