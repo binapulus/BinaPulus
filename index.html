@@ -679,7 +679,13 @@ async function firestoreBaslat(){
   }
 }
 function migrateData(){
+  var oncekiAdmin=D.admin&&D.admin.password;
   sifreMigrasyon();
+  // Şifre hash'lendiyse hemen kaydet
+  if(oncekiAdmin&&D.admin&&D.admin.password!==oncekiAdmin){
+    console.log('Sifreler hashlendi, kaydediliyor...');
+    setTimeout(function(){kaydet();},1000);
+  }
   if(!D.copKutusu)D.copKutusu=[];
   if(!D.abonelikGelir)D.abonelikGelir=[];
   // 30 günden eski çöpleri boşalt
