@@ -1507,6 +1507,7 @@ function adminBinalar(){
     card.appendChild(yonBilgi);
   }
   br2.appendChild(btn('btn bout bsm','\u270F\uFE0F D\u00fczle',function(){modalBinaDuzenle(b);}));
+  if(yonB){br2.appendChild(btn('btn bgr bsm','\uD83D\uDCB3 Abonelik',function(){modalAdminAbonelikDuzenle(yonB);}));}
     br2.appendChild(btn('btn br bsm','\uD83D\uDDD1\uFE0F Sil',function(){
       if(confirm(b.ad+' ve t\u00fcm verileri silinsin mi?\n\nBu i\u015flem geri al\u0131namaz!')){
         if(confirm('Emin misiniz? Daireler, aidatlar, kasa t\u00fcm\u00fc silinecek!')){
@@ -1806,7 +1807,7 @@ function adminBildirimler(){
         +'<div style="font-size:12px;color:#555;margin-top:4px">\uD83D\uDC64 '+y.ad+' ('+y.kullaniciAdi+')</div>'
         +'<div style="font-size:11px;color:#c62828;margin-top:2px">\uD83D\uDCE7 '+(y.email||'Email yok')+'</div>';
       var uzatBtn=btn('btn bg bsm','\u23F0 S\u00fcre Uzat',function(){
-        adminAbonelikDuzenle(y);
+        modalAdminAbonelikDuzenle(y);
       });
       uzatBtn.style.cssText='margin-top:8px;font-size:11px;padding:6px 12px';
       row.appendChild(uzatBtn);
@@ -1833,7 +1834,7 @@ function adminBildirimler(){
         +'<span style="background:#f59e0b;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700">Demo \u2014 '+kalanGun+' g\u00fcn</span></div>'
         +'<div style="font-size:12px;color:#555;margin-top:4px">\uD83D\uDC64 '+y.ad+' ('+y.kullaniciAdi+')</div>'
         +'<div style="font-size:11px;color:#888;margin-top:2px">\uD83D\uDCE7 '+(y.email||'Email yok')+' \u00b7 \uD83D\uDCF1 '+(y.tel||'Tel yok')+'</div>';
-      var aktifBtn=btn('btn bg bsm','\u2705 Aktifle\u015ftir',function(){adminAbonelikDuzenle(y);});
+      var aktifBtn=btn('btn bg bsm','\u2705 Aktifle\u015ftir',function(){modalAdminAbonelikDuzenle(y);});
       aktifBtn.style.cssText='margin-top:8px;font-size:11px;padding:6px 12px';
       row.appendChild(aktifBtn);
       demoKart.appendChild(row);
@@ -4861,32 +4862,79 @@ function modalOdemeYapildi(bina,parentClose){
 }
 
 function modalAdminAbonelikDuzenle(y){
-  modal('\uD83D\uDCB3 Abonelik D\u00fczenle \u2014 '+y.ad,function(m,close){
-    const ab=abonelikBilgi(y);
-    const durumDiv=dv('al '+(ab.tip==='tam'?'al-ok':ab.bitti?'al-err':'al-warn'));
-    durumDiv.textContent='Mevcut: '+ab.etiket;
-    m.appendChild(durumDiv);
-    const tipSel=sel([['tam','\u2705 Tam S\u00fcr\u00fcm (\u00d6deme Al\u0131nd\u0131)'],['demo','\uD83C\uDD95 Demo S\u00fcr\u00fcm (30 G\u00fcn)']],y.abonelik||'demo');
-    const btI=inp('date',y.abonelikBitis||'','');
-    const errD=dv('');
-    append(m,fg('ABONEL\u0130K T\u0130P\u0130',tipSel),fg('B\u0130T\u0130\u015e TAR\u0130H\u0130 (opsiyonel)',btI),errD);
-    const brow=dv('brow');
+  var bina=(D.binalar.find(function(b){return b.id===y.binaId;})||{}).ad||'?';
+  modal('\uD83D\uDCB3 Abonelik \u2014 '+y.ad,function(m,close){
+    var ab=abonelikBilgi(y);
+    m.appendChild(dv('al '+(ab.tip==='tam'?'al-ok':ab.bitti?'al-err':'al-warn'),'Mevcut: '+ab.etiket));
+
+    // Paket seçimi
+    var tipSel=sel([
+      ['demo','\uD83C\uDF81 Demo (15 G\u00fcn)'],
+      ['aylik','\uD83E\uDD49 Ayl\u0131k \u2014 \u20bE299/ay'],
+      ['alti','\uD83E\uDD48 6 Ayl\u0131k \u2014 \u20bE1.494 (%17 indirim)'],
+      ['yillik','\uD83E\uDD47 Y\u0131ll\u0131k \u2014 \u20bE2.388 (%33 indirim)'],
+      ['tam','\u267E\uFE0F S\u00fcresiz (\u00dcretsiz)']
+    ], y.abonelik==='tam'?'tam':y.abonelik||'demo');
+
+    // Bitiş tarihi
+    var bugunStr=bugun();
+    var bitisI=inp('date',y.abonelikBitis||'','');
+
+    // Paket seçince bitiş tarihini otomatik hesapla
+    tipSel.onchange=function(){
+      var t=tipSel.value;
+      var d=new Date();
+      if(t==='demo'){d.setDate(d.getDate()+15);}
+      else if(t==='aylik'){d.setMonth(d.getMonth()+1);}
+      else if(t==='alti'){d.setMonth(d.getMonth()+6);}
+      else if(t==='yillik'){d.setFullYear(d.getFullYear()+1);}
+      else{bitisI.value='';return;}
+      bitisI.value=d.toISOString().slice(0,10);
+    };
+
+    var notI=inp('text',y.abonelikNot||'','\u00d6deme notu (iste\u011fe ba\u011fl\u0131)');
+    var errD=dv('');
+    append(m,
+      fg('B\u0130NA',dv('al al-info',bina)),
+      fg('PAKET',tipSel),
+      fg('B\u0130T\u0130\u015e TAR\u0130H\u0130',bitisI),
+      fg('NOT',notI),
+      errD
+    );
+
+    var brow=dv('brow');
     brow.appendChild(btn('btn bgr','\u0130ptal',close));
     brow.appendChild(btn('btn bg','\u2705 Kaydet',function(){
+      var tip=tipSel.value;
       guncelle(function(){
-        const i=D.yoneticiler.findIndex(function(x){return x.id===y.id;});
-        if(i>=0){
-          D.yoneticiler[i].abonelik=tipSel.value;
-          D.yoneticiler[i].abonelikBitis=btI.value;
-          if(tipSel.value==='demo')D.yoneticiler[i].abonelikBaslangic=bugun();
-        }
-      });
-      close();toast('\u2705 Abonelik g\u00fcncellendi','ok');
+        var i=D.yoneticiler.findIndex(function(x){return x.id===y.id;});
+        if(i<0)return;
+        D.yoneticiler[i].abonelik=tip==='tam'?'tam':'demo';
+        D.yoneticiler[i].abonelikBitis=tip==='tam'?'':bitisI.value;
+        D.yoneticiler[i].abonelikBaslangic=bugunStr;
+        D.yoneticiler[i].abonelikNot=notI.value.trim();
+        D.yoneticiler[i].askida=false;
+        // Bina bitiş tarihini de güncelle
+        var bi=D.binalar.findIndex(function(b){return b.id===y.binaId;});
+        if(bi>=0)D.binalar[bi].bitis=tip==='tam'?'':bitisI.value;
+        // Ödeme logu
+        if(!D.odemeLog)D.odemeLog=[];
+        D.odemeLog.unshift({tarih:bugunStr,binaAd:bina,ad:y.ad,paket:tipSel.options[tipSel.selectedIndex].text,mesaj:'Admin taraf\u0131ndan g\u00fcncellendi'+(notI.value?' \u2014 '+notI.value:'')});
+      },'Abonelik g\u00fcncellendi: '+y.ad+' \u2192 '+tipSel.options[tipSel.selectedIndex].text);
+      close();
+      // Yöneticiye bildirim maili
+      if(y.email){
+        mailGonder(y.email,y.ad,
+          '\uD83D\uDCB3 BinaPlus Abonelik G\u00fcncellendi',
+          'Say\u0131n '+y.ad+',\n\nAboneli\u011finiz g\u00fcncellendi.\n\nPaket: '+tipSel.options[tipSel.selectedIndex].text+(bitisI.value?'\nBiti\u015f: '+fT(bitisI.value):'\nS\u00fcresiz')+'\n\nBinaPlus ekibi olarak te\u015fekk\u00fcr ederiz.',
+          bina
+        );
+      }
+      toast('\u2705 Abonelik g\u00fcncellendi!','ok');
     }));
     m.appendChild(brow);
   });
 }
-
 function modalAbonelik(bina){
   const yon=D.yoneticiler.find(function(x){return x.id===S.user.id;});
   const ab=abonelikBilgi(yon);
@@ -4916,25 +4964,6 @@ function modalOdemeYapildi(bina,parentClose){
     const brow=dv('brow');
     brow.appendChild(btn('btn bgr','Kapat',function(){close();if(parentClose)parentClose();}));
     brow.appendChild(btn('btn bg','\u2705 Anla\u015ft\u0131m',function(){close();if(parentClose)parentClose();toast('\uD83D\uDCB3 \u00d6deme bildirimi g\u00f6nderildi','ok');}));
-    m.appendChild(brow);
-  });
-}
-function modalAdminAbonelikDuzenle(y){
-  modal('\uD83D\uDCB3 Abonelik \u2014 '+y.ad,function(m,close){
-    const ab=abonelikBilgi(y);
-    m.appendChild(dv('al '+(ab.tip==='tam'?'al-ok':ab.bitti?'al-err':'al-warn'),'Mevcut: '+ab.etiket));
-    const tipSel=sel([['tam','\u2705 Tam S\u00fcr\u00fcm (\u00d6deme Al\u0131nd\u0131)'],['demo','\uD83C\uDD95 Demo (30 G\u00fcn)']],y.abonelik||'demo');
-    const btI=inp('date',y.abonelikBitis||'','');
-    append(m,fg('ABONEL\u0130K T\u0130P\u0130',tipSel),fg('B\u0130T\u0130\u015e TAR\u0130H\u0130 (opsiyonel)',btI));
-    const brow=dv('brow');
-    brow.appendChild(btn('btn bgr','\u0130ptal',close));
-    brow.appendChild(btn('btn bg','\u2705 Kaydet',function(){
-      guncelle(function(){
-        const i=D.yoneticiler.findIndex(function(x){return x.id===y.id;});
-        if(i>=0){D.yoneticiler[i].abonelik=tipSel.value;D.yoneticiler[i].abonelikBitis=btI.value;if(tipSel.value==='demo'&&!D.yoneticiler[i].abonelikBaslangic)D.yoneticiler[i].abonelikBaslangic=bugun();}
-      });
-      close();toast('\u2705 Abonelik g\u00fcncellendi','ok');
-    }));
     m.appendChild(brow);
   });
 }
