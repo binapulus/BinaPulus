@@ -790,14 +790,20 @@ function renderLogin(){
     // Firebase'den taze veri çek, sonra kontrol et
     var doGiris=function(){
       if((email===D.admin.email||email===D.admin.kullaniciAdi)&&sifreKontrol(pass,D.admin.password)){
-        S.user={rol:'admin'};Object.assign(S.user,D.admin);window._bulutOkundu=true;girisLogla(D.admin.name||D.admin.kullaniciAdi||'Admin','admin');render();return true;
+        S.user={rol:'admin'};Object.assign(S.user,D.admin);window._bulutOkundu=true;girisLogla(D.admin.name||D.admin.kullaniciAdi||'Admin','admin');render();setTimeout(function(){gunlukYedekAl();},3000);return true;
       }
       var y=D.yoneticiler.find(function(x){return(x.kullaniciAdi===email||x.email===email)&&sifreKontrol(pass,x.password);});
       if(y){
         if(!y.onaylandi){errDiv.innerHTML='';errDiv.appendChild(alrt('al-warn','\u23F3 Ba\u015fvurunuz onaylanmad\u0131.'));return true;}
         if(y.askida){errDiv.innerHTML='';errDiv.appendChild(alrt('al-err','\uD83D\uDD12 Hesab\u0131n\u0131z ask\u0131ya al\u0131nd\u0131.'));return true;}
         if(window.fbAuth&&y.email)window.fbAuth.signInWithEmailAndPassword(y.email,pass).catch(function(){});
-        S.user={rol:'yonetici'};Object.assign(S.user,y);window._bulutOkundu=true;girisLogla(y.ad||y.kullaniciAdi,'y\u00f6netici');render();setTimeout(function(){sozlesmeKontrol(null);},800);return true;
+        S.user={rol:'yonetici'};Object.assign(S.user,y);window._bulutOkundu=true;girisLogla(y.ad||y.kullaniciAdi,'y\u00f6netici');setTimeout(function(){gunlukYedekAl();},3000);
+      // Demo süresi dolduysa paket seçimi göster
+      if(y.abonelik==='demo'&&y.abonelikBitis&&new Date(y.abonelikBitis).getTime()<Date.now()){
+        render();setTimeout(function(){modalPaketSec(y);},500);return true;
+      }
+      y.girisYapti=true;kaydet();
+      render();setTimeout(function(){sozlesmeKontrol(null);},800);return true;
       }
       var bd=null,bb=null;
       Object.keys(D.daireler).forEach(function(bid){
@@ -884,81 +890,198 @@ function renderLogin(){
 
 // ── ŞİFREMİ UNUTTUM ──────────────────────────────
 function modalUyeOl(){
-  modal('\uD83D\uDCDD \u00dcye Ol',function(m,close){
-    m.appendChild(alrt('al-info','Kaydolduktan sonra admin veya y\u00f6netici onay\u0131 beklenir.'));
-    const kaI=inp('text','','kullanici_adi');
-    const pI=inp('password','','En az 6 karakter');
-    const p2I=inp('password','','\u015eifreyi tekrar girin');
-    const errD=dv('');
-    // Bina seçim tipi
-    const tipDiv=dv('');tipDiv.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px';
-    let binaSecimi='mevcut'; // 'mevcut' veya 'yeni'
-    const mBtn=btn('btn bg','\uD83C\uDFE2 Mevcut Bina',function(){binaSecimi='mevcut';mBtn.style.background='var(--g1)';mBtn.style.color='#fff';yBtn.style.background='#f0f0f0';yBtn.style.color='var(--text2)';mevcutDiv.style.display='';yeniDiv.style.display='none';});
-    const yBtn=btn('btn bgr','\u2728 Yeni Abonelik',function(){binaSecimi='yeni';yBtn.style.background='var(--g1)';yBtn.style.color='#fff';mBtn.style.background='#f0f0f0';mBtn.style.color='var(--text2)';mevcutDiv.style.display='none';yeniDiv.style.display='';});
-    tipDiv.appendChild(mBtn);tipDiv.appendChild(yBtn);
-    m.appendChild(tipDiv);
-    // Mevcut bina
-    const mevcutDiv=dv('');
-    const binaOpts=[['',' Bina Se\u00e7']].concat(D.binalar.map(function(b){return[b.id,b.ad];}));
-    const binaSel=sel(binaOpts,'');
-    mevcutDiv.appendChild(fg('B\u0130NA SE\u00c7 *',binaSel));
-    m.appendChild(mevcutDiv);
-    // Yeni bina
-    const yeniDiv=dv('');yeniDiv.style.display='none';
-    const bnI=inp('text','','Bina ad\u0131...');
-    const bnAdrI=inp('text','','Adres...');
-    yeniDiv.appendChild(fg('YEN\u0130 B\u0130NA ADI *',bnI));
-    yeniDiv.appendChild(fg('B\u0130NA ADRES\u0130',bnAdrI));
-    const yeniNot=dv('al al-info');yeniNot.style.marginTop='8px';yeniNot.textContent='\u2139\uFE0F Yeni bina ba\u015fvurusu admin onay\u0131ndan sonra olu\u015fturulur.';
-    yeniDiv.appendChild(yeniNot);
-    m.appendChild(yeniDiv);
-    append(m,fg('KULLANICI ADI *',kaI),fg('\u015e\u0130FRE *',pI),fg('\u015e\u0130FRE TEKRAR *',p2I),errD);
-    const brow=dv('brow');
-    brow.appendChild(btn('btn bgr','\u0130ptal',close));
-    brow.appendChild(btn('btn bg','\uD83D\uDCDD Kay\u0131t Ol',function(){
-      const ka=kaI.value.trim();
-      const sifre=pI.value;
-      errD.innerHTML='';
-      if(!ka){errD.appendChild(alrt('al-err','Kullan\u0131c\u0131 ad\u0131 girin.'));return;}
-      if(ka.length<3){errD.appendChild(alrt('al-err','Kullan\u0131c\u0131 ad\u0131 en az 3 karakter.'));return;}
-      if(sifre.length<6){errD.appendChild(alrt('al-err','\u015eifre en az 6 karakter.'));return;}
-      if(sifre!==p2I.value){errD.appendChild(alrt('al-err','\u015eifreler e\u015fle\u015fmiyor.'));return;}
-      let bnad='',binaIdSec='',yeniMi=false;
-      if(binaSecimi==='mevcut'){
-        if(!binaSel.value){errD.appendChild(alrt('al-err','Bina se\u00e7in.'));return;}
-        binaIdSec=binaSel.value;
-        bnad=D.binalar.find(function(b){return b.id===binaIdSec;})||{};
-        bnad=bnad.ad||'';
-      }else{
-        bnad=bnI.value.trim();
-        if(!bnad){errD.appendChild(alrt('al-err','Bina ad\u0131 girin.'));return;}
-        yeniMi=true;
-      }
-      const mevcutKA=D.yoneticiler.find(function(x){return x.kullaniciAdi===ka;});
-      const mevcutBas=(D.basvurular||[]).find(function(x){return x.kullaniciAdi===ka;});
-      if(mevcutKA||mevcutBas){errD.appendChild(alrt('al-err','Bu kullan\u0131c\u0131 ad\u0131 al\u0131nm\u0131\u015f.'));return;}
-      guncelle(function(){
-        if(!D.basvurular)D.basvurular=[];
-        D.basvurular.push({
-          id:uid(),kullaniciAdi:ka,password:sifre,
-          binaAdi:bnad,binaId:binaIdSec,yeniAbonelik:yeniMi,
-          binaAdresi:yeniMi?bnAdrI.value.trim():'',
-          tarih:bugun(),durum:'bekliyor'
+  // Adım 1: Kayıt Formu
+  var adim=1;
+  var formData={};
+  var otpKod='';
+
+  function adim1(){
+    modal('\uD83C\uDFE2 BinaPlus\u2019a \u00dcye Ol',function(m,close){
+      // Header
+      var hdr=dv('');hdr.style.cssText='background:#1a5c38;margin:-16px -16px 16px -16px;padding:20px;text-align:center;border-radius:16px 16px 0 0';
+      hdr.innerHTML='<div style="font-size:28px;margin-bottom:6px">\uD83C\uDFE2</div>'
+        +'<div style="color:#fff;font-size:16px;font-weight:900">BinaPlus\u2019a \u00dcye Ol</div>'
+        +'<div style="color:rgba(255,255,255,.7);font-size:11px;margin-top:4px">Apartman y\u00f6netimini dijitle\u015ftir</div>'
+        +'<div style="background:#f0c040;color:#1a3a1a;padding:5px 14px;border-radius:20px;font-size:11px;font-weight:800;margin-top:10px;display:inline-block">\uD83C\uDF81 15 G\u00fcn \u00dccretsiz Dene!</div>';
+      m.appendChild(hdr);
+      // Form alanları
+      var bnI=inp('text','','\u00d6rn: \u00d6zmir Apartman\u0131');
+      var bnAdrI=inp('text','','Mahalle, cadde, il');
+      var adI=inp('text','','Ad\u0131');
+      var soyadI=inp('text','','Soyad\u0131');
+      var telI=inp('tel','','05xxxxxxxxx');
+      var mailI=inp('email','','ornek@mail.com');
+      var adRow=dv('');adRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px';
+      adRow.appendChild(fg('ADI *',adI));adRow.appendChild(fg('SOYADI *',soyadI));
+      append(m,fg('B\u0130NA ADI *',bnI),fg('B\u0130NA ADRES\u0130',bnAdrI),adRow,fg('TELEFON *',telI),fg('E-POSTA *',mailI));
+      var errD=dv('');m.appendChild(errD);
+      var brow=dv('brow');
+      brow.appendChild(btn('btn bgr','\u0130ptal',close));
+      brow.appendChild(btn('btn bg','\uD83D\uDCE7 Do\u011frulama Kodu G\u00f6nder',function(){
+        errD.innerHTML='';
+        if(!bnI.value.trim()){errD.appendChild(alrt('al-err','Bina ad\u0131 girin.'));return;}
+        if(!adI.value.trim()||!soyadI.value.trim()){errD.appendChild(alrt('al-err','Ad soyad girin.'));return;}
+        if(!telI.value.trim()){errD.appendChild(alrt('al-err','Telefon girin.'));return;}
+        if(!mailI.value.trim()||!mailI.value.includes('@')){errD.appendChild(alrt('al-err','Ge\u00e7erli e-posta girin.'));return;}
+        // OTP üret
+        otpKod='';for(var i=0;i<6;i++)otpKod+=Math.floor(Math.random()*10);
+        formData={binaAdi:bnI.value.trim(),binaAdres:bnAdrI.value.trim(),ad:adI.value.trim(),soyad:soyadI.value.trim(),tel:telI.value.trim(),mail:mailI.value.trim()};
+        // Mail gönder
+        mailGonder(mailI.value.trim(),adI.value.trim(),
+          '\uD83D\uDD10 BinaPlus Do\u011frulama Kodunuz',
+          'Say\u0131n '+adI.value.trim()+',\n\nBinaPlus kayd\u0131n\u0131z\u0131 tamamlamak i\u00e7in do\u011frulama kodunuz:\n\n'
+          +'\uD83D\uDD11 '+otpKod+'\n\nBu kodu kimseyle payla\u015fmay\u0131n. 10 dakika ge\u00e7erlidir.',
+          'BinaPlus'
+        ).then(function(ok){
+          if(ok){close();setTimeout(adim2,300);}
+          else{errD.appendChild(alrt('al-err','\u26A0\uFE0F Mail g\u00f6nderilemedi. E-posta adresini kontrol et.'));}
         });
-        // Admin'e mail gönder
-        mailGonder(
-          D.admin.email,
-          'Admin',
-          '\uD83D\uDD14 Yeni Üye Başvurusu - BinaPlus',
-          ka+' kullanıcı adıyla yeni bir başvuru geldi.\nİstenen Bina: '+bnad,
-          bnad
-        );
+        errD.innerHTML='';errD.appendChild(alrt('al-info','\uD83D\uDD04 G\u00f6nderiliyor...'));
+      }));
+      m.appendChild(brow);
+      // Sözleşme notu
+      var soz=dv('');soz.style.cssText='font-size:11px;color:#888;text-align:center;margin-top:10px;line-height:1.6';
+      soz.textContent='Devam ederek Kullan\u0131c\u0131 S\u00f6zle\u015fmesini ve Gizlilik Politikas\u0131n\u0131 kabul etmi\u015f olursunuz.';
+      m.appendChild(soz);
+    });
+  }
+
+  function adim2(){
+    modal('\uD83D\uDCE7 E-posta Do\u011frulama',function(m,close){
+      var hdr=dv('');hdr.style.cssText='background:#1a5c38;margin:-16px -16px 16px -16px;padding:20px;text-align:center;border-radius:16px 16px 0 0';
+      hdr.innerHTML='<div style="font-size:32px;margin-bottom:6px">\uD83D\uDCE7</div>'
+        +'<div style="color:#fff;font-size:16px;font-weight:900">E-postan\u0131 Do\u011frula</div>'
+        +'<div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:4px">'+formData.mail+' adresine 6 haneli kod g\u00f6nderdik</div>';
+      m.appendChild(hdr);
+      m.appendChild(dv('al al-info','\u2709\uFE0F Spam klas\u00f6r\u00fcn\u00fc de kontrol et!'));
+      var otpI=inp('text','','6 haneli kod');
+      otpI.style.cssText='width:100%;padding:14px;border:2px solid #e0e0e0;border-radius:12px;font-size:24px;font-weight:900;text-align:center;letter-spacing:8px;outline:none;margin-bottom:14px';
+      otpI.maxLength=6;
+      m.appendChild(fg('DO\u011eRULAMA KODU *',otpI));
+      var errD=dv('');m.appendChild(errD);
+      var brow=dv('brow');
+      brow.appendChild(btn('btn bgr','\u2190 Geri',function(){close();setTimeout(adim1,300);}));
+      brow.appendChild(btn('btn bg','\u2705 Do\u011frula',function(){
+        errD.innerHTML='';
+        if(otpI.value.trim()!==otpKod){errD.appendChild(alrt('al-err','\u26A0\uFE0F Kod yanl\u0131\u015f! Tekrar deneyin.'));return;}
+        close();setTimeout(adim3,300);
+      }));
+      m.appendChild(brow);
+      // Tekrar gönder
+      var resend=dv('');resend.style.cssText='font-size:12px;color:#888;text-align:center;margin-top:10px';
+      var resendBtn=document.createElement('span');resendBtn.textContent='Tekrar G\u00f6nder';resendBtn.style.cssText='color:#1a5c38;font-weight:700;cursor:pointer;text-decoration:underline';
+      resendBtn.onclick=function(){
+        otpKod='';for(var i=0;i<6;i++)otpKod+=Math.floor(Math.random()*10);
+        mailGonder(formData.mail,formData.ad,'\uD83D\uDD10 BinaPlus Do\u011frulama Kodunuz','Yeni kodunuz: '+otpKod,'BinaPlus');
+        errD.innerHTML='';errD.appendChild(alrt('al-ok','\u2705 Yeni kod g\u00f6nderildi!'));
+      };
+      resend.innerHTML='Kod gelmedi mi? ';resend.appendChild(resendBtn);
+      m.appendChild(resend);
+    });
+  }
+
+  function adim3(){
+    // Yönetici oluştur - bina oluştur
+    var binaKisa=formData.binaAdi.replace(/[^a-zA-Z0-9\u00c0-\u024f]/g,'').toUpperCase().slice(0,3)||'BIN';
+    var yonKA=binaKisa+'_YONETIM';
+    var demoBitis=new Date(Date.now()+15*24*60*60*1000).toISOString().slice(0,10);
+    var yeniSifre='';var kr='ABCDEFGHJKLMNPRSTUVYZ23456789';
+    for(var i=0;i<8;i++)yeniSifre+=kr[Math.floor(Math.random()*kr.length)];
+
+    guncelle(function(){
+      // Bina oluştur
+      var bid=uid();
+      if(!D.binalar)D.binalar=[];
+      D.binalar.push({id:bid,ad:formData.binaAdi,adres:formData.binaAdres,aylikAidat:500,baslangicYili:simdiYil(),askida:false,bitis:demoBitis,yoneticiId:'y_'+bid});
+      // Daireler oluştur (15 adet)
+      if(!D.daireler)D.daireler={};
+      D.daireler[bid]=[];
+      for(var k=1;k<=15;k++){
+        D.daireler[bid].push({id:uid(),no:'D'+k,kat:Math.floor((k-1)/4),sakin:'',tip:'M\u00fclk Sahibi',aidat:500,muaf:false,sakinKA:binaKisa+'_D'+k,sakinSifre:sifreHash('123456'),sakinTel:'',sakinEmail:''});
+      }
+      // Yönetici oluştur
+      if(!D.yoneticiler)D.yoneticiler=[];
+      D.yoneticiler.push({id:'y_'+bid,ad:formData.ad+' '+formData.soyad,kullaniciAdi:yonKA,email:formData.mail,tel:formData.tel,password:sifreHash(yeniSifre),binaId:bid,askida:false,bitis:demoBitis,onaylandi:true,abonelik:'demo',abonelikBaslangic:bugun(),abonelikBitis:demoBitis});
+      // Diğer koleksiyonlar
+      ['aidatlar','kasaH','faturalar','kampanyalar','evraklar','duyurular','arizalar','dekontlar'].forEach(function(k){if(!D[k])D[k]={};D[k][bid]=k==='kasaH'?[]:k==='aidatlar'?{}:{};});
+      if(!D.ayarlar)D.ayarlar={};D.ayarlar[bid]={kasaBas:0};
+      if(!D.oylamalar)D.oylamalar={};D.oylamalar[bid]=[];
+    },'Yeni \u00fcye: '+formData.binaAdi);
+
+    // Hoş geldin maili gönder
+    mailGonder(formData.mail,formData.ad+' '+formData.soyad,
+      '\uD83C\uDF89 BinaPlus\u2019a Ho\u015f Geldiniz!',
+      'Say\u0131n '+formData.ad+' '+formData.soyad+',\n\nBinaPlus\u2019a kay\u0131t oldunuz! 15 g\u00fcnl\u00fck \u00fccretsiz deneme s\u00fcrecin ba\u015flad\u0131.\n\n'
+      +'\uD83C\uDFE2 Bina: '+formData.binaAdi+'\n'
+      +'\uD83D\uDD11 Kullan\u0131c\u0131 Ad\u0131: '+yonKA+'\n'
+      +'\uD83D\uDD10 \u015eifre: '+yeniSifre+'\n'
+      +'\uD83D\uDCC5 Deneme Biti\u015f: '+new Date(Date.now()+15*24*60*60*1000).toLocaleDateString('tr-TR')+'\n\n'
+      +'Giri\u015f: binapulus.github.io/BinaPulus\n\nDeneme s\u00fcreniz dolduktan sonra abonelik se\u00e7enekleri g\u00f6sterilecektir.',
+      'BinaPlus'
+    );
+
+    // Admin'e bildir
+    mailGonder(D.admin.email,'Admin',
+      '\uD83D\uDD14 Yeni \u00dcye Kayd\u0131 - '+formData.binaAdi,
+      'Yeni \u00fcye:\n'+formData.ad+' '+formData.soyad+'\nBina: '+formData.binaAdi+'\nTel: '+formData.tel+'\nMail: '+formData.mail,
+      'BinaPlus'
+    );
+
+    modal('\uD83C\uDF89 Kay\u0131t Tamamland\u0131!',function(m2,close2){
+      var hdr2=dv('');hdr2.style.cssText='background:linear-gradient(135deg,#1a5c38,#2d7a50);margin:-16px -16px 16px -16px;padding:24px;text-align:center;border-radius:16px 16px 0 0';
+      hdr2.innerHTML='<div style="font-size:48px;margin-bottom:10px">\uD83C\uDF89</div>'
+        +'<div style="color:#fff;font-size:18px;font-weight:900">Ho\u015f Geldiniz!</div>'
+        +'<div style="color:rgba(255,255,255,.8);font-size:12px;margin-top:6px">15 g\u00fcnl\u00fck deneme s\u00fcrecin ba\u015flad\u0131</div>';
+      m2.appendChild(hdr2);
+      var sureBadge=dv('');sureBadge.style.cssText='background:#fff8e1;border:2px solid #f0c040;border-radius:12px;padding:16px;text-align:center;margin-bottom:16px';
+      sureBadge.innerHTML='<div style="font-size:36px;font-weight:900;color:#1a5c38">15</div>'
+        +'<div style="font-size:12px;color:#92700a;font-weight:700;margin-top:4px">G\u00dcN \u00dcCRETSİZ DENEME</div>';
+      m2.appendChild(sureBadge);
+      var bilgi=dv('');bilgi.style.cssText='background:#f8f8f8;border-radius:10px;padding:14px;margin-bottom:16px';
+      bilgi.innerHTML='<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-size:13px"><span>\uD83C\uDFE2 Bina</span><b>'+formData.binaAdi+'</b></div>'
+        +'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-size:13px"><span>\uD83D\uDC64 Y\u00f6netici</span><b>'+formData.ad+' '+formData.soyad+'</b></div>'
+        +'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #eee;font-size:13px"><span>\uD83D\uDD11 Kullan\u0131c\u0131 Ad\u0131</span><b style="font-family:monospace;color:#1a5c38">'+yonKA+'</b></div>'
+        +'<div style="display:flex;justify-content:space-between;padding:6px 0;font-size:13px"><span>\uD83D\uDCC5 Deneme Biti\u015f</span><b>'+new Date(Date.now()+15*24*60*60*1000).toLocaleDateString('tr-TR')+'</b></div>';
+      m2.appendChild(bilgi);
+      m2.appendChild(dv('al al-info','\uD83D\uDCE7 Kullan\u0131c\u0131 ad\u0131 ve \u015fifreniz e-postan\u0131za g\u00f6nderildi!'));
+      var girisBtn=btn('btn bg','\uD83D\uDE80 Panele Gir',function(){
+        close2();
+        // Otomatik giriş
+        var yon=D.yoneticiler.find(function(y){return y.kullaniciAdi===yonKA;});
+        if(yon){S.user={rol:'yonetici',...yon};window._bulutOkundu=true;render();}
       });
-      close();
-      toast('\u2705 Ba\u015fvurunuz al\u0131nd\u0131! Onay bekleniyor.','ok');
-    }));
-    m.appendChild(brow);
-  });
+      girisBtn.style.cssText='width:100%;padding:14px;background:#1a5c38;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:800;cursor:pointer';
+      m2.appendChild(girisBtn);
+    });
+  }
+
+  adim1();
+}
+
+// Demo süresi dolan kullanıcıları sil
+function demoTemizle(){
+  try{
+    var bugunT=Date.now();
+    D.yoneticiler=(D.yoneticiler||[]).filter(function(y){
+      if(y.abonelik!=='demo')return true;
+      if(!y.abonelikBitis)return true;
+      var bitis=new Date(y.abonelikBitis).getTime();
+      if(bugunT<=bitis)return true;
+      // 15 gün doldu - giriş yapmamış mı? (şifre hiç değiştirilmemişse)
+      // Şifre varsayılan '123456' hash'i ile aynıysa hiç giriş yapmamış
+      var defaultHash=sifreHash('123456');
+      // Şifre değiştirildiyse koru, değiştirmediyse sil
+      if(y.password===defaultHash&&!y.girisYapti){
+        // Bina ve dairelerini de sil
+        D.binalar=(D.binalar||[]).filter(function(b){return b.id!==y.binaId;});
+        if(D.daireler)delete D.daireler[y.binaId];
+        if(D.kasaH)delete D.kasaH[y.binaId];
+        console.log('Demo s\u00fcresi doldu, silindi:',y.ad);
+        return false;
+      }
+      return true;
+    });
+  }catch(e){}
 }
 
 function modalBasvuruOnayla(bas,binaId){
@@ -1085,6 +1208,56 @@ function modalBasvuruListesi(){
       m.appendChild(card);
     });
     m.appendChild(btn('btn bgr','Kapat',close));
+  });
+}
+
+function modalPaketSec(yon){
+  modal('\u23F0 Deneme S\u00fcren Doldu',function(m,close){
+    var hdr=dv('');hdr.style.cssText='background:#2c3e50;margin:-16px -16px 16px -16px;padding:20px;text-align:center;border-radius:16px 16px 0 0';
+    hdr.innerHTML='<div style="font-size:32px;margin-bottom:8px">\u23F0</div>'
+      +'<div style="color:#fff;font-size:17px;font-weight:900">Deneme S\u00fcren Doldu</div>'
+      +'<div style="color:rgba(255,255,255,.7);font-size:12px;margin-top:4px">Devam etmek i\u00e7in bir paket se\u00e7in</div>';
+    m.appendChild(hdr);
+
+    var paketler=[
+      {id:'aylik',ad:'\uD83E\uDD49 Ayl\u0131k Paket',fiyat:'\u20bF299',ayFiyat:299,sure:'1 ay',detay:'Esnek, istedi\u011fin zaman iptal',indirim:''},
+      {id:'alti',ad:'\uD83E\uDD48 6 Ayl\u0131k Paket',fiyat:'\u20bF1.494',ayFiyat:249,sure:'6 ay',detay:'\u20bF1.494 tek \u00f6deme \u00b7 6 ay kesintisiz',indirim:'%17 \u0130ND\u0130R\u0130M',popular:true},
+      {id:'yillik',ad:'\uD83E\uDD47 Y\u0131ll\u0131k Paket',fiyat:'\u20bF2.388',ayFiyat:199,sure:'12 ay',detay:'\u20bF2.388 tek \u00f6deme \u00b7 En ekonomik',indirim:'%33 \u0130ND\u0130R\u0130M'}
+    ];
+
+    paketler.forEach(function(p){
+      var kart=dv('');kart.style.cssText='border:2px solid '+(p.popular?'#1a5c38':'#e0e0e0')+';border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;background:'+(p.popular?'#f0f8f4':'#fff');
+      if(p.popular){
+        var pop=dv('');pop.style.cssText='background:#1a5c38;color:#fff;font-size:10px;font-weight:800;padding:3px 10px;border-radius:20px;display:inline-block;margin-bottom:8px';
+        pop.textContent='\u2B50 EN POPÜLER';kart.appendChild(pop);
+      }
+      var row=dv('');row.style.cssText='display:flex;justify-content:space-between;align-items:center';
+      var sol=dv('');
+      var pad=dv('');pad.style.cssText='font-size:14px;font-weight:800;color:#222';pad.textContent=p.ad;
+      var det=dv('');det.style.cssText='font-size:11px;color:#666;margin-top:4px';det.textContent=p.detay;
+      sol.appendChild(pad);sol.appendChild(det);
+      var sag=dv('');sag.style.cssText='text-align:right';
+      sag.innerHTML='<div style="font-size:18px;font-weight:900;color:#1a5c38">'+p.fiyat+'</div>'
+        +'<div style="font-size:10px;color:#888">/'+p.sure+'</div>'
+        +(p.indirim?'<div style="background:#e8f5e9;color:#2e7d32;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:800;margin-top:3px">'+p.indirim+'</div>':'');
+      row.appendChild(sol);row.appendChild(sag);kart.appendChild(row);
+      kart.onclick=function(){
+        // Ödeme talebi admin'e gönder
+        mailGonder(D.admin.email,'Admin',
+          '\uD83D\uDCB0 Abonelik Talebi - '+(yon.ad||yon.kullaniciAdi),
+          'Kullan\u0131c\u0131: '+(yon.ad||yon.kullaniciAdi)+'\nMail: '+(yon.email||'')+'\nTel: '+(yon.tel||'')+'\nBina: '+((D.binalar.find(function(b){return b.id===yon.binaId;})||{}).ad||'')+'\nSe\u00e7ilen Paket: '+p.ad+' ('+p.fiyat+')\n\nL\u00fctfen \u00f6deme bilgilerini iletin.',
+          'BinaPlus'
+        );
+        close();
+        modal('\uD83D\uDCB3 \u00d6deme Bilgileri',function(m2,close2){
+          m2.appendChild(dv('al al-ok','\u2705 '+p.ad+' talebiniz al\u0131nd\u0131! Admin \u00f6deme bilgilerini size iletecek.'));
+          m2.appendChild(dv('al al-info','\uD83D\uDCE7 '+yon.email+' adresinize bilgilendirme g\u00f6nderilecek.\n\n\uD83C\uDFE6 Havale/EFT ile \u00f6deme yapabilirsiniz.\nOnay sonras\u0131 aboneli\u011finiz aktifle\u015ftirilerek sisteme eri\u015fim sa\u011flan\u0131r.'));
+          m2.appendChild(btn('btn bg','\u2705 Tamam',function(){close2();render();}));
+        });
+      };
+      m.appendChild(kart);
+    });
+    m.appendChild(dv('al al-info','\uD83C\uDFE6 Havale/EFT ile \u00f6deme yap\u0131labilir. Admin onay\u0131 ile aboneli\u011finiz aktifle\u015fir.'));
   });
 }
 
@@ -4929,6 +5102,7 @@ function duyuruWAMesaj(bina, duyuru){
 // ── GÜNLÜK OTOMATİK BULUT YEDEĞİ (5 ay saklanır) ──
 function gunlukYedekAl(){
   if(!window.db)return;
+  if(!window._bulutOkundu){console.log('Yedek: bulut okunmadı, 5sn sonra tekrar.');setTimeout(gunlukYedekAl,5000);return;}
   var bugunKey='yedek_'+new Date().toISOString().slice(0,10);
   var col=window.db.collection('yedekler');
   col.doc(bugunKey).get().then(function(snap){
