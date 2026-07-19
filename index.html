@@ -5235,7 +5235,7 @@ function girisLogla(ad,rol){
     // IP al - ip-api.com CORS destekler
     if(!window._ipAlindi){
       window._ipAlindi=true;
-      fetch('http://ip-api.com/json/?fields=query,city,regionName,country',{mode:'cors'})
+      fetch('https://ip-api.com/json/?fields=query,city,regionName,country')
         .then(function(r){return r.json();})
         .then(function(j){
           var ip=j.query||'?';
