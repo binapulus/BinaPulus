@@ -4636,6 +4636,78 @@ function renderEkstra(bina){
   return wrap;
 }
 
+function renderFaturalar(bina){
+  var wrap=dv('');
+  wrap.appendChild(dv('stit','\uD83D\uDCCB Fatura Takibi'));
+  var faturalar=D.faturalar[bina.id]||[];
+  if(!faturalar.length){
+    wrap.appendChild(dv('empty','<div class="ei">\uD83D\uDCCB</div><h3>Fatura yok</h3><p>+ butonundan fatura ekleyin</p>'));
+    return wrap;
+  }
+  faturalar.slice().reverse().forEach(function(f){
+    var card=dv('card');
+    var odendi=f.durum==='odendi';
+    card.style.cssText='border-left:4px solid '+(odendi?'var(--g1)':'var(--red)')+';margin-bottom:10px';
+    card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+      +'<div><div style="font-weight:700;font-size:14px">'+(odendi?'\u2705':'\u23F3')+' '+f.ad+'</div>'
+      +'<div style="font-size:12px;color:var(--text2);margin-top:4px">'+( f.kategori||'')+(f.tarih?' \u00b7 '+fT(f.tarih):'')+'</div>'
+      +(f.tutar?'<div style="font-size:14px;font-weight:800;color:'+(odendi?'var(--g1)':'var(--red)')+'">'+fP(f.tutar)+'</div>':'')
+      +'</div>'
+      +'<div style="display:flex;gap:6px;align-items:center">'
+      +(!odendi?'':'')
+      +'</div></div>';
+    // Ödendi butonu
+    if(!odendi){
+      var odBtn=btn('btn bg bsm','\u2705 \u00d6dendi',function(){
+        onayModal(f.ad+' \u00f6dendi i\u015faretlensin mi?',function(){
+          guncelle(function(){
+            var i=D.faturalar[bina.id].findIndex(function(x){return x.id===f.id;});
+            if(i>=0){
+              D.faturalar[bina.id][i].durum='odendi';
+              D.faturalar[bina.id][i].odemeTarih=bugun();
+              // Kasaya ekle
+              if(!D.kasaH[bina.id])D.kasaH[bina.id]=[];
+              D.kasaH[bina.id].push({id:uid(),tip:'gider',tutar:f.tutar||0,kategori:f.kategori||'Fatura',aciklama:f.ad,tarih:bugun(),saat:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})});
+            }
+          },'Fatura \u00f6dendi: '+f.ad);
+          toast('\u2705 \u00d6dendi!','ok');
+        });
+      });
+      odBtn.style.cssText='margin-top:8px;font-size:11px;padding:6px 12px';
+      card.appendChild(odBtn);
+    }
+    // Sil butonu
+    var silBtn=btn('ib ib-d','\uD83D\uDDD1\uFE0F',function(){
+      if(confirm('Silinsin mi?')){guncelle(function(){D.faturalar[bina.id]=(D.faturalar[bina.id]||[]).filter(function(x){return x.id!==f.id;});});}
+    });
+    card.querySelector('div').appendChild(silBtn);
+    wrap.appendChild(card);
+  });
+  return wrap;
+}
+
+function modalFaturaEkle(bina){
+  modal('\uD83D\uDCCB Fatura Ekle',function(m,close){
+    var adI=inp('text','','Fatura ad\u0131...');
+    var kSel=sel([['Elektrik','\u26A1 Elektrik'],['Su','\uD83D\uDCA7 Su'],['Do\u011falgaz','\uD83D\uDD25 Do\u011falgaz'],['\u0130nternet','\uD83C\uDF10 \u0130nternet'],['Asans\u00f6r','Asans\u00f6r Bak\u0131m'],['Sigorta','Sigorta'],['Di\u011fer','Di\u011fer']],'Elektrik');
+    var tI=inp('number','','Tutar (\u20bE)');
+    var dI=inp('date',bugun(),'');
+    var errD=dv('');
+    append(m,fg('FATURA ADI *',adI),fg('KATEGOR\u0130',kSel),fg('TUTAR',tI),fg('TAR\u0130H',dI),errD);
+    var brow=dv('brow');
+    brow.appendChild(btn('btn bgr','\u0130ptal',close));
+    brow.appendChild(btn('btn bg','+ Fatura Ekle',function(){
+      if(!adI.value.trim()){errD.appendChild(alrt('al-err','Fatura ad\u0131 girin.'));return;}
+      guncelle(function(){
+        if(!D.faturalar[bina.id])D.faturalar[bina.id]=[];
+        D.faturalar[bina.id].push({id:uid(),ad:adI.value.trim(),kategori:kSel.value,tutar:+tI.value||0,tarih:dI.value,durum:'bekliyor'});
+      },'Fatura eklendi: '+adI.value.trim());
+      close();toast('\uD83D\uDCCB Fatura eklendi!','ok');
+    }));
+    m.appendChild(brow);
+  });
+}
+
 function renderEvraklar(bina){
   const wrap=dv('');
   wrap.appendChild(dv('stit','\uD83D\uDCCB Evrak & Bak\u0131m Takibi'));
@@ -5232,14 +5304,14 @@ function girisLogla(ad,rol){
       if(D.girisLog.length>50)D.girisLog=D.girisLog.slice(0,50);
       kaydet();
     };
-    // IP al - ip-api.com CORS destekler
+    // IP al - ipwho.is HTTPS destekler
     if(!window._ipAlindi){
       window._ipAlindi=true;
-      fetch('https://ip-api.com/json/?fields=query,city,regionName,country')
+      fetch('https://ipwho.is/')
         .then(function(r){return r.json();})
         .then(function(j){
-          var ip=j.query||'?';
-          var konum=(j.city||'')+(j.regionName&&j.regionName!==j.city?' / '+j.regionName:'')+(j.country?', '+j.country:'');
+          var ip=j.ip||'?';
+          var konum=(j.city||'')+(j.region&&j.region!==j.city?' / '+j.region:'')+(j.country?', '+j.country:'');
           window._ipSon=ip;window._konumSon=konum;
           kayitEkle(ip,konum);
         }).catch(function(){
