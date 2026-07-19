@@ -5232,19 +5232,23 @@ function girisLogla(ad,rol){
       if(D.girisLog.length>50)D.girisLog=D.girisLog.slice(0,50);
       kaydet();
     };
-    // IP al - sadece bir kez, hata alırsa durdur
+    // IP al - ip-api.com CORS destekler
     if(!window._ipAlindi){
       window._ipAlindi=true;
-      setTimeout(function(){
-        fetch('https://ipapi.co/json/').then(function(r){
-          if(!r.ok)throw new Error('HTTP '+r.status);
-          return r.json();
-        }).then(function(j){
-          var konum=(j.city||'')+(j.region&&j.region!==j.city?' / '+j.region:'')+(j.country_name?', '+j.country_name:'');
-          window._ipSon=j.ip;window._konumSon=konum;
-          kayitEkle(j.ip,konum);
-        }).catch(function(){kayitEkle('?','?');});
-      },2000);
+      fetch('http://ip-api.com/json/?fields=query,city,regionName,country',{mode:'cors'})
+        .then(function(r){return r.json();})
+        .then(function(j){
+          var ip=j.query||'?';
+          var konum=(j.city||'')+(j.regionName&&j.regionName!==j.city?' / '+j.regionName:'')+(j.country?', '+j.country:'');
+          window._ipSon=ip;window._konumSon=konum;
+          kayitEkle(ip,konum);
+        }).catch(function(){
+          // Yedek servis
+          fetch('https://api.ipify.org?format=json')
+            .then(function(r){return r.json();})
+            .then(function(j){kayitEkle(j.ip||'?','—');})
+            .catch(function(){kayitEkle('?','?');});
+        });
     } else {
       kayitEkle(window._ipSon||'?',window._konumSon||'?');
     }
