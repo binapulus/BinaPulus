@@ -766,7 +766,7 @@ function renderLogin(){
       if(y.abonelik==='demo'&&y.abonelikBitis&&new Date(y.abonelikBitis).getTime()<Date.now()){
         render();setTimeout(function(){modalPaketSec(y);},500);return true;
       }
-      y.girisYapti=true;kaydet();
+      y.girisYapti=true;if(typeof kaydet==='function')kaydet();
       render();setTimeout(function(){sozlesmeKontrol(null);},800);return true;
       }
       var bd=null,bb=null;
@@ -1210,7 +1210,7 @@ function modalPaketSec(yon){
         // Ödeme logu kaydet
         if(!D.odemeLog)D.odemeLog=[];
         D.odemeLog.unshift({tarih:bugun(),binaAd:(D.binalar.find(function(b){return b.id===yon.binaId;})||{}).ad||'',ad:yon.ad||yon.kullaniciAdi,paket:p.ad,mesaj:'Abonelik talebi g\u00f6nderildi'});
-        kaydet();
+        if(typeof kaydet==='function')kaydet();
         mailGonder(D.admin.email,'Admin',
           '\uD83D\uDCB0 Abonelik Talebi - '+(yon.ad||yon.kullaniciAdi),
           'Kullan\u0131c\u0131: '+(yon.ad||yon.kullaniciAdi)+'\nMail: '+(yon.email||'')+'\nTel: '+(yon.tel||'')+'\nBina: '+((D.binalar.find(function(b){return b.id===yon.binaId;})||{}).ad||'')+'\nSe\u00e7ilen Paket: '+p.ad+' ('+p.fiyat+')\n\nL\u00fctfen \u00f6deme bilgilerini iletin.',
@@ -5204,9 +5204,15 @@ function girisLogla(ad,rol){
       if(D.girisLog.length>50)D.girisLog=D.girisLog.slice(0,50);
       kaydet();
     };
-    fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(j){
-      kayitEkle(j.ip,(j.city||'')+(j.region&&j.region!==j.city?' / '+j.region:'')+(j.country_name?', '+j.country_name:''));
-    }).catch(function(){kayitEkle('?','?');});
+    // IP sadece bir kez al - hata alırsa tekrar deneme
+    if(!window._ipAlindi){
+      window._ipAlindi=true;
+      fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(j){
+        kayitEkle(j.ip,(j.city||'')+(j.region&&j.region!==j.city?' / '+j.region:'')+(j.country_name?', '+j.country_name:''));
+      }).catch(function(){kayitEkle('?','?');});
+    } else {
+      kayitEkle(window._ipSon||'?',window._konumSon||'?');
+    }
   }catch(e){}
 }
 
