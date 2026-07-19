@@ -370,6 +370,34 @@ function abonelikBilgi(y){
   }
   return{tip:'demo',etiket:'\uD83C\uDF81 Demo',renk:'#f59e0b',bitti:false};
 }
+function kaydet(){
+  try{
+    if(!window._bulutOkundu){console.warn('Bulut henüz okunmadı, yazım atlandı');return;}
+    var D2=JSON.parse(JSON.stringify(D));
+    // Resimleri çıkar (200KB üstü)
+    Object.keys(D2.arizalar||{}).forEach(function(bid){
+      (D2.arizalar[bid]||[]).forEach(function(a){if(a.resim&&a.resim.length>200000)a.resim='[resim_local]';});
+    });
+    D2._imza=sifreHash('BinaPlus'+new Date().toISOString().slice(0,10)+'gizli_2026_bp').slice(0,16);
+    var jsonStr=JSON.stringify(D2);
+    if(jsonStr.length>900000){console.warn('Veri çok büyük, kayıt atlandı');return;}
+    localStorage.setItem('bp5',jsonStr);
+    if(window.db&&window._bulutOkundu){
+      var now2=Date.now();
+      if(window._sonKayitZaman&&now2-window._sonKayitZaman<3000){return;}
+      window._sonKayitZaman=now2;
+      window.db.collection('binaplus').doc('data').set({
+        json:jsonStr,
+        guncelleme:new Date().toISOString()
+      }).then(function(){
+        console.log('Firestore kayit OK! '+(jsonStr.length/1024).toFixed(0)+'KB');
+      }).catch(function(e){
+        console.error('Firestore KAYIT HATASI:',e.code,e.message);
+      });
+    }
+  }catch(e){console.error('kaydet hatası:',e);}
+}
+
 function guncelle(fn,logMesaj){
   fn();
   // Değişiklik logu
@@ -5204,12 +5232,19 @@ function girisLogla(ad,rol){
       if(D.girisLog.length>50)D.girisLog=D.girisLog.slice(0,50);
       kaydet();
     };
-    // IP sadece bir kez al - hata alırsa tekrar deneme
+    // IP al - sadece bir kez, hata alırsa durdur
     if(!window._ipAlindi){
       window._ipAlindi=true;
-      fetch('https://ipapi.co/json/').then(function(r){return r.json();}).then(function(j){
-        kayitEkle(j.ip,(j.city||'')+(j.region&&j.region!==j.city?' / '+j.region:'')+(j.country_name?', '+j.country_name:''));
-      }).catch(function(){kayitEkle('?','?');});
+      setTimeout(function(){
+        fetch('https://ipapi.co/json/').then(function(r){
+          if(!r.ok)throw new Error('HTTP '+r.status);
+          return r.json();
+        }).then(function(j){
+          var konum=(j.city||'')+(j.region&&j.region!==j.city?' / '+j.region:'')+(j.country_name?', '+j.country_name:'');
+          window._ipSon=j.ip;window._konumSon=konum;
+          kayitEkle(j.ip,konum);
+        }).catch(function(){kayitEkle('?','?');});
+      },2000);
     } else {
       kayitEkle(window._ipSon||'?',window._konumSon||'?');
     }
