@@ -3326,6 +3326,57 @@ function renderKasa(bina){
   });
   aySec.onchange=function(){S.kasaAy=aySec.value;render();};
   kasaTopBar.appendChild(kasaTitle);kasaTopBar.appendChild(aySec);kasaTopBar.appendChild(btnGrp);
+
+  // ── AYLIK ÖZET TABLOSU ──
+  var kasaH0=D.kasaH[bina.id]||[];
+  var ayOzetMap={};
+  kasaH0.forEach(function(x){
+    var ay=(x.tarih||'').slice(0,7);
+    if(!ay)return;
+    if(!ayOzetMap[ay])ayOzetMap[ay]={gelir:0,gider:0};
+    if(x.tip==='gelir')ayOzetMap[ay].gelir+=x.tutar;
+    else ayOzetMap[ay].gider+=x.tutar;
+  });
+  var aylar0=Object.keys(ayOzetMap).sort().reverse();
+  if(aylar0.length){
+    var ozDiv=dv('');ozDiv.style.cssText='margin-bottom:14px';
+    var ozTitle=dv('');ozTitle.style.cssText='font-size:13px;font-weight:800;color:var(--g1);margin-bottom:8px';
+    ozTitle.textContent='\uD83D\uDCC5 Ayl\u0131k Gelir / Gider \u00d6zeti';
+    ozDiv.appendChild(ozTitle);
+    var tbl=document.createElement('table');
+    tbl.style.cssText='width:100%;border-collapse:collapse;font-size:12px';
+    var thead=document.createElement('thead');
+    thead.innerHTML='<tr style="background:var(--g1);color:#fff"><th style="padding:7px 10px;text-align:left">Ay</th><th style="padding:7px 10px;text-align:right">Gelir</th><th style="padding:7px 10px;text-align:right">Gider</th><th style="padding:7px 10px;text-align:right">Net</th></tr>';
+    tbl.appendChild(thead);
+    var tbody=document.createElement('tbody');
+    var topG=0,topGi=0;
+    aylar0.forEach(function(ay,idx){
+      var g=ayOzetMap[ay].gelir,gi=ayOzetMap[ay].gider,net=g-gi;
+      topG+=g;topGi+=gi;
+      var tr=document.createElement('tr');
+      tr.style.cssText='border-bottom:1px solid #eee;cursor:pointer;'+(idx%2===0?'background:#fafafa':'');
+      var d=new Date(ay+'-01');
+      var ayAd=d.toLocaleDateString('tr-TR',{month:'long',year:'numeric'});
+      tr.innerHTML='<td style="padding:7px 10px;font-weight:600">'+ayAd+'</td>'
+        +'<td style="padding:7px 10px;text-align:right;color:#2e7d32;font-weight:700">'+fP(g)+'</td>'
+        +'<td style="padding:7px 10px;text-align:right;color:#c62828;font-weight:700">'+fP(gi)+'</td>'
+        +'<td style="padding:7px 10px;text-align:right;font-weight:800;color:'+(net>=0?'#1a5c38':'#c62828')+'">'+fP(net)+'</td>';
+      tr.onclick=function(){S.kasaAy=(S.kasaAy===ay?'hepsi':ay);render();};
+      tbody.appendChild(tr);
+    });
+    // Toplam satırı
+    var trTop=document.createElement('tr');
+    trTop.style.cssText='background:#1a5c38;color:#fff;font-weight:900';
+    trTop.innerHTML='<td style="padding:8px 10px">TOPLAM</td>'
+      +'<td style="padding:8px 10px;text-align:right">'+fP(topG)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right">'+fP(topGi)+'</td>'
+      +'<td style="padding:8px 10px;text-align:right">'+fP(topG-topGi)+'</td>';
+    tbody.appendChild(trTop);
+    tbl.appendChild(tbody);
+    ozDiv.appendChild(tbl);
+    ozDiv.appendChild(dv('al al-info','\uD83D\uDCA1 Bir aya t\u0131klay\u0131nca o ay\u0131n hareketlerini filtreler.'));
+    wrap.appendChild(ozDiv);
+  }
   wrap.appendChild(kasaTopBar);
   const h=D.kasaH[bina.id]||[];
   if(!h.length){wrap.appendChild(dv('empty','<div class="ei">\uD83D\uDCB8</div><h3>Hareket yok</h3><p>Gelir veya gider ekleyin</p>'));return wrap;}
