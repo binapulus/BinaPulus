@@ -5226,51 +5226,65 @@ function modalMakbuz(h,bina,daire){
     +'BinaPlus Apartman Y\u00f6netim Sistemi \u2022 '+bina.ad
     +'</div>'
     +'</div></body></html>';
-  // Telefon uyumlu makbuz gösterimi - modal iframe ile
-  (function(){
-    // Tam ekran overlay oluştur
-    var overlay=document.createElement('div');
-    overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;background:#fff;z-index:99999;display:flex;flex-direction:column';
-    // Üst buton çubuğu
-    var toolbar=document.createElement('div');
-    toolbar.style.cssText='display:flex;gap:8px;padding:10px;background:#1a5c38;flex-shrink:0';
-    var printBtn=document.createElement('button');
-    printBtn.textContent='\uD83D\uDDB8\uFE0F Yazd\u0131r / PDF';
-    printBtn.style.cssText='flex:1;background:#f0c040;color:#1a3a1a;border:none;border-radius:8px;padding:10px;font-size:14px;font-weight:800;cursor:pointer';
-    var closeBtn=document.createElement('button');
-    closeBtn.textContent='\u2715 Kapat';
-    closeBtn.style.cssText='background:rgba(255,255,255,.2);color:#fff;border:none;border-radius:8px;padding:10px 14px;font-size:14px;cursor:pointer';
-    toolbar.appendChild(printBtn);toolbar.appendChild(closeBtn);
-    // iframe
-    var iframe=document.createElement('iframe');
-    iframe.style.cssText='flex:1;border:none;width:100%';
-    iframe.srcdoc=html;
-    closeBtn.onclick=function(){document.body.removeChild(overlay);};
-    printBtn.onclick=function(){
-      try{
-        iframe.contentWindow.print();
-      }catch(e){
-        // Fallback: blob URL indir
-        var b=new Blob([html],{type:'text/html'});
-        var u=URL.createObjectURL(b);
-        var a=document.createElement('a');a.href=u;a.download=dosyaAdi+'.html';
-        document.body.appendChild(a);a.click();
-        setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},1000);
-      }
-    };
-    overlay.appendChild(toolbar);overlay.appendChild(iframe);
-    document.body.appendChild(overlay);
-    // Eski yöntem yedek olarak deneme (masaüstü)
-    try{
-      var win=window.open('','_blank','width=500,height=700');
-      if(win&&win.document){
-        win.document.write(html);win.document.close();
-        document.body.removeChild(overlay);
-      }
-    }catch(e){}
-  })();
-}
+  // Makbuz - aynı sayfada tam ekran modal (PWA/telefon uyumlu)
+  var overlay=document.createElement('div');
+  overlay.id='makbuz-overlay';
+  overlay.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:#fff;display:flex;flex-direction:column;overflow:hidden';
 
+  // Toolbar
+  var tb=document.createElement('div');
+  tb.style.cssText='display:flex;gap:8px;padding:10px 12px;background:#1a5c38;flex-shrink:0;align-items:center';
+
+  var titleSpan=document.createElement('span');
+  titleSpan.style.cssText='color:#fff;font-size:13px;font-weight:700;flex:1';
+  titleSpan.textContent='\uD83E\uDDFE Makbuz \u2014 '+daireNo;
+
+  var printBtn=document.createElement('button');
+  printBtn.innerHTML='\uD83D\uDDB8\uFE0F Yazd\u0131r';
+  printBtn.style.cssText='background:#f0c040;color:#1a3a1a;border:none;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0';
+
+  var closeBtn2=document.createElement('button');
+  closeBtn2.innerHTML='\u2715';
+  closeBtn2.style.cssText='background:rgba(255,255,255,.25);color:#fff;border:none;border-radius:8px;padding:8px 12px;font-size:16px;cursor:pointer;flex-shrink:0';
+
+  tb.appendChild(titleSpan);tb.appendChild(printBtn);tb.appendChild(closeBtn2);
+
+  // İçerik div - html'i buraya yaz
+  var contentDiv=document.createElement('div');
+  contentDiv.style.cssText='flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch';
+  contentDiv.innerHTML=html;
+
+  closeBtn2.onclick=function(){
+    if(overlay.parentNode)overlay.parentNode.removeChild(overlay);
+  };
+
+  printBtn.onclick=function(){
+    // Print için geçici iframe
+    var pf=document.createElement('iframe');
+    pf.style.cssText='position:fixed;top:-9999px;left:-9999px;width:1px;height:1px';
+    document.body.appendChild(pf);
+    try{
+      pf.contentDocument.open();
+      pf.contentDocument.write(html);
+      pf.contentDocument.close();
+      setTimeout(function(){
+        try{pf.contentWindow.print();}catch(e){window.print();}
+        setTimeout(function(){if(pf.parentNode)pf.parentNode.removeChild(pf);},2000);
+      },500);
+    }catch(e){
+      // Son çare: blob indir
+      var b=new Blob([html],{type:'text/html'});
+      var u=URL.createObjectURL(b);
+      var a=document.createElement('a');
+      a.href=u;a.download=dosyaAdi+'.html';
+      document.body.appendChild(a);a.click();
+      setTimeout(function(){document.body.removeChild(a);URL.revokeObjectURL(u);},1000);
+    }
+  };
+
+  overlay.appendChild(tb);overlay.appendChild(contentDiv);
+  document.body.appendChild(overlay);
+}
 function modalTopluMakbuz(bina,yil){
   const h=D.kasaH[bina.id]||[];
   // Aidat ödemelerini bul - kategori farklı yazılmış olabilir, geniş filtre kullan
