@@ -3031,7 +3031,8 @@ function renderYonetici(bina){
   // Abonelik durumu banner
   const yon=D.yoneticiler.find(function(x){return x.id===S.user.id;});
   const ab=abonelikBilgi(yon);
-  if(ab.tip==='demo'||ab.tip==='bitti'||ab.tip==='uyari'){
+  if(!wrap._bannerEklendi&&(ab.tip==='demo'||ab.tip==='bitti'||ab.tip==='uyari')){
+    wrap._bannerEklendi=true;
     const demoBanner=dv('');
     demoBanner.style.cssText='background:'+(ab.bitti?'var(--red)':ab.tip==='uyari'?'#e65100':'#f59e0b')+';padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0';
     demoBanner.innerHTML='<span style="color:#fff;font-size:12px;font-weight:700">'+(ab.bitti?'\u26A0\uFE0F Abonelik s\u00fcreniz doldu!':'\uD83C\uDD95 '+ab.etiket+' \u2014 \u00f6deme yaparak tam s\u00fcr\u00fcme ge\u00e7in')+'</span>';
@@ -4992,7 +4993,7 @@ function modalAdminAbonelikDuzenle(y){
       guncelle(function(){
         var i=D.yoneticiler.findIndex(function(x){return x.id===y.id;});
         if(i<0)return;
-        D.yoneticiler[i].abonelik=tip==='tam'?'tam':'demo';
+        D.yoneticiler[i].abonelik=tip;
         D.yoneticiler[i].abonelikBitis=tip==='tam'?'':bitisI.value;
         D.yoneticiler[i].abonelikBaslangic=bugunStr;
         D.yoneticiler[i].abonelikNot=notI.value.trim();
